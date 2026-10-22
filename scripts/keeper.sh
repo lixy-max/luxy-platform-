@@ -23,19 +23,23 @@ else
   PY_BIN="$(command -v python3 || command -v python)"
 fi
 
-# ★ 单实例保护：flock 文件锁
-#   flock 由内核持有，进程正常退出 / 被 kill / 被 kill -9 都会自动释放 ✓
-#   （历史尝试：pid 文件 + pgrep —— 都会被 nohup/setsid 的 wrapper cmdline 误判，
-#     导致"已在运行"而永远起不来；flock 没有这个问题）
-_LOCKFILE="${KEEPER_LOCK:-/tmp/workbench_keeper.lock}"
-exec 9>"$_LOCKFILE"
-if ! flock -n 9; then
-  echo "[keeper] 已在运行（持有 $_LOCKFILE），本进程退出"
-  exit 0
+# ★ 单实例保护：pid 文件 + /proc cmdline 校验
+#   为什么不用 flock：keeper 会派生子进程（start.sh / tail 等）继承锁 fd，
+#   父进程被 kill -9 后子进程仍持锁 ⇒ 重启报"已在运行"（实测踩过）
+#   为什么不用裸 pgrep：nohup/setsid 的 wrapper cmdline 也含脚本名 ⇒ 误判自己
+_PIDFILE="${KEEPER_PIDFILE:-/tmp/workbench_keeper.pid}"
+if [ -f "$_PIDFILE" ]; then
+  _OLD=$(cat "$_PIDFILE" 2>/dev/null || echo "")
+  if [ -n "$_OLD" ] && kill -0 "$_OLD" 2>/dev/null; then
+    # 校验 /proc/<pid>/cmdline 确实是 keeper（防 pid 复用）
+    if tr '\0' ' ' < "/proc/$_OLD/cmdline" 2>/dev/null | grep -q 'keeper\.sh'; then
+      echo "[keeper] 已在运行（pid $_OLD），本进程退出"
+      exit 0
+    fi
+  fi
 fi
-echo $$ > "${KEEPER_PIDFILE:-/tmp/workbench_keeper.pid}"
-# TERM/INT 必须 exit：否则 kill 只清 pid 文件、进程继续常驻（历史 bug）
-trap 'rm -f "${KEEPER_PIDFILE:-/tmp/workbench_keeper.pid}"; exit 0' EXIT INT TERM
+echo $$ > "$_PIDFILE"
+trap 'rm -f "$_PIDFILE"; exit 0' EXIT INT TERM
 
 log() { echo "[$(date '+%F %T')] $*" | tee -a "$LOG" >/dev/null; }
 
@@ -72,5 +76,5 @@ while true; do
   else
     [ $((n % 20)) -eq 0 ] && log "健康检查第 $n 轮：后端 $B / 前端 $F / 底座 $V ✓"
   fi
-  sleep 20
+  sleep 20 & wait $!  # 可中断
 done
