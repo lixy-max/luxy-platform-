@@ -1,0 +1,18 @@
+cd ~/paper_lora_project
+cat > sample.txt << 'EOF'
+标题：SparseFormer: 基于稀疏注意力的高效长文本Transformer
+作者：Zhang, S., Li, M.
+会议：ICML 2024
+
+摘要：本文提出SparseFormer，一种基于稀疏注意力的Transformer变体，旨在解决长文本推理中显存占用过高的问题。我们假设：在保持精度的前提下，稀疏化注意力模式可以显著降低显存需求。
+
+方法：我们设计了一个可学习的稀疏门控模块，动态选择每个token需要关注的键值对。在16K上下文下，注意力复杂度从O(n²)降低至O(n√n)。
+
+实验：在LongBench和ArXiv数据集上，我们使用8张A100训练，batch size为64，学习率1e-4，训练100k步。与Longformer、BigBird、Reformer等5个基线对比。
+
+结果：SparseFormer在LongBench上达到87.2 F1，比最佳基线高2.1分，同时减少40%显存消耗。
+
+结论：实验支持了我们的假设，稀疏化注意力可以在保持精度的同时显著降低显存。但我们的方法在短文本任务上没有明显优势。
+
+贡献：提出了可学习稀疏门控机制；在长文本任务上取得SOTA；显存消耗降低40%。
+EOF

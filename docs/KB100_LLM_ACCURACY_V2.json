@@ -1,0 +1,2044 @@
+{
+  "generated": "2026-10-21 19:29:46",
+  "questions": 100,
+  "model": "local 7B (Qwen2.5-7B-Instruct-AWQ)",
+  "judge": "keyword match (conservative)",
+  "arms": {
+    "clean": "ab_clean_20261021",
+    "raw": "ab_raw_20261021"
+  },
+  "summary": {
+    "clean": {
+      "n": 100,
+      "acc": 0.17,
+      "ci": [
+        0.1,
+        0.25
+      ],
+      "chunks_avg": 3.0,
+      "elapsed_avg": 0.6
+    },
+    "raw": {
+      "n": 100,
+      "acc": 0.09,
+      "ci": [
+        0.04,
+        0.15
+      ],
+      "chunks_avg": 3.0,
+      "elapsed_avg": 0.7
+    },
+    "paired": {
+      "n": 100,
+      "diff_pp": 8.0,
+      "ci": [
+        2.0,
+        15.0
+      ],
+      "p": 0.018,
+      "significant": true
+    }
+  },
+  "rows": [
+    {
+      "arm": "clean",
+      "qid": "KB-001",
+      "type": "main_idea",
+      "pdf": "2610.03176v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论了训练语言模型（LMs）以对其不确定性进行推理的方法，特别是超越二元奖励的问题。具体来说，它探讨了如何使语言模型在处理不确定性时表现得更好，而不是仅仅依赖于二元奖励信号。",
+      "elapsed_s": 4.35
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-001",
+      "type": "main_idea",
+      "pdf": "2610.03176v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论语言模型（LLMs）的选择偏好和偏差，以及影响这些模型选择的因素，如答案位置、上下文线索、信息来源、权威性和社会证明等。此外，还提到了一些研究和方法，如CaRT（教LLM代理何时知道足够了）和MedCaseReasoning（从临床案例报告中评估和学习诊断推理），用于研究和改进LLMs的表现。",
+      "elapsed_s": 1.76
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-002",
+      "type": "detail",
+      "pdf": "2610.03176v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "Shyama Prasad Mukherjee International Institute of Information Technology, Naya Raipur aarav24101@iiitnr.edu.in, animesh24100@iiitnr.edu.in, navyansh24102@iiitnr.edu.in Abstract We study hindsight-guid",
+      "elapsed_s": 1.5
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-002",
+      "type": "detail",
+      "pdf": "2610.03176v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "Shyama Prasad Mukherjee International Institute of Information Technology, Naya Raipur aarav24101@iiitnr.edu.in, animesh24100@iiitnr.edu.in, navyansh24102@iiitnr.edu.in Abstract We study hindsight-guid",
+      "elapsed_s": 1.33
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-003",
+      "type": "detail",
+      "pdf": "2610.03176v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "Absolute accuracy remains low for all models—the task is hard at this scale—but within this ceiling a filtered variant (StudentF) achieves a small, statistically significant accuracy advantage over the base model.",
+      "elapsed_s": 0.92
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-003",
+      "type": "detail",
+      "pdf": "2610.03176v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "Absolute accuracy remains low for all models—the task is hard at this scale—but within this ceiling a filtered variant (StudentF) achieves a small, statistically significant accuracy advantage over the unfiltered variant (Student).",
+      "elapsed_s": 0.81
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-004",
+      "type": "main_idea",
+      "pdf": "2610.03190v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论了训练语言模型（LMs）以对其不确定性进行推理的方法，特别是超越二元奖励的问题。具体来说，它探讨了如何使语言模型在处理不确定性时表现得更好，而不是仅仅依赖于二元奖励信号。",
+      "elapsed_s": 1.04
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-004",
+      "type": "main_idea",
+      "pdf": "2610.03190v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论语言模型（LLMs）的选择偏好和偏差，以及影响这些模型选择的因素，如答案位置、上下文线索、信息来源、权威性和社会证明等。此外，还提到了一些研究和方法，如CaRT（教LLM代理何时知道足够了）和MedCaseReasoning（从临床案例报告中评估和学习诊断推理），用于研究和改进LLMs的表现。",
+      "elapsed_s": 1.81
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-005",
+      "type": "detail",
+      "pdf": "2610.03190v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "This judgment does not come with capability: an untrained 9B model overstates its evidence in 97% of its answers, and a frontier model that identifies the right cause in 84% of cases still overstates in 91%",
+      "elapsed_s": 1.0
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-005",
+      "type": "detail",
+      "pdf": "2610.03190v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "This judgment does not come with capability: an untrained 9B model overstates its evidence in 97% of its answers, and a frontier model that identifies the right cause in 84% of cases still overstates.",
+      "elapsed_s": 0.95
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-006",
+      "type": "detail",
+      "pdf": "2610.03190v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "83.0",
+      "elapsed_s": 0.12
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-006",
+      "type": "detail",
+      "pdf": "2610.03190v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "83.0",
+      "elapsed_s": 0.13
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-007",
+      "type": "main_idea",
+      "pdf": "2610.03195v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论了训练语言模型（LMs）以对其不确定性进行推理的方法，特别是超越二元奖励的问题。具体来说，它探讨了如何使语言模型在处理不确定性时表现得更好，而不是仅仅依赖于二元奖励信号。",
+      "elapsed_s": 1.02
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-007",
+      "type": "main_idea",
+      "pdf": "2610.03195v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论语言模型（LLMs）的选择偏好和偏差，以及影响这些模型选择的因素，如答案位置、上下文线索、信息来源、权威性和社会证明等。此外，还提到了一些研究和方法，如CaRT（教LLM代理何时知道足够了）和MedCaseReasoning（从临床案例报告中评估和学习诊断推理），用于研究和改进LLMs的表现。",
+      "elapsed_s": 1.67
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-008",
+      "type": "detail",
+      "pdf": "2610.03195v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "We study source preference in end-to-end search with 12 agent models across three domains。",
+      "elapsed_s": 0.4
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-008",
+      "type": "detail",
+      "pdf": "2610.03195v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "We study source preference in end-to-end search with 12 agent mod- models across three domains。",
+      "elapsed_s": 0.47
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-009",
+      "type": "detail",
+      "pdf": "2610.03195v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "1 INTRODUCTION Large language model agents increasingly move beyond providing information to deciding what users see.",
+      "elapsed_s": 0.38
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-009",
+      "type": "detail",
+      "pdf": "2610.03195v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "INTRODUCTION",
+      "elapsed_s": 0.1
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-010",
+      "type": "main_idea",
+      "pdf": "2610.03198v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论了训练语言模型（LMs）以对其不确定性进行推理的方法，特别是超越二元奖励的问题。具体来说，它探讨了如何使语言模型在处理不确定性时表现得更好，而不是仅仅依赖于二元奖励信号。",
+      "elapsed_s": 0.98
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-010",
+      "type": "main_idea",
+      "pdf": "2610.03198v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论语言模型（LLMs）的选择偏好和偏差，以及影响这些模型选择的因素，如答案位置、上下文线索、信息来源、权威性和社会证明等。此外，还提到了一些研究和方法，如CaRT（教LLM代理何时知道足够了）和MedCaseReasoning（从临床案例报告中评估和学习诊断推理），用于研究和改进LLMs的表现。",
+      "elapsed_s": 1.6
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-011",
+      "type": "detail",
+      "pdf": "2610.03198v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.15
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-011",
+      "type": "detail",
+      "pdf": "2610.03198v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "KV__A: A Self-Refining KV Cache Johannes Wesch Danni Liu Jan Niehues Karlsruhe Institute of Technology, Germany johannes.wesch@student.kit.edu,danni.liu@kit.edu Abstract The memory footprint of the key-value cache is a critical performance factor in many applications. This paper presents a self-refi",
+      "elapsed_s": 1.64
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-012",
+      "type": "detail",
+      "pdf": "2610.03198v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.1
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-012",
+      "type": "detail",
+      "pdf": "2610.03198v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.11
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-013",
+      "type": "main_idea",
+      "pdf": "2610.03215v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论了训练语言模型（LMs）以对其不确定性进行推理的方法，特别是超越二元奖励的问题。具体来说，它探讨了如何使语言模型在处理不确定性时表现得更好，而不是仅仅依赖于二元奖励信号。",
+      "elapsed_s": 1.06
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-013",
+      "type": "main_idea",
+      "pdf": "2610.03215v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论语言模型（LLMs）的选择偏好和偏差，以及影响这些模型选择的因素，如答案位置、上下文线索、信息来源、权威性和社会证明等。此外，还提到了一些研究和方法，如CaRT（教LLM代理何时知道足够了）和MedCaseReasoning（从临床案例报告中评估和学习诊断推理），用于研究和改进LLMs的表现。",
+      "elapsed_s": 1.63
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-014",
+      "type": "detail",
+      "pdf": "2610.03215v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及。",
+      "elapsed_s": 0.12
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-014",
+      "type": "detail",
+      "pdf": "2610.03215v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.24
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-015",
+      "type": "detail",
+      "pdf": "2610.03215v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.12
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-015",
+      "type": "detail",
+      "pdf": "2610.03215v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.12
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-016",
+      "type": "main_idea",
+      "pdf": "2610.03223v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论了训练语言模型（LMs）以对其不确定性进行推理的方法，特别是超越二元奖励的问题。具体来说，它探讨了如何使语言模型在处理不确定性时表现得更好，而不是仅仅依赖于二元奖励信号。",
+      "elapsed_s": 1.1
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-016",
+      "type": "main_idea",
+      "pdf": "2610.03223v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论语言模型（LLMs）的选择偏好和偏差，以及影响这些模型选择的因素，如答案位置、上下文线索、信息来源、权威性和社会证明等。此外，还提到了一些研究和方法，如CaRT（教LLM代理何时知道足够了）和MedCaseReasoning（从临床案例报告中评估和学习诊断推理），用于研究和改进LLMs的表现。",
+      "elapsed_s": 1.64
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-017",
+      "type": "detail",
+      "pdf": "2610.03223v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "Preprint ADASTEP: ADAPTIVE STEPCREDIT WEIGHTING FOR AGENTIC REINFORCEMENT LEARNING Xin Wang1,3∗ Wenhao Wu2,3∗ Menghao Zhang3∗ Zhi Wang2† Kun Shao3† Jian Luan3† 1Tsinghua University 2Nanjing University 3Peking University",
+      "elapsed_s": 1.59
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-017",
+      "type": "detail",
+      "pdf": "2610.03223v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.14
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-018",
+      "type": "detail",
+      "pdf": "2610.03223v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "dense but noisy E+: Same correct action ...",
+      "elapsed_s": 0.33
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-018",
+      "type": "detail",
+      "pdf": "2610.03223v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.11
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-019",
+      "type": "main_idea",
+      "pdf": "2610.03324v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论了训练语言模型（LMs）以对其不确定性进行推理的方法，特别是超越二元奖励的问题。具体来说，它探讨了如何使语言模型在处理不确定性时表现得更好，而不是仅仅依赖于二元奖励信号。",
+      "elapsed_s": 1.04
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-019",
+      "type": "main_idea",
+      "pdf": "2610.03324v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论语言模型（LLMs）的选择偏好和偏差，以及影响这些模型选择的因素，如答案位置、上下文线索、信息来源、权威性和社会证明等。此外，还提到了一些研究和方法，如CaRT（教LLM代理何时知道足够了）和MedCaseReasoning（从临床案例报告中评估和学习诊断推理），用于研究和改进LLMs的表现。",
+      "elapsed_s": 1.63
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-020",
+      "type": "detail",
+      "pdf": "2610.03324v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.11
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-020",
+      "type": "detail",
+      "pdf": "2610.03324v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.1
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-021",
+      "type": "detail",
+      "pdf": "2610.03324v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.11
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-021",
+      "type": "detail",
+      "pdf": "2610.03324v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.11
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-022",
+      "type": "main_idea",
+      "pdf": "2610.03329v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论了训练语言模型（LMs）以对其不确定性进行推理的方法，特别是超越二元奖励的问题。具体来说，它探讨了如何使语言模型在处理不确定性时表现得更好，而不是仅仅依赖于二元奖励信号。",
+      "elapsed_s": 1.03
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-022",
+      "type": "main_idea",
+      "pdf": "2610.03329v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论语言模型（LLMs）的选择偏好和偏差，以及影响这些模型选择的因素，如答案位置、上下文线索、信息来源、权威性和社会证明等。此外，还提到了一些研究和方法，如CaRT（教LLM代理何时知道足够了）和MedCaseReasoning（从临床案例报告中评估和学习诊断推理），用于研究和改进LLMs的表现。",
+      "elapsed_s": 1.74
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-023",
+      "type": "detail",
+      "pdf": "2610.03329v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.1
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-023",
+      "type": "detail",
+      "pdf": "2610.03329v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.11
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-024",
+      "type": "detail",
+      "pdf": "2610.03329v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "We evaluate eight open-weight models spanning B-32B parameters across 11 available reasoning-mode configurations.",
+      "elapsed_s": 0.47
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-024",
+      "type": "detail",
+      "pdf": "2610.03329v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.12
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-025",
+      "type": "main_idea",
+      "pdf": "2610.03423v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论了训练语言模型（LMs）以对其不确定性进行推理的方法，特别是超越二元奖励的问题。具体来说，它探讨了如何使语言模型在处理不确定性时表现得更好，而不是仅仅依赖于二元奖励信号。",
+      "elapsed_s": 1.13
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-025",
+      "type": "main_idea",
+      "pdf": "2610.03423v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论语言模型（LLMs）的选择偏好和偏差，以及影响这些模型选择的因素，如答案位置、上下文线索、信息来源、权威性和社会证明等。此外，还提到了一些研究和方法，如CaRT（教LLM代理何时知道足够了）和MedCaseReasoning（从临床案例报告中评估和学习诊断推理），用于研究和改进LLMs的表现。",
+      "elapsed_s": 1.83
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-026",
+      "type": "detail",
+      "pdf": "2610.03423v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.13
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-026",
+      "type": "detail",
+      "pdf": "2610.03423v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.12
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-027",
+      "type": "detail",
+      "pdf": "2610.03423v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.12
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-027",
+      "type": "detail",
+      "pdf": "2610.03423v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.12
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-028",
+      "type": "main_idea",
+      "pdf": "2610.03436v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论了训练语言模型（LMs）以对其不确定性进行推理的方法，特别是超越二元奖励的问题。具体来说，它探讨了如何使语言模型在处理不确定性时表现得更好，而不是仅仅依赖于二元奖励信号。",
+      "elapsed_s": 1.0
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-028",
+      "type": "main_idea",
+      "pdf": "2610.03436v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论语言模型（LLMs）的选择偏好和偏差，以及影响这些模型选择的因素，如答案位置、上下文线索、信息来源、权威性和社会证明等。此外，还提到了一些研究和方法，如CaRT（教LLM代理何时知道足够了）和MedCaseReasoning（从临床案例报告中评估和学习诊断推理），用于研究和改进LLMs的表现。",
+      "elapsed_s": 1.62
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-029",
+      "type": "detail",
+      "pdf": "2610.03436v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "Facial Animation",
+      "elapsed_s": 0.21
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-029",
+      "type": "detail",
+      "pdf": "2610.03436v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "D 材料未提及",
+      "elapsed_s": 0.18
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-030",
+      "type": "detail",
+      "pdf": "2610.03436v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.11
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-030",
+      "type": "detail",
+      "pdf": "2610.03436v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.14
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-031",
+      "type": "main_idea",
+      "pdf": "2610.03441v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论了训练语言模型（LMs）以对其不确定性进行推理的方法，特别是超越二元奖励的问题。具体来说，它探讨了如何使语言模型在处理不确定性时表现得更好，而不是仅仅依赖于二元奖励信号。",
+      "elapsed_s": 1.1
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-031",
+      "type": "main_idea",
+      "pdf": "2610.03441v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论语言模型（LLMs）的选择偏好和偏差，以及影响这些模型选择的因素，如答案位置、上下文线索、信息来源、权威性和社会证明等。此外，还提到了一些研究和方法，如CaRT（教LLM代理何时知道足够了）和MedCaseReasoning（从临床案例报告中评估和学习诊断推理），用于研究和改进LLMs的表现。",
+      "elapsed_s": 1.67
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-032",
+      "type": "detail",
+      "pdf": "2610.03441v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.1
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-032",
+      "type": "detail",
+      "pdf": "2610.03441v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.11
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-033",
+      "type": "detail",
+      "pdf": "2610.03441v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.11
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-033",
+      "type": "detail",
+      "pdf": "2610.03441v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.12
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-034",
+      "type": "main_idea",
+      "pdf": "2610.03448v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论了训练语言模型（LMs）以对其不确定性进行推理的方法，特别是超越二元奖励的问题。具体来说，它探讨了如何使语言模型在处理不确定性时表现得更好，而不是仅仅依赖于二元奖励信号。",
+      "elapsed_s": 1.09
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-034",
+      "type": "main_idea",
+      "pdf": "2610.03448v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论语言模型（LLMs）的选择偏好和偏差，以及影响这些模型选择的因素，如答案位置、上下文线索、信息来源、权威性和社会证明等。此外，还提到了一些研究和方法，如CaRT（教LLM代理何时知道足够了）和MedCaseReasoning（从临床案例报告中评估和学习诊断推理），用于研究和改进LLMs的表现。",
+      "elapsed_s": 1.71
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-035",
+      "type": "detail",
+      "pdf": "2610.03448v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及。",
+      "elapsed_s": 0.14
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-035",
+      "type": "detail",
+      "pdf": "2610.03448v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及。",
+      "elapsed_s": 0.12
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-036",
+      "type": "detail",
+      "pdf": "2610.03448v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及。",
+      "elapsed_s": 0.19
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-036",
+      "type": "detail",
+      "pdf": "2610.03448v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.12
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-037",
+      "type": "main_idea",
+      "pdf": "2610.03453v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论了训练语言模型（LMs）以对其不确定性进行推理的方法，特别是超越二元奖励的问题。具体来说，它探讨了如何使语言模型在处理不确定性时表现得更好，而不是仅仅依赖于二元奖励信号。",
+      "elapsed_s": 0.97
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-037",
+      "type": "main_idea",
+      "pdf": "2610.03453v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论语言模型（LLMs）的选择偏好和偏差，以及影响这些模型选择的因素，如答案位置、上下文线索、信息来源、权威性和社会证明等。此外，还提到了一些研究和方法，如CaRT（教LLM代理何时知道足够了）和MedCaseReasoning（从临床案例报告中评估和学习诊断推理），用于研究和改进LLMs的表现。",
+      "elapsed_s": 1.63
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-038",
+      "type": "detail",
+      "pdf": "2610.03453v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "We present ICD, which predicts a convex decomposition directly from a single RGB image.\n\n根据给出的信息，空白处应填写 \"ICD\"，即\"Inverse Convex Decomposition\" 的缩写。",
+      "elapsed_s": 0.82
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-038",
+      "type": "detail",
+      "pdf": "2610.03453v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.1
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-039",
+      "type": "detail",
+      "pdf": "2610.03453v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.13
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-039",
+      "type": "detail",
+      "pdf": "2610.03453v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.11
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-040",
+      "type": "main_idea",
+      "pdf": "2610.03474v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论了训练语言模型（LMs）以对其不确定性进行推理的方法，特别是超越二元奖励的问题。具体来说，它探讨了如何使语言模型在处理不确定性时表现得更好，而不是仅仅依赖于二元奖励信号。",
+      "elapsed_s": 0.99
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-040",
+      "type": "main_idea",
+      "pdf": "2610.03474v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论语言模型（LLMs）的选择偏好和偏差，以及影响这些模型选择的因素，如答案位置、上下文线索、信息来源、权威性和社会证明等。此外，还提到了一些研究和方法，如CaRT（教LLM代理何时知道足够了）和MedCaseReasoning（从临床案例报告中评估和学习诊断推理），用于研究和改进LLMs的表现。",
+      "elapsed_s": 1.72
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-041",
+      "type": "detail",
+      "pdf": "2610.03474v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "We evaluated Fed-ADApton multi-site **clinical** D retinal fundus disc segmentation and 3D brain tumor segmentation.",
+      "elapsed_s": 0.52
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-041",
+      "type": "detail",
+      "pdf": "2610.03474v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.1
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-042",
+      "type": "detail",
+      "pdf": "2610.03474v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.1
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-042",
+      "type": "detail",
+      "pdf": "2610.03474v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.1
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-043",
+      "type": "main_idea",
+      "pdf": "2610.03509v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论了训练语言模型（LMs）以对其不确定性进行推理的方法，特别是超越二元奖励的问题。具体来说，它探讨了如何使语言模型在处理不确定性时表现得更好，而不是仅仅依赖于二元奖励信号。",
+      "elapsed_s": 0.98
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-043",
+      "type": "main_idea",
+      "pdf": "2610.03509v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论语言模型（LLMs）的选择偏好和偏差，以及影响这些模型选择的因素，如答案位置、上下文线索、信息来源、权威性和社会证明等。此外，还提到了一些研究和方法，如CaRT（教LLM代理何时知道足够了）和MedCaseReasoning（从临床案例报告中评估和学习诊断推理），用于研究和改进LLMs的表现。",
+      "elapsed_s": 1.57
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-044",
+      "type": "detail",
+      "pdf": "2610.03509v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.11
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-044",
+      "type": "detail",
+      "pdf": "2610.03509v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及。",
+      "elapsed_s": 0.23
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-045",
+      "type": "detail",
+      "pdf": "2610.03509v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及。",
+      "elapsed_s": 0.12
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-045",
+      "type": "detail",
+      "pdf": "2610.03509v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.11
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-046",
+      "type": "main_idea",
+      "pdf": "2610.03515v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论了训练语言模型（LMs）以对其不确定性进行推理的方法，特别是超越二元奖励的问题。具体来说，它探讨了如何使语言模型在处理不确定性时表现得更好，而不是仅仅依赖于二元奖励信号。",
+      "elapsed_s": 0.99
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-046",
+      "type": "main_idea",
+      "pdf": "2610.03515v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论语言模型（LLMs）的选择偏好和偏差，以及影响这些模型选择的因素，如答案位置、上下文线索、信息来源、权威性和社会证明等。此外，还提到了一些研究和方法，如CaRT（教LLM代理何时知道足够了）和MedCaseReasoning（从临床案例报告中评估和学习诊断推理），用于研究和改进LLMs的表现。",
+      "elapsed_s": 1.57
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-047",
+      "type": "detail",
+      "pdf": "2610.03515v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.1
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-047",
+      "type": "detail",
+      "pdf": "2610.03515v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及。",
+      "elapsed_s": 0.13
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-048",
+      "type": "detail",
+      "pdf": "2610.03515v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.09
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-048",
+      "type": "detail",
+      "pdf": "2610.03515v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.11
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-049",
+      "type": "main_idea",
+      "pdf": "2610.03522v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论了训练语言模型（LMs）以对其不确定性进行推理的方法，特别是超越二元奖励的问题。具体来说，它探讨了如何使语言模型在处理不确定性时表现得更好，而不是仅仅依赖于二元奖励信号。",
+      "elapsed_s": 0.98
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-049",
+      "type": "main_idea",
+      "pdf": "2610.03522v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论语言模型（LLMs）的选择偏好和偏差，以及影响这些模型选择的因素，如答案位置、上下文线索、信息来源、权威性和社会证明等。此外，还提到了一些研究和方法，如CaRT（教LLM代理何时知道足够了）和MedCaseReasoning（从临床案例报告中评估和学习诊断推理），用于研究和改进LLMs的表现。",
+      "elapsed_s": 1.57
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-050",
+      "type": "detail",
+      "pdf": "2610.03522v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "We further propose projection-aware RoPE, which replaces raw image-grid coordinates with ray-induced angular coordinates so that relative positional reasoning is aligned across camera projection.",
+      "elapsed_s": 0.65
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-050",
+      "type": "detail",
+      "pdf": "2610.03522v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.12
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-051",
+      "type": "detail",
+      "pdf": "2610.03522v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.13
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-051",
+      "type": "detail",
+      "pdf": "2610.03522v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.26
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-052",
+      "type": "main_idea",
+      "pdf": "2610.03524v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论了训练语言模型（LMs）以对其不确定性进行推理的方法，特别是超越二元奖励的问题。具体来说，它探讨了如何使语言模型在处理不确定性时表现得更好，而不是仅仅依赖于二元奖励信号。",
+      "elapsed_s": 1.15
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-052",
+      "type": "main_idea",
+      "pdf": "2610.03524v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论语言模型（LLMs）的选择偏好和偏差，以及影响这些模型选择的因素，如答案位置、上下文线索、信息来源、权威性和社会证明等。此外，还提到了一些研究和方法，如CaRT（教LLM代理何时知道足够了）和MedCaseReasoning（从临床案例报告中评估和学习诊断推理），用于研究和改进LLMs的表现。",
+      "elapsed_s": 1.81
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-053",
+      "type": "detail",
+      "pdf": "2610.03524v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及。",
+      "elapsed_s": 0.15
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-053",
+      "type": "detail",
+      "pdf": "2610.03524v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.12
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-054",
+      "type": "detail",
+      "pdf": "2610.03524v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及。",
+      "elapsed_s": 0.11
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-054",
+      "type": "detail",
+      "pdf": "2610.03524v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.1
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-055",
+      "type": "main_idea",
+      "pdf": "2610.03525v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论了训练语言模型（LMs）以对其不确定性进行推理的方法，特别是超越二元奖励的问题。具体来说，它探讨了如何使语言模型在处理不确定性时表现得更好，而不是仅仅依赖于二元奖励信号。",
+      "elapsed_s": 1.08
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-055",
+      "type": "main_idea",
+      "pdf": "2610.03525v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论语言模型（LLMs）的选择偏好和偏差，以及影响这些模型选择的因素，如答案位置、上下文线索、信息来源、权威性和社会证明等。此外，还提到了一些研究和方法，如CaRT（教LLM代理何时知道足够了）和MedCaseReasoning（从临床案例报告中评估和学习诊断推理），用于研究和改进LLMs的表现。",
+      "elapsed_s": 1.79
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-056",
+      "type": "detail",
+      "pdf": "2610.03525v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.1
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-056",
+      "type": "detail",
+      "pdf": "2610.03525v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.1
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-057",
+      "type": "detail",
+      "pdf": "2610.03525v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及。",
+      "elapsed_s": 0.12
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-057",
+      "type": "detail",
+      "pdf": "2610.03525v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "INTRODUCTION Table-to-report generation is the task of automatically synthesizing article-level analytical reports from relational tables, and it constitutes a fundamental capability for automated document preparation. 材料未提及",
+      "elapsed_s": 0.81
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-058",
+      "type": "main_idea",
+      "pdf": "2610.03531v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论了训练语言模型（LMs）以对其不确定性进行推理的方法，特别是超越二元奖励的问题。具体来说，它探讨了如何使语言模型在处理不确定性时表现得更好，而不是仅仅依赖于二元奖励信号。",
+      "elapsed_s": 0.97
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-058",
+      "type": "main_idea",
+      "pdf": "2610.03531v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论语言模型（LLMs）的选择偏好和偏差，以及影响这些模型选择的因素，如答案位置、上下文线索、信息来源、权威性和社会证明等。此外，还提到了一些研究和方法，如CaRT（教LLM代理何时知道足够了）和MedCaseReasoning（从临床案例报告中评估和学习诊断推理），用于研究和改进LLMs的表现。",
+      "elapsed_s": 1.66
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-059",
+      "type": "detail",
+      "pdf": "2610.03531v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及。",
+      "elapsed_s": 0.12
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-059",
+      "type": "detail",
+      "pdf": "2610.03531v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.11
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-060",
+      "type": "detail",
+      "pdf": "2610.03531v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及。",
+      "elapsed_s": 0.18
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-060",
+      "type": "detail",
+      "pdf": "2610.03531v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及。",
+      "elapsed_s": 0.34
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-061",
+      "type": "main_idea",
+      "pdf": "2610.03543v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论了训练语言模型（LMs）以对其不确定性进行推理的方法，特别是超越二元奖励的问题。具体来说，它探讨了如何使语言模型在处理不确定性时表现得更好，而不是仅仅依赖于二元奖励信号。",
+      "elapsed_s": 1.09
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-061",
+      "type": "main_idea",
+      "pdf": "2610.03543v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论语言模型（LLMs）的选择偏好和偏差，以及影响这些模型选择的因素，如答案位置、上下文线索、信息来源、权威性和社会证明等。此外，还提到了一些研究和方法，如CaRT（教LLM代理何时知道足够了）和MedCaseReasoning（从临床案例报告中评估和学习诊断推理），用于研究和改进LLMs的表现。",
+      "elapsed_s": 1.63
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-062",
+      "type": "detail",
+      "pdf": "2610.03543v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及。",
+      "elapsed_s": 0.12
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-062",
+      "type": "detail",
+      "pdf": "2610.03543v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及。",
+      "elapsed_s": 0.13
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-063",
+      "type": "detail",
+      "pdf": "2610.03543v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及。",
+      "elapsed_s": 0.14
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-063",
+      "type": "detail",
+      "pdf": "2610.03543v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.1
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-064",
+      "type": "main_idea",
+      "pdf": "2610.03558v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论了训练语言模型（LMs）以对其不确定性进行推理的方法，特别是超越二元奖励的问题。具体来说，它探讨了如何使语言模型在处理不确定性时表现得更好，而不是仅仅依赖于二元奖励信号。",
+      "elapsed_s": 1.06
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-064",
+      "type": "main_idea",
+      "pdf": "2610.03558v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论语言模型（LLMs）的选择偏好和偏差，以及影响这些模型选择的因素，如答案位置、上下文线索、信息来源、权威性和社会证明等。此外，还提到了一些研究和方法，如CaRT（教LLM代理何时知道足够了）和MedCaseReasoning（从临床案例报告中评估和学习诊断推理），用于研究和改进LLMs的表现。",
+      "elapsed_s": 1.7
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-065",
+      "type": "detail",
+      "pdf": "2610.03558v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.1
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-065",
+      "type": "detail",
+      "pdf": "2610.03558v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.14
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-066",
+      "type": "detail",
+      "pdf": "2610.03558v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.11
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-066",
+      "type": "detail",
+      "pdf": "2610.03558v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.12
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-067",
+      "type": "main_idea",
+      "pdf": "2610.03567v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论了训练语言模型（LMs）以对其不确定性进行推理的方法，特别是超越二元奖励的问题。具体来说，它探讨了如何使语言模型在处理不确定性时表现得更好，而不是仅仅依赖于二元奖励信号。",
+      "elapsed_s": 1.0
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-067",
+      "type": "main_idea",
+      "pdf": "2610.03567v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论语言模型（LLMs）的选择偏好和偏差，以及影响这些模型选择的因素，如答案位置、上下文线索、信息来源、权威性和社会证明等。此外，还提到了一些研究和方法，如CaRT（教LLM代理何时知道足够了）和MedCaseReasoning（从临床案例报告中评估和学习诊断推理），用于研究和改进LLMs的表现。",
+      "elapsed_s": 1.63
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-068",
+      "type": "detail",
+      "pdf": "2610.03567v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及。",
+      "elapsed_s": 0.15
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-068",
+      "type": "detail",
+      "pdf": "2610.03567v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.12
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-069",
+      "type": "detail",
+      "pdf": "2610.03567v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.12
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-069",
+      "type": "detail",
+      "pdf": "2610.03567v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.14
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-070",
+      "type": "main_idea",
+      "pdf": "2610.03570v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论了训练语言模型（LMs）以对其不确定性进行推理的方法，特别是超越二元奖励的问题。具体来说，它探讨了如何使语言模型在处理不确定性时表现得更好，而不是仅仅依赖于二元奖励信号。",
+      "elapsed_s": 1.06
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-070",
+      "type": "main_idea",
+      "pdf": "2610.03570v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论语言模型（LLMs）的选择偏好和偏差，以及影响这些模型选择的因素，如答案位置、上下文线索、信息来源、权威性和社会证明等。此外，还提到了一些研究和方法，如CaRT（教LLM代理何时知道足够了）和MedCaseReasoning（从临床案例报告中评估和学习诊断推理），用于研究和改进LLMs的表现。",
+      "elapsed_s": 1.76
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-071",
+      "type": "detail",
+      "pdf": "2610.03570v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及。",
+      "elapsed_s": 0.15
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-071",
+      "type": "detail",
+      "pdf": "2610.03570v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及。",
+      "elapsed_s": 0.21
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-072",
+      "type": "detail",
+      "pdf": "2610.03570v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.12
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-072",
+      "type": "detail",
+      "pdf": "2610.03570v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.22
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-073",
+      "type": "main_idea",
+      "pdf": "2610.03574v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论了训练语言模型（LMs）以对其不确定性进行推理的方法，特别是超越二元奖励的问题。具体来说，它探讨了如何使语言模型在处理不确定性时表现得更好，而不是仅仅依赖于二元奖励信号。",
+      "elapsed_s": 1.04
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-073",
+      "type": "main_idea",
+      "pdf": "2610.03574v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论语言模型（LLMs）的选择偏好和偏差，以及影响这些模型选择的因素，如答案位置、上下文线索、信息来源、权威性和社会证明等。此外，还提到了一些研究和方法，如CaRT（教LLM代理何时知道足够了）和MedCaseReasoning（从临床案例报告中评估和学习诊断推理），用于研究和改进LLMs的表现。",
+      "elapsed_s": 1.75
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-074",
+      "type": "detail",
+      "pdf": "2610.03574v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "Preprint HYPERBROWSECOMP: A MULTILINGUAL AND MULTI-MODAL STRESSTEST FOR WEB-BROWSING AGENTS Alham Fikri Aji** and **Faiz Rizki Ramadhan1 Zayd M.",
+      "elapsed_s": 1.18
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-074",
+      "type": "detail",
+      "pdf": "2610.03574v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.1
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-075",
+      "type": "detail",
+      "pdf": "2610.03574v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "INTRODUCTION Large language models (LLMs) are increasingly used not only as conversational systems, but also as tool-using agents that search the web, inspect external sources, and synthesize evidence.",
+      "elapsed_s": 0.85
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-075",
+      "type": "detail",
+      "pdf": "2610.03574v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "INTRODUCTION Large language models (LLMs) are increasingly used not only as conversational systems, but also as tool-using agents that search the web, inspect external sources, and synthesize evidence.",
+      "elapsed_s": 0.84
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-076",
+      "type": "main_idea",
+      "pdf": "2610.03591v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论了训练语言模型（LMs）以对其不确定性进行推理的方法，特别是超越二元奖励的问题。具体来说，它探讨了如何使语言模型在处理不确定性时表现得更好，而不是仅仅依赖于二元奖励信号。",
+      "elapsed_s": 1.0
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-076",
+      "type": "main_idea",
+      "pdf": "2610.03591v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论语言模型（LLMs）的选择偏好和偏差，以及影响这些模型选择的因素，如答案位置、上下文线索、信息来源、权威性和社会证明等。此外，还提到了一些研究和方法，如CaRT（教LLM代理何时知道足够了）和MedCaseReasoning（从临床案例报告中评估和学习诊断推理），用于研究和改进LLMs的表现。",
+      "elapsed_s": 1.72
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-077",
+      "type": "detail",
+      "pdf": "2610.03591v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及。",
+      "elapsed_s": 0.16
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-077",
+      "type": "detail",
+      "pdf": "2610.03591v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及。",
+      "elapsed_s": 0.12
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-078",
+      "type": "detail",
+      "pdf": "2610.03591v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "To evaluate both the scientific outputs and the decisions that produce them, we introduce the Hazard Weaver Benchmark, comprising 330 instances across seven single-hazard domains and four multi-hazard domains.",
+      "elapsed_s": 0.82
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-078",
+      "type": "detail",
+      "pdf": "2610.03591v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.1
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-079",
+      "type": "main_idea",
+      "pdf": "2610.03620v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论了训练语言模型（LMs）以对其不确定性进行推理的方法，特别是超越二元奖励的问题。具体来说，它探讨了如何使语言模型在处理不确定性时表现得更好，而不是仅仅依赖于二元奖励信号。",
+      "elapsed_s": 1.07
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-079",
+      "type": "main_idea",
+      "pdf": "2610.03620v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论语言模型（LLMs）的选择偏好和偏差，以及影响这些模型选择的因素，如答案位置、上下文线索、信息来源、权威性和社会证明等。此外，还提到了一些研究和方法，如CaRT（教LLM代理何时知道足够了）和MedCaseReasoning（从临床案例报告中评估和学习诊断推理），用于研究和改进LLMs的表现。",
+      "elapsed_s": 1.75
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-080",
+      "type": "detail",
+      "pdf": "2610.03620v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.12
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-080",
+      "type": "detail",
+      "pdf": "2610.03620v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.14
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-081",
+      "type": "detail",
+      "pdf": "2610.03620v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.12
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-081",
+      "type": "detail",
+      "pdf": "2610.03620v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.11
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-082",
+      "type": "main_idea",
+      "pdf": "2610.03626v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论了训练语言模型（LMs）以对其不确定性进行推理的方法，特别是超越二元奖励的问题。具体来说，它探讨了如何使语言模型在处理不确定性时表现得更好，而不是仅仅依赖于二元奖励信号。",
+      "elapsed_s": 1.06
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-082",
+      "type": "main_idea",
+      "pdf": "2610.03626v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论语言模型（LLMs）的选择偏好和偏差，以及影响这些模型选择的因素，如答案位置、上下文线索、信息来源、权威性和社会证明等。此外，还提到了一些研究和方法，如CaRT（教LLM代理何时知道足够了）和MedCaseReasoning（从临床案例报告中评估和学习诊断推理），用于研究和改进LLMs的表现。",
+      "elapsed_s": 1.69
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-083",
+      "type": "detail",
+      "pdf": "2610.03626v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.11
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-083",
+      "type": "detail",
+      "pdf": "2610.03626v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.12
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-084",
+      "type": "detail",
+      "pdf": "2610.03626v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.09
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-084",
+      "type": "detail",
+      "pdf": "2610.03626v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.11
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-085",
+      "type": "main_idea",
+      "pdf": "2610.03634v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论了训练语言模型（LMs）以对其不确定性进行推理的方法，特别是超越二元奖励的问题。具体来说，它探讨了如何使语言模型在处理不确定性时表现得更好，而不是仅仅依赖于二元奖励信号。",
+      "elapsed_s": 0.99
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-085",
+      "type": "main_idea",
+      "pdf": "2610.03634v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论语言模型（LLMs）的选择偏好和偏差，以及影响这些模型选择的因素，如答案位置、上下文线索、信息来源、权威性和社会证明等。此外，还提到了一些研究和方法，如CaRT（教LLM代理何时知道足够了）和MedCaseReasoning（从临床案例报告中评估和学习诊断推理），用于研究和改进LLMs的表现。",
+      "elapsed_s": 1.64
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-086",
+      "type": "detail",
+      "pdf": "2610.03634v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "Introduction Terminal-using agents (Anthropic, **Microsoft**, OpenAI, 2025, Google, 2025, Wang et al., 2025) have become a major application of language models for coding, debugging, and other multi-step terminal tasks. \n\n注：材料中提到的Terminal-using agents包括Anthropic、OpenAI、Google和Wang et al.，但未明确列出Micro",
+      "elapsed_s": 2.03
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-086",
+      "type": "detail",
+      "pdf": "2610.03634v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.11
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-087",
+      "type": "detail",
+      "pdf": "2610.03634v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及。",
+      "elapsed_s": 0.16
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-087",
+      "type": "detail",
+      "pdf": "2610.03634v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及。",
+      "elapsed_s": 0.13
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-088",
+      "type": "main_idea",
+      "pdf": "2610.03662v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论了训练语言模型（LMs）以对其不确定性进行推理的方法，特别是超越二元奖励的问题。具体来说，它探讨了如何使语言模型在处理不确定性时表现得更好，而不是仅仅依赖于二元奖励信号。",
+      "elapsed_s": 1.0
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-088",
+      "type": "main_idea",
+      "pdf": "2610.03662v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论语言模型（LLMs）的选择偏好和偏差，以及影响这些模型选择的因素，如答案位置、上下文线索、信息来源、权威性和社会证明等。此外，还提到了一些研究和方法，如CaRT（教LLM代理何时知道足够了）和MedCaseReasoning（从临床案例报告中评估和学习诊断推理），用于研究和改进LLMs的表现。",
+      "elapsed_s": 1.66
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-089",
+      "type": "detail",
+      "pdf": "2610.03662v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.1
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-089",
+      "type": "detail",
+      "pdf": "2610.03662v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.18
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-090",
+      "type": "detail",
+      "pdf": "2610.03662v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.13
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-090",
+      "type": "detail",
+      "pdf": "2610.03662v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及。",
+      "elapsed_s": 0.14
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-091",
+      "type": "main_idea",
+      "pdf": "2610.03679v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论了训练语言模型（LMs）以对其不确定性进行推理的方法，特别是超越二元奖励的问题。具体来说，它探讨了如何使语言模型在处理不确定性时表现得更好，而不是仅仅依赖于二元奖励信号。",
+      "elapsed_s": 1.01
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-091",
+      "type": "main_idea",
+      "pdf": "2610.03679v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论语言模型（LLMs）的选择偏好和偏差，以及影响这些模型选择的因素，如答案位置、上下文线索、信息来源、权威性和社会证明等。此外，还提到了一些研究和方法，如CaRT（教LLM代理何时知道足够了）和MedCaseReasoning（从临床案例报告中评估和学习诊断推理），用于研究和改进LLMs的表现。",
+      "elapsed_s": 1.74
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-092",
+      "type": "detail",
+      "pdf": "2610.03679v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.13
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-092",
+      "type": "detail",
+      "pdf": "2610.03679v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.12
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-093",
+      "type": "detail",
+      "pdf": "2610.03679v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及。",
+      "elapsed_s": 0.14
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-093",
+      "type": "detail",
+      "pdf": "2610.03679v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.12
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-094",
+      "type": "main_idea",
+      "pdf": "2610.03702v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论了训练语言模型（LMs）以对其不确定性进行推理的方法，特别是超越二元奖励的问题。具体来说，它探讨了如何使语言模型在处理不确定性时表现得更好，而不是仅仅依赖于二元奖励信号。",
+      "elapsed_s": 1.04
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-094",
+      "type": "main_idea",
+      "pdf": "2610.03702v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论语言模型（LLMs）的选择偏好和偏差，以及影响这些模型选择的因素，如答案位置、上下文线索、信息来源、权威性和社会证明等。此外，还提到了一些研究和方法，如CaRT（教LLM代理何时知道足够了）和MedCaseReasoning（从临床案例报告中评估和学习诊断推理），用于研究和改进LLMs的表现。",
+      "elapsed_s": 1.71
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-095",
+      "type": "detail",
+      "pdf": "2610.03702v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.11
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-095",
+      "type": "detail",
+      "pdf": "2610.03702v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.11
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-096",
+      "type": "detail",
+      "pdf": "2610.03702v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.1
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-096",
+      "type": "detail",
+      "pdf": "2610.03702v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.1
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-097",
+      "type": "main_idea",
+      "pdf": "2610.03715v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论了训练语言模型（LMs）以对其不确定性进行推理的方法，特别是超越二元奖励的问题。具体来说，它探讨了如何使语言模型在处理不确定性时表现得更好，而不是仅仅依赖于二元奖励信号。",
+      "elapsed_s": 0.96
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-097",
+      "type": "main_idea",
+      "pdf": "2610.03715v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论语言模型（LLMs）的选择偏好和偏差，以及影响这些模型选择的因素，如答案位置、上下文线索、信息来源、权威性和社会证明等。此外，还提到了一些研究和方法，如CaRT（教LLM代理何时知道足够了）和MedCaseReasoning（从临床案例报告中评估和学习诊断推理），用于研究和改进LLMs的表现。",
+      "elapsed_s": 1.6
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-098",
+      "type": "detail",
+      "pdf": "2610.03715v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及。",
+      "elapsed_s": 0.12
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-098",
+      "type": "detail",
+      "pdf": "2610.03715v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及。",
+      "elapsed_s": 0.15
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-099",
+      "type": "detail",
+      "pdf": "2610.03715v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.12
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-099",
+      "type": "detail",
+      "pdf": "2610.03715v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.11
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-100",
+      "type": "detail",
+      "pdf": "2610.03176v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "aarav24101",
+      "elapsed_s": 0.27
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-100",
+      "type": "detail",
+      "pdf": "2610.03176v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "Shyama Prasad Mukherjee International Institute of Information Technology, Naya Raipur aarav24101@iiitnr.edu.in, animesh24100@iiitnr.edu.in, navyansh24102@iiitnr.edu.in Abstract We study hindsight-guided distillation for rare disease diagnosis on ZebraMap:",
+      "elapsed_s": 1.54
+    }
+  ]
+}

@@ -1,0 +1,89 @@
+{
+  "workflow_name": "文档要点提炼工作流（出厂示例）",
+  "description": "读文档 → 提炼要点 → 生成提纲 → 汇总成摘要。4 节点 · 不依赖任何 LoRA · 空装即可运行 · 实测 67 秒跑完。可作为自建工作流的起点，或直接在「分析工作流」页复制修改。",
+  "author": "T3-tester",
+  "tags": [
+    "示例",
+    "文档处理",
+    "无需LoRA"
+  ],
+  "required_loras": [],
+  "required_providers": [
+    "vllm"
+  ],
+  "nodes": [
+    {
+      "id": "doc",
+      "type": "input",
+      "description": "读入论文全文",
+      "input_from": [],
+      "prompt": "",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "provider": null,
+      "model_override": null
+    },
+    {
+      "id": "points",
+      "type": "extract",
+      "description": "提炼 5 条核心要点（逐字摘录）",
+      "input_from": [
+        "doc"
+      ],
+      "prompt": "请从以下论文中提炼 5 条最核心的要点。每条要点必须逐字摘录原文关键句（不要改写、不要翻译），每条不超过 60 字，用「1. 2. 3.」编号，只输出这 5 条：\n\n{doc}",
+      "provider": "vllm",
+      "lora": null,
+      "output_format": "text",
+      "chunk_size": 3000,
+      "chunk_overlap": 200,
+      "chunk_workers": 3,
+      "cache": false,
+      "temperature": 0.0,
+      "position": {
+        "x": 240,
+        "y": 0
+      },
+      "model_override": null
+    },
+    {
+      "id": "outline",
+      "type": "process",
+      "description": "把要点整理成结构化提纲（JSON）",
+      "input_from": [
+        "points"
+      ],
+      "prompt": "下面是论文的核心要点：\n{points}\n\n请用三行中文整理：第一行「主题：<一句话>」，之后每行一条要点，以「- 」开头。只输出这三到六行。",
+      "provider": "vllm",
+      "output_format": "text",
+      "temperature": 0.0,
+      "position": {
+        "x": 480,
+        "y": 0
+      },
+      "model_override": null
+    },
+    {
+      "id": "report",
+      "type": "aggregate",
+      "description": "生成最终中文摘要报告",
+      "input_from": [
+        "outline",
+        "points"
+      ],
+      "prompt": "请依据以下材料写一段 150 字以内的中文摘要。\n材料一（提纲）：\n{outline}\n\n材料二（原文摘录）：\n{points}\n\n要求：只用给定材料，不要引入外部知识；直接输出摘要正文。",
+      "provider": "vllm",
+      "output_format": "text",
+      "temperature": 0.3,
+      "max_tokens": 600,
+      "position": {
+        "x": 720,
+        "y": 0
+      },
+      "model_override": null
+    }
+  ],
+  "schema_version": "2.0",
+  "canvas_height": 0
+}

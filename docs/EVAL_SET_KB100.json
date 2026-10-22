@@ -1,0 +1,1347 @@
+{
+  "generated": "2026-10-21",
+  "source": "papers/pdf (50 arXiv PDFs)",
+  "note": "规则模板生成 ✗ 非 LLM ✗ 质量中等 ⚠ 目的: 达到 n>=100 可做配对检验 ✓",
+  "target": {
+    "n": 100,
+    "ratio": {
+      "main_idea": 0.3,
+      "detail": 0.5,
+      "structure": 0.2
+    }
+  },
+  "total": 100,
+  "by_type": {
+    "main_idea": 33,
+    "detail": 66
+  },
+  "questions": [
+    {
+      "type": "main_idea",
+      "pdf": "2610.03176v1",
+      "question": "这篇论文主要讨论什么？请概述主题。",
+      "answer_hint": "Hindsight-Guided Rationale Distillation for Rare Disease Diagnosis Aarav Singh* Animesh Pathak* Navyansh Singh Dr.",
+      "keywords": [
+        "Hindsight",
+        "Guided",
+        "Rationale",
+        "Distillation",
+        "Disease"
+      ],
+      "id": "KB-001"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03176v1",
+      "question": "填空：Shyama Prasad Mukherjee International Institute of Information Technology, Naya Raipur aarav____@iiitnr.edu.in, animesh24100@iiitnr.edu.in, navyansh24102@iiitnr.edu.in Abstract We study hindsight-guid",
+      "answer_hint": "24101",
+      "keywords": [
+        "Shyama",
+        "Prasad",
+        "Mukherjee",
+        "International"
+      ],
+      "id": "KB-002"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03176v1",
+      "question": "填空：Absolute accuracy remains low for all models—the task is hard at this scale—but within this ceiling a filtered variant (StudentF) achieves a small, statistically significant accuracy advantage over th",
+      "answer_hint": "0.001",
+      "keywords": [
+        "Absolute",
+        "accuracy",
+        "remains",
+        "models"
+      ],
+      "id": "KB-003"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03190v1",
+      "question": "这篇论文主要讨论什么？请概述主题。",
+      "answer_hint": "We study this decision for LLM investigators, which request ev- idence from a case file, revise their hypotheses, and ei",
+      "keywords": [
+        "study",
+        "decision",
+        "investigators",
+        "which",
+        "request"
+      ],
+      "id": "KB-004"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03190v1",
+      "question": "填空：This judgment does not come with capability: an untrained ____B model overstates its evidence in 97% of its answers, and a frontier model that identifies the right cause in 84% of cases still overstat",
+      "answer_hint": "9",
+      "keywords": [
+        "This",
+        "judgment",
+        "does",
+        "come"
+      ],
+      "id": "KB-005"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03190v1",
+      "question": "填空：Measuring it is also non-trivial: the source of a case largely predicts its label, and a rule that reads only the source reaches ____ balanced accuracy on our test cases.",
+      "answer_hint": "83.0",
+      "keywords": [
+        "Measuring",
+        "also",
+        "trivial",
+        "source"
+      ],
+      "id": "KB-006"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03195v1",
+      "question": "这篇论文主要讨论什么？请概述主题。",
+      "answer_hint": "We study source preference in end-to-end search with 12 agent mod- els across three domains.",
+      "keywords": [
+        "study",
+        "source",
+        "preference",
+        "search",
+        "agent"
+      ],
+      "id": "KB-007"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03195v1",
+      "question": "填空：We study source preference in end-to-end search with ____ agent mod- els across three domains.",
+      "answer_hint": "12",
+      "keywords": [
+        "study",
+        "source",
+        "preference",
+        "search"
+      ],
+      "id": "KB-008"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03195v1",
+      "question": "填空：____ INTRODUCTION Large language model agents increasingly move beyond providing information to deciding what users see.",
+      "answer_hint": "1",
+      "keywords": [
+        "INTRODUCTION",
+        "Large",
+        "language",
+        "model"
+      ],
+      "id": "KB-009"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03198v1",
+      "question": "这篇论文主要讨论什么？请概述主题。",
+      "answer_hint": "KV2: A Self-Refining KV Cache Johannes Wesch Danni Liu Jan Niehues Karlsruhe Institute of Technology, Germany johannes.w",
+      "keywords": [
+        "Refining",
+        "Cache",
+        "Johannes",
+        "Wesch",
+        "Danni"
+      ],
+      "id": "KB-010"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03198v1",
+      "question": "填空：KV____: A Self-Refining KV Cache Johannes Wesch Danni Liu Jan Niehues Karlsruhe Institute of Technology, Germany johannes.wesch@student.kit.edu,danni.liu@kit.edu Abstract The memory footprint of the k",
+      "answer_hint": "2",
+      "keywords": [
+        "Self",
+        "Refining",
+        "Cache",
+        "Johannes"
+      ],
+      "id": "KB-011"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03198v1",
+      "question": "填空：On RULER, Needle-in-a-Haystack, and Long- Bench, KV²’s margin over baselines widens as the budget tightens: on RULER ____K at a 2% KV-cache budget it improves the average score over the next-best base",
+      "answer_hint": "16",
+      "keywords": [
+        "RULER",
+        "Needle",
+        "Haystack",
+        "Long"
+      ],
+      "id": "KB-012"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03215v1",
+      "question": "这篇论文主要讨论什么？请概述主题。",
+      "answer_hint": "Stance detection aims to identify a writer’s stance toward a given topic.",
+      "keywords": [
+        "Stance",
+        "detection",
+        "identify",
+        "writer",
+        "stance"
+      ],
+      "id": "KB-013"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03215v1",
+      "question": "填空：This edition focuses on cross-target generalization across two distinct evaluation tracks: Track ____ evaluates thematically related cross-target transfer (testing onWomen Driv- ing, related toWomen E",
+      "answer_hint": "1",
+      "keywords": [
+        "This",
+        "edition",
+        "focuses",
+        "cross"
+      ],
+      "id": "KB-014"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03215v1",
+      "question": "填空：The shared task attracted ____ registered teams from 12 coun- tries.",
+      "answer_hint": "80",
+      "keywords": [
+        "shared",
+        "task",
+        "attracted",
+        "registered"
+      ],
+      "id": "KB-015"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03223v1",
+      "question": "这篇论文主要讨论什么？请概述主题。",
+      "answer_hint": "Preprint ADASTEP: ADAPTIVESTEPCREDITWEIGHTING FOR AGENTICREINFORCEMENTLEARNING Xin Wang1,3∗ Wenhao Wu2,3∗ Menghao Zhang3",
+      "keywords": [
+        "Preprint",
+        "ADASTEP",
+        "ADAPTIVESTEPCREDITWEIGHTING",
+        "AGENTICREINFORCEMENTLEARNING",
+        "Wenhao"
+      ],
+      "id": "KB-016"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03223v1",
+      "question": "填空：Preprint ADASTEP: ADAPTIVESTEPCREDITWEIGHTING FOR AGENTICREINFORCEMENTLEARNING Xin Wang____,3∗ Wenhao Wu2,3∗ Menghao Zhang3∗ Zhi Wang2† Kun Shao3† Jian Luan3† 1Tsinghua University 2Nanjing University ",
+      "answer_hint": "1",
+      "keywords": [
+        "Preprint",
+        "ADASTEP",
+        "ADAPTIVESTEPCREDITWEIGHTING",
+        "AGENTICREINFORCEMENTLEARNING"
+      ],
+      "id": "KB-017"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03223v1",
+      "question": "填空：dense but noisy E____: Same correct action ...",
+      "answer_hint": "1",
+      "keywords": [
+        "dense",
+        "noisy",
+        "Same",
+        "correct"
+      ],
+      "id": "KB-018"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03324v1",
+      "question": "这篇论文主要讨论什么？请概述主题。",
+      "answer_hint": "Evaluating the Accuracy and Efficiency of Structured Decision Models for Hate-Speech Moderation Demetris Paschalides Geo",
+      "keywords": [
+        "Evaluating",
+        "Accuracy",
+        "Efficiency",
+        "Structured",
+        "Decision"
+      ],
+      "id": "KB-019"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03324v1",
+      "question": "填空：Dikaiakos University of Cyprus, Computer Science Department, Nicosia, Cyprus {dpasch____,pallis,mdd}@ucy.ac.cy Abstract The scale of online content makes hate-speech moderation challenging, while Larg",
+      "answer_hint": "01",
+      "keywords": [
+        "Dikaiakos",
+        "University",
+        "Cyprus",
+        "Computer"
+      ],
+      "id": "KB-020"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03324v1",
+      "question": "填空：Supplying definitions changes up to ____ of predictions without consistently improving classification, and decomposition significantly improves performance in only 20% of the comparisons.",
+      "answer_hint": "28%",
+      "keywords": [
+        "Supplying",
+        "definitions",
+        "changes",
+        "predictions"
+      ],
+      "id": "KB-021"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03329v1",
+      "question": "这篇论文主要讨论什么？请概述主题。",
+      "answer_hint": "We introduceSyntaxBench, a diagnostic benchmark and statistical evaluation framework for character-level reasoning.",
+      "keywords": [
+        "introduceSyntaxBench",
+        "diagnostic",
+        "benchmark",
+        "statistical",
+        "evaluation"
+      ],
+      "id": "KB-022"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03329v1",
+      "question": "填空：index_to_span documents are drawn from the same ____–500 word band and are not character-length matched.",
+      "answer_hint": "200",
+      "keywords": [
+        "index",
+        "span",
+        "documents",
+        "drawn"
+      ],
+      "id": "KB-023"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03329v1",
+      "question": "填空：We evaluate eight open-weight models spanning ____B–32B parameters across 11 available reasoning-mode configurations.",
+      "answer_hint": "2",
+      "keywords": [
+        "evaluate",
+        "eight",
+        "open",
+        "weight"
+      ],
+      "id": "KB-024"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03423v1",
+      "question": "这篇论文主要讨论什么？请概述主题。",
+      "answer_hint": "Exist- ing methods typically optimize these dimensions simultaneously through multiple reward aggregation, without expli",
+      "keywords": [
+        "Exist",
+        "methods",
+        "typically",
+        "optimize",
+        "these"
+      ],
+      "id": "KB-025"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03423v1",
+      "question": "填空：To address this limitation, we propose OuroReward, an interference-aware sequential reward scheduling strategy for T____D RL.",
+      "answer_hint": "23",
+      "keywords": [
+        "address",
+        "this",
+        "limitation",
+        "propose"
+      ],
+      "id": "KB-026"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03423v1",
+      "question": "填空：Extensive experiments across different T____D models and RL algorithms demonstrate that our framework consistently improves generation quality across multiple dimensions.",
+      "answer_hint": "23",
+      "keywords": [
+        "Extensive",
+        "experiments",
+        "across",
+        "different"
+      ],
+      "id": "KB-027"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03436v1",
+      "question": "这篇论文主要讨论什么？请概述主题。",
+      "answer_hint": "The Shape of Speech: A Geometric Measure of Coarticulation for Speech-Driven 3D Facial Animation DANZEL SERRANO,New Jers",
+      "keywords": [
+        "Shape",
+        "Speech",
+        "Geometric",
+        "Measure",
+        "Coarticulation"
+      ],
+      "id": "KB-028"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03436v1",
+      "question": "填空：The Shape of Speech: A Geometric Measure of Coarticulation for Speech-Driven ____D Facial Animation DANZEL SERRANO,New Jersey Institute of Technology, USA PRZEMYSLAW MUSIALSKI,New Jersey Institute of ",
+      "answer_hint": "3",
+      "keywords": [
+        "Shape",
+        "Speech",
+        "Geometric",
+        "Measure"
+      ],
+      "id": "KB-029"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03436v1",
+      "question": "填空：Each row shows five frames from𝑉____→𝐶→𝑉 2, the lip-region trajectory over that interval, and its score𝑅𝑝𝑤 (Section 4): 2.03 for ground truth against 1.04–1.21 for the methods.",
+      "answer_hint": "1",
+      "keywords": [
+        "Each",
+        "shows",
+        "five",
+        "frames"
+      ],
+      "id": "KB-030"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03441v1",
+      "question": "这篇论文主要讨论什么？请概述主题。",
+      "answer_hint": "ChromaGS enables real-time, language-guided color editing of 3D Gaussian head avatars.",
+      "keywords": [
+        "ChromaGS",
+        "enables",
+        "language",
+        "guided",
+        "color"
+      ],
+      "id": "KB-031"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03441v1",
+      "question": "填空：ChromaGS enables real-time, language-guided color editing of ____D Gaussian head avatars.",
+      "answer_hint": "3",
+      "keywords": [
+        "ChromaGS",
+        "enables",
+        "real",
+        "time"
+      ],
+      "id": "KB-032"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03441v1",
+      "question": "填空：Abstract—We present ChromaGS, a method for real-time, language-guided color editing of animatable ____D Gaussian head avatars.",
+      "answer_hint": "3",
+      "keywords": [
+        "Abstract",
+        "present",
+        "ChromaGS",
+        "method"
+      ],
+      "id": "KB-033"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03448v1",
+      "question": "这篇论文主要讨论什么？请概述主题。",
+      "answer_hint": "Passing the Test You Trained On: Re-evaluating Prompt-Injection Detectors for LLM Agents Zhuowen Liu Cybersecurity Lab J",
+      "keywords": [
+        "Passing",
+        "Trained",
+        "evaluating",
+        "Prompt",
+        "Injection"
+      ],
+      "id": "KB-034"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03448v1",
+      "question": "填空：Passing the Test You Trained On: Re-evaluating Prompt-Injection Detectors for LLM Agents Zhuowen Liu Cybersecurity Lab Japan Advanced Institute of Science and Technology (JAIST) Nomi, Ishikawa, Japan ",
+      "answer_hint": "2410431",
+      "keywords": [
+        "Passing",
+        "Test",
+        "Trained",
+        "evaluating"
+      ],
+      "id": "KB-035"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03448v1",
+      "question": "填空：We replay the ground-truth tool calls of two agent bench- marks, AgentDojo and τ-bench, without an LLM to obtain tool outputs that are benign by construction, label injected outputs by differential re",
+      "answer_hint": "2",
+      "keywords": [
+        "replay",
+        "ground",
+        "truth",
+        "tool"
+      ],
+      "id": "KB-036"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03453v1",
+      "question": "这篇论文主要讨论什么？请概述主题。",
+      "answer_hint": "Bridging the two today takes a slow, brittlereconstruct-then-decompose pipeline of repair, decimation, and approximate c",
+      "keywords": [
+        "Bridging",
+        "today",
+        "takes",
+        "brittlereconstruct",
+        "decompose"
+      ],
+      "id": "KB-037"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03453v1",
+      "question": "填空：We present I____CD, which predicts a convex decomposition directly from a single RGB image.",
+      "answer_hint": "2",
+      "keywords": [
+        "present",
+        "which",
+        "predicts",
+        "convex"
+      ],
+      "id": "KB-038"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03453v1",
+      "question": "填空：Rather than train a new image-to-____D model, I2CD freezes the pretrained Hunyuan3D-2 image-conditioned diffusion transformer and shape decoder and trains only a lightweight cross-attention head (38 M",
+      "answer_hint": "3",
+      "keywords": [
+        "Rather",
+        "than",
+        "train",
+        "image"
+      ],
+      "id": "KB-039"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03474v1",
+      "question": "这篇论文主要讨论什么？请概述主题。",
+      "answer_hint": "Roth NVIDIA Corporation, Santa Clara, CA, United States Abstract—Federated learning (FL) enables collaborative train- in",
+      "keywords": [
+        "NVIDIA",
+        "Corporation",
+        "Santa",
+        "Clara",
+        "United"
+      ],
+      "id": "KB-040"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03474v1",
+      "question": "填空：We evaluatedF ed-ADApton multi-site ____D retinal fundus disc segmentation and 3D brain tumor segmen- tation.",
+      "answer_hint": "2",
+      "keywords": [
+        "evaluatedF",
+        "ADApton",
+        "multi",
+        "site"
+      ],
+      "id": "KB-041"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03474v1",
+      "question": "填空：Across both tasks, federated collaboration substantially improves robustness under domain shift.F ed-ADAptmatched the full-resourceF edAvgperformance in ____D and achieved competitive 2D performance w",
+      "answer_hint": "3",
+      "keywords": [
+        "Across",
+        "both",
+        "tasks",
+        "federated"
+      ],
+      "id": "KB-042"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03509v1",
+      "question": "这篇论文主要讨论什么？请概述主题。",
+      "answer_hint": "EFFICIENTREASONINGTRAININGDOESNOTALWAYS HARMCOT FAITHFULNESS ANDMONITORABILITY Samuel Lewis-Lim1,2∗, Xingwei Tan1, Mario",
+      "keywords": [
+        "EFFICIENTREASONINGTRAININGDOESNOTALWAYS",
+        "HARMCOT",
+        "FAITHFULNESS",
+        "ANDMONITORABILITY",
+        "Samuel"
+      ],
+      "id": "KB-043"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03509v1",
+      "question": "填空：EFFICIENTREASONINGTRAININGDOESNOTALWAYS HARMCOT FAITHFULNESS ANDMONITORABILITY Samuel Lewis-Lim____,2∗, Xingwei Tan1, Mario Sanger2, Zhixue Zhao1, Nikolaos Aletras1 1School of Computer Science, Univer",
+      "answer_hint": "1",
+      "keywords": [
+        "EFFICIENTREASONINGTRAININGDOESNOTALWAYS",
+        "HARMCOT",
+        "FAITHFULNESS",
+        "ANDMONITORABILITY"
+      ],
+      "id": "KB-044"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03509v1",
+      "question": "填空：samlewislim/efficient-reasoning-training Samll/efficient-reasoning ____ INTRODUCTION Chain-of-thought (CoT) (Wei et al., 2022) reasoning improves the performance of large language models and offers a ",
+      "answer_hint": "1",
+      "keywords": [
+        "samlewislim",
+        "efficient",
+        "reasoning",
+        "training"
+      ],
+      "id": "KB-045"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03515v1",
+      "question": "这篇论文主要讨论什么？请概述主题。",
+      "answer_hint": "However, reference-based guidance may explain a correct solution without addressing why the student’s own reasoning fail",
+      "keywords": [
+        "However",
+        "reference",
+        "based",
+        "guidance",
+        "explain"
+      ],
+      "id": "KB-046"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03515v1",
+      "question": "填空：____ INTRODUCTION Large language models have made substantial progress in mathematical reasoning by generating intermediate steps and learning from demonstrations and feedback (Wei et al., 2022; Shao ",
+      "answer_hint": "1",
+      "keywords": [
+        "INTRODUCTION",
+        "Large",
+        "language",
+        "models"
+      ],
+      "id": "KB-047"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03515v1",
+      "question": "填空：Outcome supervision evaluates completed answers, while process supervision offers feedback on intermediate decisions (Lightman et al., ____).",
+      "answer_hint": "2023",
+      "keywords": [
+        "Outcome",
+        "supervision",
+        "evaluates",
+        "completed"
+      ],
+      "id": "KB-048"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03522v1",
+      "question": "这篇论文主要讨论什么？请概述主题。",
+      "answer_hint": "This homogeneous-camera assumption breaks in practical multi-sensor systems, where perspective, fisheye, and panoramic c",
+      "keywords": [
+        "homogeneous",
+        "camera",
+        "assumption",
+        "breaks",
+        "practical"
+      ],
+      "id": "KB-049"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03522v1",
+      "question": "填空：We further propose projection-aware ____D RoPE, which replaces raw image-grid coordinates with ray-induced angular coordinates so that relative positional reasoning is aligned across camera projection",
+      "answer_hint": "2",
+      "keywords": [
+        "further",
+        "propose",
+        "projection",
+        "aware"
+      ],
+      "id": "KB-050"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03522v1",
+      "question": "填空：____ Introduction Novel view synthesis (NVS) aims to synthesize unseen views from posed observations and remains a central topic in robotics, embodied perception, and world models.",
+      "answer_hint": "1",
+      "keywords": [
+        "Introduction",
+        "Novel",
+        "view",
+        "synthesis"
+      ],
+      "id": "KB-051"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03524v1",
+      "question": "这篇论文主要讨论什么？请概述主题。",
+      "answer_hint": "In production financial databases, where concepts are stored as opaque integer keys rather than human-readable strings, ",
+      "keywords": [
+        "production",
+        "financial",
+        "databases",
+        "where",
+        "concepts"
+      ],
+      "id": "KB-052"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03524v1",
+      "question": "填空：In production financial databases, where concepts are stored as opaque integer keys rather than human-readable strings, these methods fall below ____, as even sim- ple queries require multiple joins a",
+      "answer_hint": "50%",
+      "keywords": [
+        "production",
+        "financial",
+        "databases",
+        "where"
+      ],
+      "id": "KB-053"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03524v1",
+      "question": "填空：We evaluate on two datasets totaling ____ questions over production financial schemas.",
+      "answer_hint": "359",
+      "keywords": [
+        "evaluate",
+        "datasets",
+        "totaling",
+        "questions"
+      ],
+      "id": "KB-054"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03525v1",
+      "question": "这篇论文主要讨论什么？请概述主题。",
+      "answer_hint": "Its central challenge lies in systematically discovering verifiable composite insights across tables, attributes, and an",
+      "keywords": [
+        "central",
+        "challenge",
+        "systematically",
+        "discovering",
+        "verifiable"
+      ],
+      "id": "KB-055"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03525v1",
+      "question": "填空：Across three benchmarks InsightBench, DDR-Bench, and T____R-Bench, ComInsight consistently outperforms strong baselines in factual correctness, novelty, and structural com- pleteness.",
+      "answer_hint": "2",
+      "keywords": [
+        "Across",
+        "three",
+        "benchmarks",
+        "InsightBench"
+      ],
+      "id": "KB-056"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03525v1",
+      "question": "填空：INTRODUCTION Table-to-report generation is the task of automatically syn- thesizing article-level analytical reports from relational tables, and it constitutes a fundamental capability for automated d",
+      "answer_hint": "1",
+      "keywords": [
+        "INTRODUCTION",
+        "Table",
+        "report",
+        "generation"
+      ],
+      "id": "KB-057"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03531v1",
+      "question": "这篇论文主要讨论什么？请概述主题。",
+      "answer_hint": "Author Representation Strategies for Zero-Shot Authorship Attribution: A Comparative Study of LLM-Based and Embedding-Ba",
+      "keywords": [
+        "Author",
+        "Representation",
+        "Strategies",
+        "Authorship",
+        "Attribution"
+      ],
+      "id": "KB-058"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03531v1",
+      "question": "填空：____ Introduction Authorship Attribution (AA) is the process of de- termining the likely author of a given text by an- alyzing linguistic patterns, stylistic cues, and struc- tural characteristics Hua",
+      "answer_hint": "1",
+      "keywords": [
+        "Introduction",
+        "Authorship",
+        "Attribution",
+        "process"
+      ],
+      "id": "KB-059"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03531v1",
+      "question": "填空：a https://orcid.org/____-0005-9310-1701 b https://orcid.org/0000-0002-5582-2031 c https://orcid.org/0000-0001-7924-4953 d https://orcid.org/0000-0003-4029-6574 e https://orcid.org/0000-0003-2039-3844 ",
+      "answer_hint": "0009",
+      "keywords": [
+        "https",
+        "orcid",
+        "https",
+        "orcid"
+      ],
+      "id": "KB-060"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03543v1",
+      "question": "这篇论文主要讨论什么？请概述主题。",
+      "answer_hint": "DuoMatching: Joint-Marginal Distribution Matching for Few-Step Video Generation Jiahao Zhan 1,2 Yan Wang 2 Yongrui Ma 1,",
+      "keywords": [
+        "DuoMatching",
+        "Joint",
+        "Marginal",
+        "Distribution",
+        "Matching"
+      ],
+      "id": "KB-061"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03543v1",
+      "question": "填空：DuoMatching: Joint-Marginal Distribution Matching for Few-Step Video Generation Jiahao Zhan ____,2 Yan Wang 2 Yongrui Ma 1,2 Qunliang Xing 2 Ruchang Yao 1 Runtao Liu 3 Shijie Zhao 2† Tianfan Xue 1,4† ",
+      "answer_hint": "1",
+      "keywords": [
+        "DuoMatching",
+        "Joint",
+        "Marginal",
+        "Distribution"
+      ],
+      "id": "KB-062"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03543v1",
+      "question": "填空：____HKUST 4CPII under InnoHK Abstract Streaming video generation has benefited from distribution matching distillation (DMD), which matches the joint distribution of video frames to a video teacher’s ",
+      "answer_hint": "3",
+      "keywords": [
+        "HKUST",
+        "CPII",
+        "under",
+        "InnoHK"
+      ],
+      "id": "KB-063"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03558v1",
+      "question": "这篇论文主要讨论什么？请概述主题。",
+      "answer_hint": "Three healthy subjects underwent multiple scanning sessions, each consisting of five 15-minute runs, while listening to ",
+      "keywords": [
+        "Three",
+        "healthy",
+        "subjects",
+        "underwent",
+        "multiple"
+      ],
+      "id": "KB-064"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03558v1",
+      "question": "填空：Three healthy subjects underwent multiple scanning sessions, each consisting of five ____-minute runs, while listening to podcasts in their native language.",
+      "answer_hint": "15",
+      "keywords": [
+        "Three",
+        "healthy",
+        "subjects",
+        "underwent"
+      ],
+      "id": "KB-065"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03558v1",
+      "question": "填空：With ____ hours of fMRI data per subject, the current release is the deepest available fMRI dataset using naturalistic speech stimuli.",
+      "answer_hint": "30",
+      "keywords": [
+        "With",
+        "hours",
+        "fMRI",
+        "data"
+      ],
+      "id": "KB-066"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03567v1",
+      "question": "这篇论文主要讨论什么？请概述主题。",
+      "answer_hint": "Writerslogic at the CLEF 2026 SimpleText Track: Multi-Candidate LLM Simplification and Stacked Complexity Spotting Noteb",
+      "keywords": [
+        "Writerslogic",
+        "SimpleText",
+        "Track",
+        "Multi",
+        "Candidate"
+      ],
+      "id": "KB-067"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03567v1",
+      "question": "填空：Writerslogic at the CLEF ____ SimpleText Track: Multi-Candidate LLM Simplification and Stacked Complexity Spotting Notebook for the SimpleText Lab at CLEF 2026 David Condrey1 1WritersLogic Inc, San Di",
+      "answer_hint": "2026",
+      "keywords": [
+        "Writerslogic",
+        "CLEF",
+        "SimpleText",
+        "Track"
+      ],
+      "id": "KB-068"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03567v1",
+      "question": "填空：For Task ____, we develop a multi-candidate generation pipeline using GPT-4o-mini that produces five simplification candidates per sentence at varying temperatures, then selects the best candidate usi",
+      "answer_hint": "1",
+      "keywords": [
+        "Task",
+        "develop",
+        "multi",
+        "candidate"
+      ],
+      "id": "KB-069"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03570v1",
+      "question": "这篇论文主要讨论什么？请概述主题。",
+      "answer_hint": "1 Learning to Assess Heartbeat Observability for mmWave Heart-Rate Sensing Yuxuan Hu, Shilin Shan, Jianfei Yang, and Fen",
+      "keywords": [
+        "Learning",
+        "Assess",
+        "Heartbeat",
+        "Observability",
+        "mmWave"
+      ],
+      "id": "KB-070"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03570v1",
+      "question": "填空：____ Learning to Assess Heartbeat Observability for mmWave Heart-Rate Sensing Yuxuan Hu, Shilin Shan, Jianfei Yang, and Feng Xu Abstract—Contactless heart-rate sensing with millimeter-wave (mmWave) ra",
+      "answer_hint": "1",
+      "keywords": [
+        "Learning",
+        "Assess",
+        "Heartbeat",
+        "Observability"
+      ],
+      "id": "KB-071"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03570v1",
+      "question": "填空：Trained solely on simulated observations, HEAR transfers zero-shot to two public real-world datasets collected at ____ and 120 GHz from 134 subjects.",
+      "answer_hint": "60",
+      "keywords": [
+        "Trained",
+        "solely",
+        "simulated",
+        "observations"
+      ],
+      "id": "KB-072"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03574v1",
+      "question": "这篇论文主要讨论什么？请概述主题。",
+      "answer_hint": "Preprint HYPERBROWSECOMP: A MULTILINGUAL ANDMULTI- MODALSTRESSTEST FORWEB-BROWSINGAGENTS Alham Fikri Aji1 Faiz Rizki Ram",
+      "keywords": [
+        "Preprint",
+        "HYPERBROWSECOMP",
+        "MULTILINGUAL",
+        "ANDMULTI",
+        "MODALSTRESSTEST"
+      ],
+      "id": "KB-073"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03574v1",
+      "question": "填空：Preprint HYPERBROWSECOMP: A MULTILINGUAL ANDMULTI- MODALSTRESSTEST FORWEB-BROWSINGAGENTS Alham Fikri Aji____ Faiz Rizki Ramadhan1 Zayd M.",
+      "answer_hint": "1",
+      "keywords": [
+        "Preprint",
+        "HYPERBROWSECOMP",
+        "MULTILINGUAL",
+        "ANDMULTI"
+      ],
+      "id": "KB-074"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03574v1",
+      "question": "填空：____ INTRODUCTION Large language models (LLMs) are increasingly used not only as conversational systems, but also as tool-using agents that search the web, inspect external sources, and synthesize evi",
+      "answer_hint": "1",
+      "keywords": [
+        "INTRODUCTION",
+        "Large",
+        "language",
+        "models"
+      ],
+      "id": "KB-075"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03591v1",
+      "question": "这篇论文主要讨论什么？请概述主题。",
+      "answer_hint": "HazardWeaver: Scientific Route Selection for Hazard Analysis Agents Wangshu Zhu1 Xueqi Cheng1 Liang Wu2 Yushun Dong1 1De",
+      "keywords": [
+        "HazardWeaver",
+        "Scientific",
+        "Route",
+        "Selection",
+        "Hazard"
+      ],
+      "id": "KB-076"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03591v1",
+      "question": "填空：HazardWeaver: Scientific Route Selection for Hazard Analysis Agents Wangshu Zhu____ Xueqi Cheng1 Liang Wu2 Yushun Dong1 1Department of Computer Science, Florida State University 2Nokia {wz26b,xc25,yus",
+      "answer_hint": "1",
+      "keywords": [
+        "HazardWeaver",
+        "Scientific",
+        "Route",
+        "Selection"
+      ],
+      "id": "KB-077"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03591v1",
+      "question": "填空：To evaluate both the scientific outputs and the decisions that produce them, we introduce the Hazard Weaver Benchmark, comprising ____ instances across seven single-hazard domains and four multi-hazar",
+      "answer_hint": "141",
+      "keywords": [
+        "evaluate",
+        "both",
+        "scientific",
+        "outputs"
+      ],
+      "id": "KB-078"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03620v1",
+      "question": "这篇论文主要讨论什么？请概述主题。",
+      "answer_hint": "UniIntervene++: An Adaptive Intervention Agent for Efficient Real-World Reinforcement Learning Yudong Lin1∗, Haoyuan Den",
+      "keywords": [
+        "UniIntervene",
+        "Adaptive",
+        "Intervention",
+        "Agent",
+        "Efficient"
+      ],
+      "id": "KB-079"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03620v1",
+      "question": "填空：UniIntervene++: An Adaptive Intervention Agent for Efficient Real-World Reinforcement Learning Yudong Lin____∗, Haoyuan Deng 1∗, Zhuoxuan Yuan 1, Zaijia Yang 1, Yuanjiang Xue 1, and Ziwei Wang 1† Abst",
+      "answer_hint": "1",
+      "keywords": [
+        "UniIntervene",
+        "Adaptive",
+        "Intervention",
+        "Agent"
+      ],
+      "id": "KB-080"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03620v1",
+      "question": "填空：Across five real-world manipulation tasks,UniIntervene++achieves an average success rate of ____, outperforming all baselines by at least 6 percentage points, while reducing human intervention to 0.77",
+      "answer_hint": "89.67%",
+      "keywords": [
+        "Across",
+        "five",
+        "real",
+        "world"
+      ],
+      "id": "KB-081"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03626v1",
+      "question": "这篇论文主要讨论什么？请概述主题。",
+      "answer_hint": "DEPTH ASTIME INONE-STEPGENERATIVEMODELS Arnold Caleb Asiimwe William Yang Sanghyuk Chun Esin Tureci Olga Russakovsky Pri",
+      "keywords": [
+        "DEPTH",
+        "ASTIME",
+        "INONE",
+        "STEPGENERATIVEMODELS",
+        "Arnold"
+      ],
+      "id": "KB-082"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03626v1",
+      "question": "填空：Consequently, we show that models that exhibit the depthwise denoising phenomenon are more compressible across the layerwise computation: a MeanFlow SiT-L/____ model can be compressed by 16.6× in para",
+      "answer_hint": "2",
+      "keywords": [
+        "Consequently",
+        "show",
+        "that",
+        "models"
+      ],
+      "id": "KB-083"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03626v1",
+      "question": "填空：In contrast, one-step models not based on diffusion, such as drifting models (Deng et al., ____), do not appear to exhibit the same transport-organized depthwise trajectory.",
+      "answer_hint": "2026",
+      "keywords": [
+        "contrast",
+        "step",
+        "models",
+        "based"
+      ],
+      "id": "KB-084"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03634v1",
+      "question": "这篇论文主要讨论什么？请概述主题。",
+      "answer_hint": "In these tasks, later commandsoftendepend on informationor intermediate resultsproduced by earlier commands.",
+      "keywords": [
+        "these",
+        "tasks",
+        "later",
+        "commandsoftendepend",
+        "informationor"
+      ],
+      "id": "KB-085"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03634v1",
+      "question": "填空：Introduction Terminal-using agents (Anthropic, ____, OpenAI, 2025, Google, 2025, Wang et al., 2025) have become a major application of language models for coding, debugging, and other multi-step termi",
+      "answer_hint": "2025",
+      "keywords": [
+        "Introduction",
+        "Terminal",
+        "using",
+        "agents"
+      ],
+      "id": "KB-086"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03634v1",
+      "question": "填空：Recent work improves these agents through reinforcement learning (RL), with outcome rewards determined by task verifiers that check whether the resulting environment satisfies task requirements (Shen ",
+      "answer_hint": "2026",
+      "keywords": [
+        "Recent",
+        "work",
+        "improves",
+        "these"
+      ],
+      "id": "KB-087"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03662v1",
+      "question": "这篇论文主要讨论什么？请概述主题。",
+      "answer_hint": "Simulation offers a way to address this gap by rolling out the target policy across counterfactual scenarios and using t",
+      "keywords": [
+        "Simulation",
+        "offers",
+        "address",
+        "rolling",
+        "target"
+      ],
+      "id": "KB-088"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03662v1",
+      "question": "填空：The simulation-to-reality (Sim____Real) transfer of this simulator-trained model can then be backtested by evaluating it against real observations from past deployments.",
+      "answer_hint": "2",
+      "keywords": [
+        "simulation",
+        "reality",
+        "Real",
+        "transfer"
+      ],
+      "id": "KB-089"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03662v1",
+      "question": "填空：The simulator-trained forecaster achieves lower point-estimate mean absolute percentage error (MAPE) than the same architecture trained on historical real data, reducing MAPE by ____–3.1 percentage po",
+      "answer_hint": "1.2",
+      "keywords": [
+        "simulator",
+        "trained",
+        "forecaster",
+        "achieves"
+      ],
+      "id": "KB-090"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03679v1",
+      "question": "这篇论文主要讨论什么？请概述主题。",
+      "answer_hint": "Reconstructing and extrapolating this evolution from unpaired snapshots requires assumptions about the underlying proces",
+      "keywords": [
+        "Reconstructing",
+        "extrapolating",
+        "evolution",
+        "unpaired",
+        "snapshots"
+      ],
+      "id": "KB-091"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03679v1",
+      "question": "填空：We test Double- Stitch on synthetic, single-cell and ocean vortex datasets and find that it matches or outperforms gradient-flow methods and simulation-based WLM on most tasks, while training ____–14 ",
+      "answer_hint": "4",
+      "keywords": [
+        "test",
+        "Double",
+        "Stitch",
+        "synthetic"
+      ],
+      "id": "KB-092"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03679v1",
+      "question": "填空：____ INTRODUCTION Learning complex dynamics of populations is a fundamental problem with applications to single-cell biology, animal behavior, and fluid mechanics (Schiebinger et al., 2019; Maury et a",
+      "answer_hint": "1",
+      "keywords": [
+        "INTRODUCTION",
+        "Learning",
+        "complex",
+        "dynamics"
+      ],
+      "id": "KB-093"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03702v1",
+      "question": "这篇论文主要讨论什么？请概述主题。",
+      "answer_hint": "LESSER: POST-TRAININGDATASELECTION WITHOUTPUT-LAYERGRADIENTS Lyuxin David Zhang1 Eric Wong1 Surbhi Goel1 Anton Xue2 1Uni",
+      "keywords": [
+        "LESSER",
+        "TRAININGDATASELECTION",
+        "WITHOUTPUT",
+        "LAYERGRADIENTS",
+        "Lyuxin"
+      ],
+      "id": "KB-094"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03702v1",
+      "question": "填空：LESSER: POST-TRAININGDATASELECTION WITHOUTPUT-LAYERGRADIENTS Lyuxin David Zhang____ Eric Wong1 Surbhi Goel1 Anton Xue2 1University of Pennsylvania 2University of Texas at Austin ABSTRACT The choice of",
+      "answer_hint": "1",
+      "keywords": [
+        "LESSER",
+        "POST",
+        "TRAININGDATASELECTION",
+        "WITHOUTPUT"
+      ],
+      "id": "KB-095"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03702v1",
+      "question": "填空：We implement this as LESSER, a drop-in wrapper for selection methods that reduces the feature-extraction FLOP cost by____×for SFT and3.0×for RL benchmarks, while tracking full-gradient performance on ",
+      "answer_hint": "9.7",
+      "keywords": [
+        "implement",
+        "this",
+        "LESSER",
+        "drop"
+      ],
+      "id": "KB-096"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03715v1",
+      "question": "这篇论文主要讨论什么？请概述主题。",
+      "answer_hint": "10-5-2026 4DCO D EBE N C H: BE N C H M A R K I N GAG E N T S O N IN V E R S EGR A P H I C S O FDY N A M I CSC E N E S Ru",
+      "keywords": [],
+      "id": "KB-097"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03715v1",
+      "question": "填空：____-5-2026 4DCO D EBE N C H: BE N C H M A R K I N GAG E N T S O N IN V E R S EGR A P H I C S O FDY N A M I CSC E N E S Ruihong Shen1*† Žiga Kovaˇ ciˇ c2* Peter Kulits2,3* Xingrui Wang1 Zizhang Li2 Jo",
+      "answer_hint": "10",
+      "keywords": [
+        "Ruihong",
+        "Shen",
+        "Kova",
+        "Peter"
+      ],
+      "id": "KB-098"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03715v1",
+      "question": "填空：Given an input video, an agent must reconstruct it as an explicit ____D scene by writing graphics code; the scene is rendered back to video and its geometry is inspected over time.Bottom:we benchmark ",
+      "answer_hint": "4",
+      "keywords": [
+        "Given",
+        "input",
+        "video",
+        "agent"
+      ],
+      "id": "KB-099"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03176v1",
+      "question": "填空：Shyama Prasad Mukherjee International Institute of Information Technology, Naya Raipur aarav____@iiitnr.edu.in, animesh24100@iiitnr.edu.in, navyansh24102@iiitnr.edu.in Abstract We study hindsight-guid（变体 1）",
+      "answer_hint": "24101",
+      "keywords": [
+        "Shyama",
+        "Prasad",
+        "Mukherjee",
+        "International"
+      ],
+      "id": "KB-100"
+    }
+  ]
+}

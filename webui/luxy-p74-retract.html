@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>P-74 关键发现 · 结论撤回</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+       background:linear-gradient(160deg,#060912,#0d1a33 45%,#1a1030);color:#fff;padding:26px 30px}
+  h1{font-size:25px;font-weight:800}
+  .sub{color:#8ba3cc;font-size:12.5px;margin:5px 0 18px}
+  .row{display:flex;gap:14px;margin-bottom:14px;flex-wrap:wrap}
+  .card{flex:1;min-width:200px;border-radius:13px;padding:16px;
+        border:1px solid rgba(120,160,255,.18);background:rgba(255,255,255,.04)}
+  .card h2{font-size:13px;color:#8ba3cc;font-weight:600;margin-bottom:12px}
+  .big{font-size:32px;font-weight:900;line-height:1}
+  .lbl{font-size:11px;color:#8ba3cc;margin-top:6px}
+  .g{color:#52c41a}.r{color:#ff4d4f}.a{color:#faad14}.b{color:#5b8cff}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+  .chart{position:relative;height:230px}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th{text-align:left;color:#8ba3cc;padding:7px 9px;border-bottom:1px solid rgba(120,160,255,.2);font-weight:600}
+  td{padding:7px 9px;border-bottom:1px solid rgba(255,255,255,.05)}
+  .bdg{display:inline-block;padding:2px 8px;border-radius:999px;font-size:10.5px;font-weight:700}
+  .ok{background:rgba(82,196,26,.15);color:#52c41a}
+  .no{background:rgba(255,77,79,.15);color:#ff4d4f}
+  .w{background:rgba(250,173,20,.15);color:#faad14}
+  .hero{padding:16px 20px;border-radius:12px;margin-bottom:14px;
+        background:linear-gradient(90deg,rgba(255,77,79,.16),rgba(250,173,20,.10));
+        border:1px solid rgba(255,77,79,.45)}
+  code{font-family:ui-monospace,monospace;font-size:11px;color:#a9c4ff}
+</style>
+</head>
+<body>
+  <h1>P-74 关键发现 · 结论撤回</h1>
+  <div class="sub">2026-10-21 · V1 有缺陷题 vs V2 规范题 · 同一批 KB 同一批 PDF · 结论完全相反</div>
+
+  <div class="hero">
+    <div style="font-size:15px;font-weight:800;color:#ff8a8a">⚠ 必须撤回："清洗使 LLM 答题准确率 +8.0pp（p=0.018）" ✗</div>
+    <div style="font-size:11.5px;color:#ffd666;margin-top:6px">
+      V1 的 +8.0pp 来自 <strong>有缺陷的题目</strong>（从随机句子抽填空 ✗）；<br>
+      V2 换成<strong>从摘要抽的规范题目</strong>后 ⇒ 配对差 <strong>+0.0pp · p=1.0 · 不显著</strong> ✗
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="card"><div class="big r">撤回</div><div class="lbl">+8.0pp 结论 ✗</div></div>
+    <div class="card"><div class="big a">+0.0pp</div><div class="lbl">V2 规范题结果<br>p=1.0 不显著</div></div>
+    <div class="card"><div class="big b">34.0%</div><div class="lbl">V2 绝对准确率<br>（V1 是 17% ⚠）</div></div>
+    <div class="card"><div class="big g">+6.0pp</div><div class="lbl">仅 structure 题有差<br>（n=33 未检验）</div></div>
+  </div>
+
+  <div class="cols">
+    <div class="card">
+      <h2>V1 vs V2 结论对比</h2>
+      <div class="chart"><canvas id="c1"></canvas></div>
+    </div>
+    <div class="card">
+      <h2>V2 按题型（真相）</h2>
+      <div class="chart"><canvas id="c2"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:14px">
+    <h2>V1 题目缺陷 vs V2 修正</h2>
+    <table>
+      <tr><th>问题</th><th>V1（有缺陷 ✗）</th><th>V2（修正 ✓）</th></tr>
+      <tr><td>main_idea 参考答案</td><td><strong class="r">论文标题 + 作者名</strong> ✗ 无法判对</td>
+          <td><strong class="g">摘要实质内容</strong> ✓</td></tr>
+      <tr><td>detail 题来源</td><td><strong class="r">随机句子</strong> ✗ 常抽到邮箱/作者 ✗</td>
+          <td><strong class="g">摘要里的数值</strong> ✓</td></tr>
+      <tr><td>structure 题</td><td><strong class="r">0 题</strong> ✗ 正则太严</td>
+          <td><strong class="g">33 题</strong> ✓ 术语解释</td></tr>
+      <tr><td>垃圾过滤</td><td><strong class="r">无</strong> ✗</td>
+          <td><strong class="g">邮箱/DOI/arXiv/机构/作者名全过滤</strong> ✓</td></tr>
+      <tr><td>绝对准确率</td><td>17.0% / 9.0% ⚠</td><td><strong class="g">34.0% / 34.0%</strong> ✓</td></tr>
+    </table>
+  </div>
+
+  <div class="card" style="margin-bottom:14px">
+    <h2>★ 为什么 V1 会测出假阳性（+8.0pp）</h2>
+    <div style="font-size:12.5px;line-height:1.9;color:#e8eef9;padding:4px 0">
+      <strong class="r">V1 的 detail 题是从「随机句子」抽数值填空</strong> ✗ ——
+      <br>　clean KB 的块更干净 ✓ ⇒ 那句话<strong>更容易被检索到</strong> ✓ ⇒ 填空命中率更高 ✓
+      <br>　但这不是「答题能力提升」✗ 只是「找句子更容易」✗ —— <strong>假阳性</strong> ✗
+      <br><br>
+      <strong class="g">V2 从「摘要」抽题</strong> ✓ —— 两臂检索到的都是摘要区 ⇒ <strong>无差异</strong> ✗
+      <br>　⇒ <strong>清洗对 LLM 答题准确率没有可测提升</strong> ✗（至少在这批题上）
+      <br><br>
+      <strong class="a">唯一可能的信号：structure 题 +6.0pp</strong>（clean 93.9% vs raw 87.9%）
+      <br>　⚠ 但 n=33 未做显著性检验 ⇒ 不能下结论 ✗
+    </div>
+  </div>
+
+  <div class="card" style="border-color:rgba(91,140,255,.35);background:rgba(91,140,255,.06)">
+    <h2 style="color:#a9c4ff">★ 今天最重要的方法论教训</h2>
+    <div style="font-size:13px;line-height:1.9;color:#e8eef9;padding:4px 0">
+      <strong class="r">① 题目缺陷 &gt; 数据量</strong> ✗ —— V1 加大到 n=100 仍然出错 ✗，因为题目本身有问题 ✗
+      <br><strong class="r">② 数据量不是万能药</strong> ✗ —— 之前"3 次翻转"看起来是数据量的功劳 ✓，
+      但这次证明 <strong>题目质量才是决定性因素</strong> ✓
+      <br><strong class="a">③ 必须报告"撤回"</strong> ✓ —— 已发布的 +8.0pp 结论必须标记为<strong>无效</strong> ✗
+      <br><br>
+      <span style="color:#8ba3cc;font-size:12px">
+        正确的表述应为：<br>
+        "清洗对检索质量的改善已量化（耗时 2.8× / 上下文 −24% / 噪声 −98.4%）✓；<br>
+         但<strong>在 n=100 的规范题目上，对 LLM 答题准确率未测出显著提升</strong>（+0.0pp, p=1.0）✗"
+      </span>
+    </div>
+  </div>
+
+<script>
+Chart.defaults.color='#8ba3cc'; Chart.defaults.borderColor='rgba(120,160,255,.12)';
+Chart.defaults.font.family='"PingFang SC","Microsoft YaHei",system-ui,sans-serif';
+
+new Chart(document.getElementById('c1'),{
+  type:'bar',
+  data:{
+    labels:['V1 旧题（有缺陷）','V2 新题（规范）'],
+    datasets:[
+      {label:'clean',data:[17.0,34.0],backgroundColor:'rgba(82,196,26,.8)',borderRadius:6},
+      {label:'raw',data:[9.0,34.0],backgroundColor:'rgba(255,77,79,.7)',borderRadius:6}
+    ]
+  },
+  options:{responsive:true,maintainAspectRatio:false,
+    scales:{y:{beginAtZero:true,ticks:{callback:v=>v+'%'},grid:{color:'rgba(120,160,255,.1)'}},
+            x:{grid:{display:false}}},
+    plugins:{legend:{labels:{boxWidth:12,font:{size:11}}},
+      tooltip:{callbacks:{afterBody:()=>['V1: +8.0pp p=0.018 ✗','V2: +0.0pp p=1.0 ✓']}}}}
+});
+
+new Chart(document.getElementById('c2'),{
+  type:'bar',
+  data:{
+    labels:['structure (n=33)','detail (n=34)','main_idea (n=33)'],
+    datasets:[
+      {label:'clean',data:[93.9,8.8,0],backgroundColor:'rgba(82,196,26,.8)',borderRadius:6},
+      {label:'raw',data:[87.9,14.7,0],backgroundColor:'rgba(91,140,255,.75)',borderRadius:6}
+    ]
+  },
+  options:{responsive:true,maintainAspectRatio:false,
+    scales:{y:{beginAtZero:true,ticks:{callback:v=>v+'%'},grid:{color:'rgba(120,160,255,.1)'}},
+            x:{grid:{display:false}}},
+    plugins:{legend:{labels:{boxWidth:12,font:{size:11}}}}}
+});
+</script>
+</body>
+</html>

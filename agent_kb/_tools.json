@@ -1,0 +1,625 @@
+{
+  "physics_calc": {
+    "dangerous": false,
+    "args": [],
+    "endpoint": "sim/run",
+    "method": "POST"
+  },
+  "academic_search": {
+    "dangerous": false,
+    "args": [],
+    "endpoint": "academic/search",
+    "method": "POST"
+  },
+  "rebuild_knowledge_base": {
+    "dangerous": true,
+    "args": [],
+    "endpoint": "kb/${encodeURIComponent",
+    "method": "POST"
+  },
+  "browser_open": {
+    "dangerous": false,
+    "args": [],
+    "endpoint": "browser/call",
+    "method": "POST"
+  },
+  "browser_snapshot": {
+    "dangerous": false,
+    "args": [],
+    "endpoint": "browser/call",
+    "method": "POST"
+  },
+  "browser_screenshot": {
+    "dangerous": false,
+    "args": [],
+    "endpoint": "browser/call",
+    "method": "POST"
+  },
+  "browser_click": {
+    "dangerous": false,
+    "args": [],
+    "endpoint": "browser/call",
+    "method": "POST"
+  },
+  "browser_fill": {
+    "dangerous": false,
+    "args": [],
+    "endpoint": "browser/call",
+    "method": "POST"
+  },
+  "browser_read": {
+    "dangerous": false,
+    "args": [],
+    "endpoint": "browser/call",
+    "method": "POST"
+  },
+  "browser_wait": {
+    "dangerous": false,
+    "args": [],
+    "endpoint": "browser/call",
+    "method": "POST"
+  },
+  "browser_tabs": {
+    "dangerous": false,
+    "args": [],
+    "endpoint": "browser/call",
+    "method": "POST"
+  },
+  "mount_knowledge_bases": {
+    "dangerous": false,
+    "args": [],
+    "endpoint": "kb/mount",
+    "method": "PUT"
+  },
+  "list_datasets": {
+    "dangerous": false,
+    "args": [],
+    "endpoint": "training/available_datasets",
+    "method": "GET"
+  },
+  "upload_dataset": {
+    "dangerous": true,
+    "args": [],
+    "endpoint": "training/upload_dataset",
+    "method": "POST"
+  },
+  "clean_dataset": {
+    "dangerous": true,
+    "args": [],
+    "endpoint": "training/dataset/clean",
+    "method": "POST"
+  },
+  "list_available_models": {
+    "dangerous": false,
+    "args": [],
+    "endpoint": "chat/models",
+    "method": "GET"
+  },
+  "switch_model": {
+    "dangerous": false,
+    "args": [],
+    "endpoint": "",
+    "method": "GET"
+  },
+  "list_loras": {
+    "dangerous": false,
+    "args": [],
+    "endpoint": "loras",
+    "method": "GET"
+  },
+  "load_lora": {
+    "dangerous": true,
+    "args": [],
+    "endpoint": "loras/load",
+    "method": "POST"
+  },
+  "unload_lora": {
+    "dangerous": true,
+    "args": [],
+    "endpoint": "loras/unload",
+    "method": "POST"
+  },
+  "list_knowledge_bases": {
+    "dangerous": false,
+    "args": [],
+    "endpoint": "kb/list",
+    "method": "GET"
+  },
+  "query_knowledge_base": {
+    "dangerous": false,
+    "args": [],
+    "endpoint": "kb/${encodeURIComponent",
+    "method": "POST"
+  },
+  "create_knowledge_base": {
+    "dangerous": false,
+    "args": [],
+    "endpoint": "kb/create",
+    "method": "POST"
+  },
+  "list_workflow_nodes": {
+    "dangerous": false,
+    "args": [],
+    "endpoint": "workflow/config",
+    "method": "GET"
+  },
+  "add_workflow_node": {
+    "dangerous": false,
+    "args": [
+      "description",
+      "id",
+      "input_from",
+      "kb_name",
+      "lora",
+      "model_override",
+      "prompt",
+      "provider",
+      "query_template",
+      "top_k",
+      "type"
+    ],
+    "endpoint": "work",
+    "method": "GET"
+  },
+  "list_workflow_uploads": {
+    "dangerous": false,
+    "args": [],
+    "endpoint": "uploads",
+    "method": "GET"
+  },
+  "run_workflow": {
+    "dangerous": false,
+    "args": [
+      "config",
+      "config_name",
+      "file",
+      "filename",
+      "kb",
+      "kb_name",
+      "paper",
+      "paper_name"
+    ],
+    "endpoint": "workflow/result/${encodeURIComponent",
+    "method": "POST"
+  },
+  "get_workflow_status": {
+    "dangerous": false,
+    "args": [
+      "id",
+      "taskId",
+      "task_id"
+    ],
+    "endpoint": "tasks",
+    "method": "GET"
+  },
+  "update_workflow_node": {
+    "dangerous": false,
+    "args": [
+      "fields",
+      "id",
+      "node",
+      "node_id",
+      "patch",
+      "set"
+    ],
+    "endpoint": "workflow/config",
+    "method": "PUT"
+  },
+  "build_dataset": {
+    "dangerous": false,
+    "args": [
+      "dataset",
+      "file",
+      "filename",
+      "name",
+      "node",
+      "node_id",
+      "result_file"
+    ],
+    "endpoint": "workflow/export_dataset",
+    "method": "POST"
+  },
+  "run_eval": {
+    "dangerous": false,
+    "args": [
+      "count",
+      "dataset",
+      "dataset_file",
+      "limit",
+      "lora",
+      "lora_name",
+      "name",
+      "role",
+      "with_base",
+      "workers"
+    ],
+    "endpoint": "eval/start",
+    "method": "POST"
+  },
+  "list_running_tasks": {
+    "dangerous": false,
+    "args": [],
+    "endpoint": "tasks",
+    "method": "GET"
+  },
+  "get_eval_status": {
+    "dangerous": false,
+    "args": [
+      "id",
+      "taskId",
+      "task_id"
+    ],
+    "endpoint": "eval/list",
+    "method": "GET"
+  },
+  "list_history": {
+    "dangerous": false,
+    "args": [
+      "limit"
+    ],
+    "endpoint": "history",
+    "method": "GET"
+  },
+  "get_history_detail": {
+    "dangerous": false,
+    "args": [
+      "id",
+      "taskId",
+      "task_id"
+    ],
+    "endpoint": "history/${encodeURIComponent",
+    "method": "GET"
+  },
+  "list_workflow_results": {
+    "dangerous": false,
+    "args": [
+      "limit"
+    ],
+    "endpoint": "workflow/list",
+    "method": "GET"
+  },
+  "get_workflow_result": {
+    "dangerous": false,
+    "args": [
+      "file",
+      "filename",
+      "node",
+      "node_id",
+      "result_file"
+    ],
+    "endpoint": "workflow/result/${encodeURIComponent",
+    "method": "GET"
+  },
+  "list_workflow_configs": {
+    "dangerous": false,
+    "args": [],
+    "endpoint": "",
+    "method": "GET"
+  },
+  "create_workflow_config": {
+    "dangerous": false,
+    "args": [
+      "clone_current",
+      "config",
+      "config_name",
+      "fromCurrent",
+      "from_current",
+      "name"
+    ],
+    "endpoint": "workflow/config",
+    "method": "PUT"
+  },
+  "use_workflow_config": {
+    "dangerous": false,
+    "args": [
+      "config",
+      "config_name",
+      "name"
+    ],
+    "endpoint": "workflow/config",
+    "method": "GET"
+  },
+  "validate_workflow": {
+    "dangerous": false,
+    "args": [
+      "config",
+      "config_name",
+      "name"
+    ],
+    "endpoint": "workflow/validate",
+    "method": "GET"
+  },
+  "get_vllm_status": {
+    "dangerous": false,
+    "args": [],
+    "endpoint": "",
+    "method": "GET"
+  },
+  "get_settings": {
+    "dangerous": false,
+    "args": [],
+    "endpoint": "docs/tool",
+    "method": "POST"
+  },
+  "replace_in_file": {
+    "dangerous": false,
+    "args": [],
+    "endpoint": "docs/tool",
+    "method": "POST"
+  },
+  "set_lines_in_file": {
+    "dangerous": false,
+    "args": [],
+    "endpoint": "docs/tool",
+    "method": "POST"
+  },
+  "export_docx": {
+    "dangerous": false,
+    "args": [],
+    "endpoint": "docs/tool",
+    "method": "POST"
+  },
+  "replace_text": {
+    "dangerous": false,
+    "args": [],
+    "endpoint": "docs/tool",
+    "method": "POST"
+  },
+  "set_lines": {
+    "dangerous": false,
+    "args": [],
+    "endpoint": "docs/tool",
+    "method": "POST"
+  },
+  "list_uploads": {
+    "dangerous": false,
+    "args": [],
+    "endpoint": "uploads",
+    "method": "GET"
+  },
+  "list_sheets": {
+    "dangerous": false,
+    "args": [
+      "file",
+      "filename",
+      "name"
+    ],
+    "endpoint": "docs/sheets",
+    "method": "GET"
+  },
+  "read_sheet": {
+    "dangerous": false,
+    "args": [
+      "file",
+      "filename",
+      "limit",
+      "name",
+      "rows",
+      "sheet"
+    ],
+    "endpoint": "docs/read_sheet",
+    "method": "POST"
+  },
+  "filter_rows": {
+    "dangerous": false,
+    "args": [
+      "col",
+      "column",
+      "column_name",
+      "file",
+      "filename",
+      "limit",
+      "name",
+      "op",
+      "operator",
+      "sheet",
+      "val",
+      "value"
+    ],
+    "endpoint": "docs/filter_rows",
+    "method": "POST"
+  },
+  "group_sum": {
+    "dangerous": false,
+    "args": [
+      "file",
+      "filename",
+      "group",
+      "groupBy",
+      "group_by",
+      "limit",
+      "name",
+      "sheet",
+      "sum",
+      "sumColumn",
+      "sum_column",
+      "value_column"
+    ],
+    "endpoint": "docs/group_sum",
+    "method": "POST"
+  },
+  "read_docx": {
+    "dangerous": false,
+    "args": [
+      "dir",
+      "file",
+      "filename",
+      "folder",
+      "name",
+      "outDir",
+      "out_dir"
+    ],
+    "endpoint": "docs/tool",
+    "method": "POST"
+  },
+  "write_sheet": {
+    "dangerous": true,
+    "args": [
+      "columns",
+      "data",
+      "filename",
+      "header",
+      "name",
+      "rows",
+      "sheet",
+      "sheet_name"
+    ],
+    "endpoint": "docs/write_sheet",
+    "method": "POST"
+  },
+  "write_docx": {
+    "dangerous": true,
+    "args": [
+      "content",
+      "dir",
+      "filename",
+      "folder",
+      "heading",
+      "lines",
+      "name",
+      "outDir",
+      "out_dir",
+      "paragraphs",
+      "rows",
+      "table",
+      "title"
+    ],
+    "endpoint": "docs/tool",
+    "method": "POST"
+  },
+  "list_doc_flows": {
+    "dangerous": false,
+    "args": [],
+    "endpoint": "docs/flows",
+    "method": "GET"
+  },
+  "run_doc_flow": {
+    "dangerous": true,
+    "args": [
+      "flow",
+      "flow_name",
+      "inputs",
+      "name",
+      "vars"
+    ],
+    "endpoint": "docs/flows/run",
+    "method": "POST"
+  },
+  "save_doc_flow": {
+    "dangerous": true,
+    "args": [
+      "description",
+      "flow_name",
+      "name",
+      "steps",
+      "title"
+    ],
+    "endpoint": "docs/flows/save",
+    "method": "POST"
+  },
+  "read_upload": {
+    "dangerous": false,
+    "args": [
+      "file",
+      "filename",
+      "limit",
+      "maxChars",
+      "max_chars",
+      "name"
+    ],
+    "endpoint": "uploads/text",
+    "method": "GET"
+  },
+  "get_quality_summary": {
+    "dangerous": false,
+    "args": [
+      "limit",
+      "node",
+      "node_id"
+    ],
+    "endpoint": "quality/summary",
+    "method": "GET"
+  },
+  "get_loras_registry": {
+    "dangerous": false,
+    "args": [],
+    "endpoint": "loras/registry",
+    "method": "GET"
+  },
+  "delete_workflow_node": {
+    "dangerous": true,
+    "args": [],
+    "endpoint": "workflow/config",
+    "method": "PUT"
+  },
+  "list_available_datasets": {
+    "dangerous": false,
+    "args": [],
+    "endpoint": "training/available_datasets",
+    "method": "GET"
+  },
+  "list_trainings": {
+    "dangerous": false,
+    "args": [],
+    "endpoint": "",
+    "method": "GET"
+  },
+  "get_training_status": {
+    "dangerous": false,
+    "args": [
+      "id",
+      "taskId",
+      "task_id"
+    ],
+    "endpoint": "training/status/${encodeURIComponent",
+    "method": "GET"
+  },
+  "start_training": {
+    "dangerous": true,
+    "args": [
+      "adapter_name",
+      "count",
+      "dataCount",
+      "data_count",
+      "dataset",
+      "datasetFile",
+      "dataset_file",
+      "desc",
+      "format",
+      "formatHint",
+      "format_hint",
+      "lora",
+      "loraName",
+      "lora_name",
+      "model_name",
+      "name",
+      "num",
+      "review",
+      "reviewBeforeTrain",
+      "review_before_train",
+      "samples",
+      "task",
+      "taskDesc",
+      "task_desc"
+    ],
+    "endpoint": "training/start",
+    "method": "POST"
+  },
+  "list_sim_nodes": {
+    "dangerous": false,
+    "args": [
+      "tag"
+    ],
+    "endpoint": "",
+    "method": "GET"
+  },
+  "run_simulation": {
+    "dangerous": false,
+    "args": [
+      "args",
+      "node"
+    ],
+    "endpoint": "",
+    "method": "GET"
+  }
+}

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>P0 问题清单 · 2026-10-21</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+       background:linear-gradient(160deg,#060912,#0d1a33 45%,#1a1030);color:#fff;padding:26px 30px}
+  h1{font-size:25px;font-weight:800}
+  .sub{color:#8ba3cc;font-size:12.5px;margin:5px 0 18px}
+  .row{display:flex;gap:14px;margin-bottom:16px;flex-wrap:wrap}
+  .card{flex:1;min-width:200px;border-radius:13px;padding:16px;
+        border:1px solid rgba(120,160,255,.18);background:rgba(255,255,255,.04)}
+  .big{font-size:34px;font-weight:900;line-height:1}
+  .lbl{font-size:11px;color:#8ba3cc;margin-top:6px}
+  .g{color:#52c41a}.r{color:#ff4d4f}.a{color:#faad14}.b{color:#5b8cff}
+  h2{font-size:14px;font-weight:700;margin:20px 0 11px;color:#c9d6f5}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th{text-align:left;color:#8ba3cc;padding:8px 9px;border-bottom:1px solid rgba(120,160,255,.2);font-weight:600}
+  td{padding:8px 9px;border-bottom:1px solid rgba(255,255,255,.05);vertical-align:top}
+  .bdg{display:inline-block;padding:2px 8px;border-radius:999px;font-size:10.5px;font-weight:700;white-space:nowrap}
+  .ok{background:rgba(82,196,26,.15);color:#52c41a}
+  .no{background:rgba(255,77,79,.15);color:#ff4d4f}
+  .w{background:rgba(250,173,20,.15);color:#faad14}
+  .hero{padding:15px 19px;border-radius:12px;margin-bottom:14px;
+        background:linear-gradient(90deg,rgba(82,196,26,.13),rgba(91,140,255,.09));
+        border:1px solid rgba(82,196,26,.4)}
+  code{font-family:ui-monospace,monospace;font-size:11px;color:#a9c4ff}
+  .bar{display:flex;gap:9px;align-items:center;margin:7px 0;font-size:12px}
+  .bar .nm{width:230px;color:#c9d6f5}
+  .bar .bb{flex:1;height:16px;background:rgba(255,255,255,.06);border-radius:8px;overflow:hidden}
+  .bar .ff{height:100%;border-radius:8px}
+  .bar .vv{width:56px;text-align:right;font-weight:700;font-family:ui-monospace,monospace}
+</style>
+</head>
+<body>
+  <h1>P0 问题清单</h1>
+  <div class="sub">2026-10-21 收尾 · 原 5 个 P0 全部完成 ✓ · 但今天新发现 9 个 P0 级残留 ⚠</div>
+
+  <div class="hero">
+    <div style="font-size:15px;font-weight:800;color:#7ee03a">✅ 原定 5 个 P0 全部完成（提交 8fb63e5 / 5220287 / f461565 / ebad79d / d4e2e83）</div>
+    <div style="font-size:11.5px;color:#a9c4ff;margin-top:6px">
+      但今天的深入测试暴露了 <strong>9 个新的 P0 级问题</strong> ⚠ 其中 <strong>3 个阻断性</strong> ✗
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="card"><div class="big g">5/5</div><div class="lbl">原定 P0 完成 ✓</div></div>
+    <div class="card"><div class="big r">9</div><div class="lbl">新发现 P0 级残留 ⚠</div></div>
+    <div class="card"><div class="big r">3</div><div class="lbl">阻断性 ✗</div></div>
+    <div class="card"><div class="big a">6</div><div class="lbl">非阻断但重要 ⚠</div></div>
+  </div>
+
+  <h2>✅ 原定 5 个 P0（全部完成）</h2>
+  <table>
+    <tr><th>#</th><th>P0 项</th><th>状态</th><th>提交</th><th>实测验证</th></tr>
+    <tr><td>P0-1</td><td>置信度接入对话流程</td><td><span class="bdg ok">✓ 完成</span></td>
+        <td><code>8fb63e5</code></td><td>prob=0.0430 low ✓</td></tr>
+    <tr><td>P0-2</td><td>前端提示词依赖类纪律</td><td><span class="bdg ok">✓ 完成</span></td>
+        <td><code>5220287</code></td><td>JS 语法通过 ✓</td></tr>
+    <tr><td>P0-3</td><td>浏览器优先查资料</td><td><span class="bdg ok">✓ 完成</span></td>
+        <td><code>f461565</code></td><td>browser_ground 10/10 ✓</td></tr>
+    <tr><td>P0-4</td><td>工具质量打分</td><td><span class="bdg ok">✓ 完成</span></td>
+        <td><code>ebad79d</code> <code>230dca6</code></td><td>41 工具 · A14 ✓</td></tr>
+    <tr><td>P0-5</td><td>多知识库挂载</td><td><span class="bdg ok">✓ 完成</span></td>
+        <td><code>d4e2e83</code> <code>eb5ebb5</code></td><td>kb_count=2 · mounted 3 ✓</td></tr>
+  </table>
+
+  <h2>🔴 新发现的 9 个 P0 级残留</h2>
+  <table>
+    <tr><th style="width:52px">#</th><th>问题</th><th style="width:78px">阻断?</th><th style="width:62px">工时</th><th>说明 / 证据</th></tr>
+    <tr style="background:rgba(255,77,79,.05)"><td><strong>R-1</strong></td>
+        <td><strong>DSH 在 WSL 空跑</strong> ⇒ 学习增强采集到空轨迹 ✗</td>
+        <td><span class="bdg no">阻断 ✗✗</span></td><td>~3h</td>
+        <td><code>/reflect/run</code> 已修（failed→done ✓ 轨迹 587→589）但 <strong>20ms · 0 token · 无工具 · final 空</strong> ✗ —— DSH npm 包装不上（需要 node≥22 已装 ✓ 但仍静默 exit=0 ✗）</td></tr>
+    <tr style="background:rgba(255,77,79,.05)"><td><strong>R-2</strong></td>
+        <td><strong>置信度模型 ECE 0.6975</strong> ✗ 严重低估</td>
+        <td><span class="bdg no">阻断 ✗</span></td><td>~0.5h</td>
+        <td>94 个样本预测「0.2% 成功」实际「90.4% 成功」✗ 因模型用旧数据训练 ⚠ ⇒ 需用新 587 轨迹 + 150 eval 样本重训</td></tr>
+    <tr style="background:rgba(255,77,79,.05)"><td><strong>R-3</strong></td>
+        <td><strong>main_idea 题判定失效（0%）</strong> ✗</td>
+        <td><span class="bdg no">阻断 ✗</span></td><td>~0.5h</td>
+        <td>参考答案是**整段摘要** ✗ 关键词和 LLM 都判不了 ⇒ 33/100 题作废 ⚠ 需改成「要点列表」形式</td></tr>
+    <tr><td><strong>R-4</strong></td><td><strong>15/29 僵尸 KB</strong> ⚠ 有目录无索引</td>
+        <td><span class="bdg w">非阻断</span></td><td>~0.5h</td>
+        <td>P-56 修复前入库的老库 ✗ 无 docs/ 原始文档 ⇒ 无法自动重建 ⇒ 需删或重传（等你决定 ⚠）</td></tr>
+    <tr><td><strong>R-5</strong></td><td><strong>33 篇 PDF 全是 arXiv（单领域）</strong> ⚠</td>
+        <td><span class="bdg w">非阻断</span></td><td>~1h</td>
+        <td>目标要求「中文技术/法律/医疗/新闻 ≥5 领域」✗ 当前只有英文学术 ⇒ 清洗效果不能推广 ⚠</td></tr>
+    <tr><td><strong>R-6</strong></td><td><strong>工具覆盖率仅 9/92</strong> ⚠</td>
+        <td><span class="bdg w">非阻断</span></td><td>~4h</td>
+        <td>167 条真实轨迹只覆盖 9 个工具（kb_query 占 55%）⇒ LoRA 只学会少数工具 ⚠ 需更多轨迹或补充数据</td></tr>
+    <tr><td><strong>R-7</strong></td><td><strong>固化 A 仍造「步骤总结」</strong> ✗</td>
+        <td><span class="bdg w">非阻断</span></td><td>~1.5h</td>
+        <td>16/20 格式不合格 ✗（无 function_call）⇒ 通道 A 产物不能直接训练 ⚠ 建议直接用 <code>traj_to_training.py</code>（167 条 100% ✓）</td></tr>
+    <tr><td><strong>R-8</strong></td><td><strong><code>_path.replace</code> 修复未实测</strong> ⚠</td>
+        <td><span class="bdg w">非阻断</span></td><td>~0.2h</td>
+        <td>前端已改（typeof 检查 ✓ JS 语法通过 ✓）但**没在浏览器实测** ✗ ⇒ 需刷新页面点一次带参工具验证</td></tr>
+    <tr><td><strong>R-9</strong></td><td><strong>DSH 不消费 hard_constraint</strong> ✗</td>
+        <td><span class="bdg w">范围外</span></td><td>—</td>
+        <td>orchestrator 输出 <code>hard_constraint=True</code> 但 DSH 无法强制 ⇒ 需改 DSH 核心 ✗ 不在本项目范围 ⚠</td></tr>
+  </table>
+
+  <h2>📊 按阻断性排序</h2>
+  <div class="bar"><div class="nm">阻断性（必须修）✗</div><div class="bb"><div class="ff" style="width:33%;background:#ff4d4f"></div></div><div class="vv r">3</div></div>
+  <div class="bar"><div class="nm">非阻断但重要 ⚠</div><div class="bb"><div class="ff" style="width:67%;background:#faad14"></div></div><div class="vv a">5</div></div>
+  <div class="bar"><div class="nm">范围外（记录即可）</div><div class="bb"><div class="ff" style="width:11%;background:#5b8cff"></div></div><div class="vv b">1</div></div>
+
+  <h2>🎯 建议的 P0 修复顺序（总工时 ~5h）</h2>
+  <table>
+    <tr><th>顺序</th><th>任务</th><th>工时</th><th>为什么先做</th></tr>
+    <tr><td>1</td><td><strong>R-2 置信度重训</strong></td><td>0.5h</td><td>最快见效 ✓ 只用已有数据 ✓</td></tr>
+    <tr><td>2</td><td><strong>R-3 main_idea 判分修</strong></td><td>0.5h</td><td>恢复 33/100 题 ✓ 让 P-74 结论更完整</td></tr>
+    <tr><td>3</td><td><strong>R-8 前端实测</strong></td><td>0.2h</td><td>验证今天的修复真的生效 ✓</td></tr>
+    <tr><td>4</td><td><strong>R-7 固化 A 修</strong></td><td>1.5h</td><td>打通学习增强的训练通道 ✓</td></tr>
+    <tr><td>5</td><td><strong>R-4 僵尸库清理</strong></td><td>0.5h</td><td>需你决定删/重传 ⚠</td></tr>
+    <tr><td>6</td><td><strong>R-5 多领域 PDF</strong></td><td>1h</td><td>让清洗结论可推广 ⚠</td></tr>
+    <tr><td>7</td><td><strong>R-1 DSH WSL</strong></td><td>3h</td><td>最难但最关键 ⚠（需重装 DSH）</td></tr>
+    <tr><td>8</td><td>R-6 工具覆盖率</td><td>4h</td><td>需更多真实轨迹 ⚠</td></tr>
+  </table>
+</body>
+</html>

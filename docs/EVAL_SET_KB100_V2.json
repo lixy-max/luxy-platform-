@@ -1,0 +1,1494 @@
+{
+  "generated": "2026-10-21 v2",
+  "source": "papers/pdf (33 PDFs) · abstract 区提取",
+  "changes": [
+    "★ v2 修正: 参考答案改从**摘要实质内容**取（v1 取成了标题+作者 ✗）",
+    "★ v2 修正: 过滤邮箱/DOI/arXiv/机构/作者名/图表引用 ✗",
+    "★ v2 修正: detail 题只抽有意义的数值填空 ✓",
+    "★ v2 新增: structure 题（术语解释 ✓）"
+  ],
+  "target": {
+    "n": 100,
+    "ratio": {
+      "main_idea": 0.3,
+      "detail": 0.5,
+      "structure": 0.2
+    }
+  },
+  "total": 100,
+  "by_type": {
+    "main_idea": 33,
+    "detail": 33,
+    "structure": 33
+  },
+  "suspicious": 34,
+  "questions": [
+    {
+      "type": "main_idea",
+      "pdf": "2610.03176v1",
+      "question": "这篇论文研究什么问题？主要贡献是什么？请简述。",
+      "answer_hint": "We study hindsight-guided distillation for rare disease diagnosis on ZebraMap: a 1.5B student is fine-tuned on chain-of-thought traces from a 8B teacher that observes the ground-truth di- agnosis during generation. Absolute accuracy remains low for all models—the task is hard at this scale—but within this ceiling a filtered variant (StudentF) achieves a small, statistically significant accuracy ad",
+      "keywords": [
+        "hindsight",
+        "guided",
+        "distillation",
+        "disease",
+        "diagnosis",
+        "ZebraMap"
+      ],
+      "source": "abstract_core",
+      "id": "KB2-001",
+      "key_points": [
+        "hindsight-guided distillation rare disease diagnosis",
+        "absolute accuracy remains task hard",
+        "hindsight-guided distillation rare disease"
+      ],
+      "judge_mode": "coverage"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03176v1",
+      "question": "根据材料，补全下面这句话中缺失的数值：\n\nAbsolute accuracy remains low for all models—the task is hard at this scale—but within this ceiling a filtered variant (StudentF) achieves a small, statistically significant accuracy advantage over the teacher (p<____), concentrated in better-represented diseases.",
+      "answer_hint": "0.001",
+      "keywords": [
+        "0.001"
+      ],
+      "source": "abstract_number",
+      "id": "KB2-002"
+    },
+    {
+      "type": "structure",
+      "pdf": "2610.03176v1",
+      "question": "材料中提到的 \"ZebraMap\" 是什么？请说明它的含义或作用。",
+      "answer_hint": "We study hindsight-guided distillation for rare disease diagnosis on ZebraMap: a 1.5B student is fine-tuned on chain-of-thought traces from a 8B teacher that observes the ground-truth di- agnosis during generation.",
+      "keywords": [
+        "ZebraMap"
+      ],
+      "source": "abstract_term",
+      "id": "KB2-003"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03190v1",
+      "question": "这篇论文研究什么问题？主要贡献是什么？请简述。",
+      "answer_hint": "Accident, defect and outage investigations end with a decision that ordinary ques- tion answering never faces: whether the evidence gathered so far is enough to close the case. We study this decision for LLM investigators, which request ev- idence from a case file, revise their hypotheses, and either close the case with a conclusion grounded in what they read or leave it open and name what is miss",
+      "keywords": [
+        "Accident",
+        "defect",
+        "outage",
+        "investigations",
+        "decision",
+        "ordinary"
+      ],
+      "source": "abstract_core",
+      "id": "KB2-004",
+      "key_points": [
+        "accident defect outage investigations decision",
+        "decision investigators request idence case",
+        "accident defect outage investigations"
+      ],
+      "judge_mode": "coverage"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03190v1",
+      "question": "根据材料，补全下面这句话中缺失的数值：\n\nThis judgment does not come with capability: an untrained 9B model overstates its evidence in ____% of its answers, and a frontier model that identifies the right cause in 84% of cases still overstates in 91% and closes 17 of the 41 cases whose offi- cial finding is “cause undete",
+      "answer_hint": "97",
+      "keywords": [
+        "97"
+      ],
+      "source": "abstract_number",
+      "id": "KB2-005"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03190v1",
+      "question": "根据材料，补全下面这句话中缺失的数值：\n\nMeasuring it is also non-trivial: the source of a case largely predicts its label, and a rule that reads only the source reaches ____ balanced accuracy on our test cases.",
+      "answer_hint": "83.0",
+      "keywords": [
+        "83.0"
+      ],
+      "source": "abstract_number",
+      "id": "KB2-006"
+    },
+    {
+      "type": "structure",
+      "pdf": "2610.03190v1",
+      "question": "材料中提到的 \"Accident\" 是什么？请说明它的含义或作用。",
+      "answer_hint": "Accident, defect and outage investigations end with a decision that ordinary ques- tion answering never faces: whether the evidence gathered so far is enough to close the case.",
+      "keywords": [
+        "Accident"
+      ],
+      "source": "abstract_term",
+      "id": "KB2-007"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03195v1",
+      "question": "这篇论文研究什么问题？主要贡献是什么？请简述。",
+      "answer_hint": "As LLM agents decide on users’ behalf which product to buy, which hotel to book, or which paper to cite, a preference for items from certain sources (the sites or services they come from) shapes what users receive and which sources are selected. We study source preference in end-to-end search with 12 agent mod- els across three domains. Comparing items from different sources that satisfy the same ",
+      "keywords": [
+        "agents",
+        "decide",
+        "behalf",
+        "product",
+        "preference",
+        "certain"
+      ],
+      "source": "abstract_core",
+      "id": "KB2-008",
+      "key_points": [
+        "agents decide users behalf product",
+        "source preference end-to-end search agent",
+        "comparing items different sources satisfy"
+      ],
+      "judge_mode": "coverage"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03195v1",
+      "question": "根据材料，补全下面这句话中缺失的数值：\n\nWe study source preference in end-to-end search with ____ agent mod- els across three domains.",
+      "answer_hint": "12",
+      "keywords": [
+        "12"
+      ],
+      "source": "abstract_number",
+      "id": "KB2-009"
+    },
+    {
+      "type": "structure",
+      "pdf": "2610.03195v1",
+      "question": "材料中提到的 \"Comparing\" 是什么？请说明它的含义或作用。",
+      "answer_hint": "Comparing items from different sources that satisfy the same requirements at the same position, we find that each model prefers some sources and avoids others in every domain, largely agreeing on which.",
+      "keywords": [
+        "Comparing"
+      ],
+      "source": "abstract_term",
+      "id": "KB2-010"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03198v1",
+      "question": "这篇论文研究什么问题？主要贡献是什么？请简述。",
+      "answer_hint": "The memory footprint of the key-value (KV) cache constrains the practical use of long- context models, and it dominates cost when one prefilled context must later serve many dif- ferent queries. In this reusable setting, query- agnostic compression trades cost against qual- ity: lightweight estimators are cheap but less accurate, whereas full-context reconstruction scoring is more accurate yet rep",
+      "keywords": [
+        "memory",
+        "footprint",
+        "constrains",
+        "practical",
+        "context",
+        "models"
+      ],
+      "source": "abstract_core",
+      "id": "KB2-011",
+      "key_points": [
+        "memory footprint key-value cache constrains",
+        "reusable setting query agnostic compression",
+        "memory footprint key-value cache"
+      ],
+      "judge_mode": "coverage"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03198v1",
+      "question": "根据材料，补全下面这句话中缺失的数值：\n\nOn RULER, Needle-in-a-Haystack, and Long- Bench, KV²’s margin over baselines widens as the budget tightens: on RULER 16K at a 2% KV-cache budget it improves the average score over the next-best baseline by more than ____ percentage points, and on LongBench it at- tains the highes",
+      "answer_hint": "40",
+      "keywords": [
+        "40"
+      ],
+      "source": "abstract_number",
+      "id": "KB2-012"
+    },
+    {
+      "type": "structure",
+      "pdf": "2610.03198v1",
+      "question": "材料中提到的 \"Needle\" 是什么？请说明它的含义或作用。",
+      "answer_hint": "On RULER, Needle-in-a-Haystack, and Long- Bench, KV²’s margin over baselines widens as the budget tightens: on RULER 16K at a 2% KV-cache budget it improves the average score over the next-best baseline by more than 40 percentage points, and on LongBench it at- tains the highest average across 2%–10% bud- gets at lower compression-stage runtime and peak memory than full-context reconstruction.",
+      "keywords": [
+        "Needle"
+      ],
+      "source": "abstract_term",
+      "id": "KB2-013"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03215v1",
+      "question": "这篇论文研究什么问题？主要贡献是什么？请简述。",
+      "answer_hint": "StanceEval 20261 is the second edition of the StanceEval shared task series on stance de- tection in Arabic social media text. Stance detection aims to identify a writer’s stance toward a given topic. Given a tweet and a target, participating systems must determine whether the writer’s stance isFavor,Against, orNone.",
+      "keywords": [
+        "StanceEval",
+        "second",
+        "edition",
+        "StanceEval",
+        "shared",
+        "series"
+      ],
+      "source": "abstract_core",
+      "id": "KB2-014",
+      "key_points": [
+        "stanceeval second edition stanceeval shared",
+        "stance detection aims identify writer",
+        "given tweet target participating systems"
+      ],
+      "judge_mode": "coverage"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03215v1",
+      "question": "根据材料，补全下面这句话中缺失的数值：\n\nStanceEval ____ is the second edition of the StanceEval shared task series on stance de- tection in Arabic social media text.",
+      "answer_hint": "20261",
+      "keywords": [
+        "20261"
+      ],
+      "source": "abstract_number",
+      "id": "KB2-015"
+    },
+    {
+      "type": "structure",
+      "pdf": "2610.03215v1",
+      "question": "材料中提到的 \"StanceEval\" 是什么？请说明它的含义或作用。",
+      "answer_hint": "StanceEval 20261 is the second edition of the StanceEval shared task series on stance de- tection in Arabic social media text.",
+      "keywords": [
+        "StanceEval"
+      ],
+      "source": "abstract_term",
+      "id": "KB2-016"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03223v1",
+      "question": "这篇论文研究什么问题？主要贡献是什么？请简述。",
+      "answer_hint": "Long-horizon LLM agents are typically trained with sparse outcome rewards, making trajectory-level objectives too coarse to distinguish the contribution of individual decisions. Step-level credit assignment provides finer-grained supervi- sion, but its estimates can be unreliable because observed returns also depend on subsequent actions, environment transitions, and trajectory length. We propose ",
+      "keywords": [
+        "horizon",
+        "agents",
+        "typically",
+        "trained",
+        "sparse",
+        "outcome"
+      ],
+      "source": "abstract_core",
+      "id": "KB2-017",
+      "key_points": [
+        "long-horizon agents typically trained sparse",
+        "step-level credit assignment provides finer-grained",
+        "long-horizon agents typically trained"
+      ],
+      "judge_mode": "coverage"
+    },
+    {
+      "type": "structure",
+      "pdf": "2610.03223v1",
+      "question": "材料中提到的 \"AdaStep\" 是什么？请说明它的含义或作用。",
+      "answer_hint": "We propose AdaStep, anAdaptiveStep-credit weighting method that controls how strongly each group-derived local advantage modifies the trajectory-level signal.",
+      "keywords": [
+        "AdaStep"
+      ],
+      "source": "abstract_term",
+      "id": "KB2-018"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03324v1",
+      "question": "这篇论文研究什么问题？主要贡献是什么？请简述。",
+      "answer_hint": "The scale of online content makes hate-speech moderation challenging, while Large Language Models (LLMs) enable harmful material to be produced and adapted more easily. Mod- eration therefore requires efficient classifiers that can accom- modate different definitions of hate speech. Recent structured decision models accept natural-language criteria and select among specified answers, raising the q",
+      "keywords": [
+        "online",
+        "content",
+        "speech",
+        "moderation",
+        "challenging",
+        "Language"
+      ],
+      "source": "abstract_core",
+      "id": "KB2-019",
+      "key_points": [
+        "scale online content makes hate-speech",
+        "eration requires efficient classifiers accom",
+        "recent structured decision accept natural-language"
+      ],
+      "judge_mode": "coverage"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03324v1",
+      "question": "根据材料，补全下面这句话中缺失的数值：\n\nSupplying definitions changes up to ____% of predictions without consistently improving classification, and decomposition significantly improves performance in only 20% of the comparisons.",
+      "answer_hint": "28",
+      "keywords": [
+        "28"
+      ],
+      "source": "abstract_number",
+      "id": "KB2-020"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03324v1",
+      "question": "根据材料，补全下面这句话中缺失的数值：\n\nOn a diagnostic set of test cases, the best hosted decision model comes within ____ macro-F1 points of the best commercial LLM at approximately 97% lower inference cost.",
+      "answer_hint": "1.6",
+      "keywords": [
+        "1.6"
+      ],
+      "source": "abstract_number",
+      "id": "KB2-021"
+    },
+    {
+      "type": "structure",
+      "pdf": "2610.03324v1",
+      "question": "材料中提到的 \"Language\" 是什么？请说明它的含义或作用。",
+      "answer_hint": "The scale of online content makes hate-speech moderation challenging, while Large Language Models (LLMs) enable harmful material to be produced and adapted more easily.",
+      "keywords": [
+        "Language"
+      ],
+      "source": "abstract_term",
+      "id": "KB2-022"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03329v1",
+      "question": "这篇论文研究什么问题？主要贡献是什么？请简述。",
+      "answer_hint": "Large language models are increasingly used in settings where small syntactic errors matter, yet character-level reasoning is still evaluated mostly through iso- lated probes and aggregate accuracy. We introduceSyntaxBench, a diagnostic benchmark and statistical evaluation framework for character-level reasoning. Syn- taxBench contains five core deterministic tasks, character counting, letter con-",
+      "keywords": [
+        "language",
+        "models",
+        "increasingly",
+        "settings",
+        "syntactic",
+        "errors"
+      ],
+      "source": "abstract_core",
+      "id": "KB2-023",
+      "key_points": [
+        "large language increasingly used settings",
+        "introducesyntaxbench diagnostic benchmark statistical evaluation",
+        "taxbench contains five core deterministic"
+      ],
+      "judge_mode": "coverage"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03329v1",
+      "question": "根据材料，补全下面这句话中缺失的数值：\n\nindex_to_span documents are drawn from the same ____–500 word band and are not character-length matched.",
+      "answer_hint": "200",
+      "keywords": [
+        "200"
+      ],
+      "source": "abstract_number",
+      "id": "KB2-024"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03329v1",
+      "question": "根据材料，补全下面这句话中缺失的数值：\n\nWe evaluate eight open-weight models spanning 2B–32B parameters across ____ available reasoning-mode configurations.",
+      "answer_hint": "11",
+      "keywords": [
+        "11"
+      ],
+      "source": "abstract_number",
+      "id": "KB2-025"
+    },
+    {
+      "type": "structure",
+      "pdf": "2610.03329v1",
+      "question": "材料中提到的 \"English\" 是什么？请说明它的含义或作用。",
+      "answer_hint": "The five core tasks are instantiated on paired English and character-length-matched random-string inputs.",
+      "keywords": [
+        "English"
+      ],
+      "source": "abstract_term",
+      "id": "KB2-026"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03423v1",
+      "question": "这篇论文研究什么问题？主要贡献是什么？请简述。",
+      "answer_hint": "—Reinforcement learning (RL) for Text-to-3D (T23D) generation requires optimization across multiple quality dimen- sions such as semantic alignment and texture clarity. Exist- ing methods typically optimize these dimensions simultaneously through multiple reward aggregation, without explicitly mod- eling inter-dimension dependencies. This can cause imbalanced optimization and persistent interferen",
+      "keywords": [
+        "Reinforcement",
+        "learning",
+        "generation",
+        "requires",
+        "optimization",
+        "across"
+      ],
+      "source": "abstract_core",
+      "id": "KB2-027",
+      "key_points": [
+        "reinforcement learning text-to- generation requires",
+        "exist methods typically optimize dimensions",
+        "cause imbalanced optimization persistent interferen"
+      ],
+      "judge_mode": "coverage"
+    },
+    {
+      "type": "structure",
+      "pdf": "2610.03423v1",
+      "question": "材料中提到的 \"Reinforcement\" 是什么？请说明它的含义或作用。",
+      "answer_hint": "—Reinforcement learning (RL) for Text-to-3D (T23D) generation requires optimization across multiple quality dimen- sions such as semantic alignment and texture clarity.",
+      "keywords": [
+        "Reinforcement"
+      ],
+      "source": "abstract_term",
+      "id": "KB2-028"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03436v1",
+      "question": "这篇论文研究什么问题？主要贡献是什么？请简述。",
+      "answer_hint": "flatter lip trajectories than captured speech. Against frame-rate-matched ground truth, DiffPoseTalk, ARTalk and FaceFormer show clear deficits, equivalent on this measure to removing 15–60% of real speech’s fast articulatory component. CodeTalker is marginal on the primary measure and clear on a companion measure.",
+      "keywords": [
+        "flatter",
+        "trajectories",
+        "captured",
+        "speech",
+        "Against",
+        "matched"
+      ],
+      "source": "abstract_core",
+      "id": "KB2-029",
+      "key_points": [
+        "against frame-rate-matched ground truth diffposetalk",
+        "codetalker marginal primary measure clear",
+        "against frame-rate-matched ground truth"
+      ],
+      "judge_mode": "coverage"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03436v1",
+      "question": "根据材料，补全下面这句话中缺失的数值：\n\nAgainst frame-rate-matched ground truth, DiffPoseTalk, ARTalk and FaceFormer show clear deficits, equivalent on this measure to removing ____–60% of real speech’s fast articulatory component.",
+      "answer_hint": "15",
+      "keywords": [
+        "15"
+      ],
+      "source": "abstract_number",
+      "id": "KB2-030"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03436v1",
+      "question": "根据材料，补全下面这句话中缺失的数值：\n\nA pre-registered study with 97 viewers and 3,____ judgments underpins the measured direc- tion: controlled damping of real motion lowers the score and is penalized, whereas exaggeration shows no detected penalty over the tested range.",
+      "answer_hint": "523",
+      "keywords": [
+        "523"
+      ],
+      "source": "abstract_number",
+      "id": "KB2-031"
+    },
+    {
+      "type": "structure",
+      "pdf": "2610.03436v1",
+      "question": "材料中提到的 \"Against\" 是什么？请说明它的含义或作用。",
+      "answer_hint": "Against frame-rate-matched ground truth, DiffPoseTalk, ARTalk and FaceFormer show clear deficits, equivalent on this measure to removing 15–60% of real speech’s fast articulatory component.",
+      "keywords": [
+        "Against"
+      ],
+      "source": "abstract_term",
+      "id": "KB2-032"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03441v1",
+      "question": "这篇论文研究什么问题？主要贡献是什么？请简述。",
+      "answer_hint": "—We present ChromaGS, a method for real-time, language-guided color editing of animatable 3D Gaussian head avatars. Given a trained animatable avatar, users can instantly modify the color of semantic regions through natural language, with edits applied at render time and no retraining required. Our key insight is to augment each Gaussian primitive with learned soft assignments to semantic regions ",
+      "keywords": [
+        "present",
+        "ChromaGS",
+        "method",
+        "language",
+        "guided",
+        "editing"
+      ],
+      "source": "abstract_core",
+      "id": "KB2-033",
+      "key_points": [
+        "chromags real-time language-guided color editing",
+        "given trained animatable avatar users",
+        "insight augment gaussian primitive learned"
+      ],
+      "judge_mode": "coverage"
+    },
+    {
+      "type": "structure",
+      "pdf": "2610.03441v1",
+      "question": "材料中提到的 \"ChromaGS\" 是什么？请说明它的含义或作用。",
+      "answer_hint": "—We present ChromaGS, a method for real-time, language-guided color editing of animatable 3D Gaussian head avatars.",
+      "keywords": [
+        "ChromaGS"
+      ],
+      "source": "abstract_term",
+      "id": "KB2-034"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03448v1",
+      "question": "这篇论文研究什么问题？主要贡献是什么？请简述。",
+      "answer_hint": "LLM agents increasingly screen tool outputs with small prompt-injection detectors, and teams choose among detec- tors by their scores on public benchmarks. We ask whether those scores predict how a detector behaves inside an agent. We replay the ground-truth tool calls of two agent bench- marks, AgentDojo and τ-bench, without an LLM to obtain tool outputs that are benign by construction, label inj",
+      "keywords": [
+        "agents",
+        "increasingly",
+        "screen",
+        "outputs",
+        "prompt",
+        "injection"
+      ],
+      "source": "abstract_core",
+      "id": "KB2-035",
+      "key_points": [
+        "agents increasingly screen tool outputs",
+        "whether scores predict detector behaves",
+        "replay ground-truth tool calls agent"
+      ],
+      "judge_mode": "coverage"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03448v1",
+      "question": "根据材料，补全下面这句话中缺失的数值：\n\nDetec- tion rankings transfer poorly between benchmarks: the best detector on BIPIA catches 2% of AgentDojo injections at a 1% false-positive rate, and a detector that catches ____% of AgentDojo injections catches 15% on τ-bench.",
+      "answer_hint": "72",
+      "keywords": [
+        "72"
+      ],
+      "source": "abstract_number",
+      "id": "KB2-036"
+    },
+    {
+      "type": "structure",
+      "pdf": "2610.03448v1",
+      "question": "材料中提到的 \"AgentDojo\" 是什么？请说明它的含义或作用。",
+      "answer_hint": "We replay the ground-truth tool calls of two agent bench- marks, AgentDojo and τ-bench, without an LLM to obtain tool outputs that are benign by construction, label injected outputs by differential replay, and evaluate fifteen detectors, including Meta’s Prompt Guard 2, and two task-aware LLM judges on these outputs and on the BIPIA benchmark.",
+      "keywords": [
+        "AgentDojo"
+      ],
+      "source": "abstract_term",
+      "id": "KB2-037"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03453v1",
+      "question": "这篇论文研究什么问题？主要贡献是什么？请简述。",
+      "answer_hint": "— Physics simulators and motion planners require convex collision geometry, yet image-to-3D generative models output dense, frequently non-manifold visual meshes. Bridging the two today takes a slow, brittlereconstruct-then-decompose pipeline of repair, decimation, and approximate convex decompo- sition. We present I2CD, which predicts a convex decomposition directly from a single RGB image.",
+      "keywords": [
+        "Physics",
+        "simulators",
+        "motion",
+        "planners",
+        "require",
+        "convex"
+      ],
+      "source": "abstract_core",
+      "id": "KB2-038",
+      "key_points": [
+        "physics simulators motion planners require",
+        "bridging today takes slow brittlereconstruct-then-decompose",
+        "predicts convex decomposition directly single"
+      ],
+      "judge_mode": "coverage"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03453v1",
+      "question": "根据材料，补全下面这句话中缺失的数值：\n\nRather than train a new image-to-3D model, I2CD freezes the pretrained Hunyuan3D-2 image-conditioned diffusion transformer and shape decoder and trains only a lightweight cross-attention head (____ M parameters, under ten GPU-hours) whose learned “convex-slot” tokens emit the hal",
+      "answer_hint": "38",
+      "keywords": [
+        "38"
+      ],
+      "source": "abstract_number",
+      "id": "KB2-039"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03453v1",
+      "question": "根据材料，补全下面这句话中缺失的数值：\n\nThe output is compact, convex by construction, and loads into physics engines without any post-processing, in ∼____ s per image.",
+      "answer_hint": "0.5",
+      "keywords": [
+        "0.5"
+      ],
+      "source": "abstract_number",
+      "id": "KB2-040"
+    },
+    {
+      "type": "structure",
+      "pdf": "2610.03453v1",
+      "question": "材料中提到的 \"Physics\" 是什么？请说明它的含义或作用。",
+      "answer_hint": "— Physics simulators and motion planners require convex collision geometry, yet image-to-3D generative models output dense, frequently non-manifold visual meshes.",
+      "keywords": [
+        "Physics"
+      ],
+      "source": "abstract_term",
+      "id": "KB2-041"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03474v1",
+      "question": "这篇论文研究什么问题？主要贡献是什么？请简述。",
+      "answer_hint": "—Federated learning (FL) enables collaborative train- ing of medical image segmentation models without sharing raw patient data, yet existing approaches assume a homogeneous compute budget across institutions, limiting participation of low- resource sites. We proposeF ed-ADApt, a depth-adaptive federated framework forUNet-based segmentation that jointly addresses low-compute training and inference",
+      "keywords": [
+        "Federated",
+        "learning",
+        "enables",
+        "collaborative",
+        "medical",
+        "segmentation"
+      ],
+      "source": "abstract_core",
+      "id": "KB2-042",
+      "key_points": [
+        "federated learning enables collaborative train",
+        "proposef ed-adapt depth-adaptive federated framework",
+        "federated learning enables collaborative"
+      ],
+      "judge_mode": "coverage"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03474v1",
+      "question": "根据材料，补全下面这句话中缺失的数值：\n\nAcross both tasks, federated collaboration substantially improves robustness under domain shift.F ed-ADAptmatched the full-resourceF edAvgperformance in 3D and achieved competitive 2D performance with a 4.7% average Dice reduction, while reducing average inference cost by ____% i",
+      "answer_hint": "19.5",
+      "keywords": [
+        "19.5"
+      ],
+      "source": "abstract_number",
+      "id": "KB2-043"
+    },
+    {
+      "type": "structure",
+      "pdf": "2610.03474v1",
+      "question": "材料中提到的 \"Federated\" 是什么？请说明它的含义或作用。",
+      "answer_hint": "—Federated learning (FL) enables collaborative train- ing of medical image segmentation models without sharing raw patient data, yet existing approaches assume a homogeneous compute budget across institutions, limiting participation of low- resource sites.",
+      "keywords": [
+        "Federated"
+      ],
+      "source": "abstract_term",
+      "id": "KB2-044"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03509v1",
+      "question": "这篇论文研究什么问题？主要贡献是什么？请简述。",
+      "answer_hint": "Chain-of-thought (CoT) reasoning allows humans to inspect how large language models reach their answers, and oversee model behaviour. This reasoning comes at an increased inference cost, motivating efficient methods that train models to solve tasks using fewer tokens. However, a common concern is that such training may cause models to skip important reasoning steps, so the CoT no longer faith- ful",
+      "keywords": [
+        "thought",
+        "reasoning",
+        "allows",
+        "humans",
+        "inspect",
+        "language"
+      ],
+      "source": "abstract_core",
+      "id": "KB2-045",
+      "key_points": [
+        "chain-of-thought reasoning allows humans inspect",
+        "reasoning comes increased inference cost",
+        "common concern training cause skip"
+      ],
+      "judge_mode": "coverage"
+    },
+    {
+      "type": "structure",
+      "pdf": "2610.03509v1",
+      "question": "材料中提到的 \"However\" 是什么？请说明它的含义或作用。",
+      "answer_hint": "However, a common concern is that such training may cause models to skip important reasoning steps, so the CoT no longer faith- fully reflects the model’s decision.",
+      "keywords": [
+        "However"
+      ],
+      "source": "abstract_term",
+      "id": "KB2-046"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03515v1",
+      "question": "这篇论文研究什么问题？主要贡献是什么？请简述。",
+      "answer_hint": "On-policy self-distillation (OPSD) uses reference solutions as privileged hindsight to supervise student-generated reasoning trajectories. However, reference-based guidance may explain a correct solution without addressing why the student’s own reasoning fails. Thisreasoning mismatchbetween the guidance provided and the correction needed can encourage the student to borrow correct conclusions whil",
+      "keywords": [
+        "policy",
+        "distillation",
+        "reference",
+        "solutions",
+        "privileged",
+        "hindsight"
+      ],
+      "source": "abstract_core",
+      "id": "KB2-047",
+      "key_points": [
+        "on-policy self-distillation opsd uses reference",
+        "reference-based guidance explain correct solution",
+        "thisreasoning mismatchbetween guidance provided correction"
+      ],
+      "judge_mode": "coverage"
+    },
+    {
+      "type": "structure",
+      "pdf": "2610.03515v1",
+      "question": "材料中提到的 \"However\" 是什么？请说明它的含义或作用。",
+      "answer_hint": "However, reference-based guidance may explain a correct solution without addressing why the student’s own reasoning fails.",
+      "keywords": [
+        "However"
+      ],
+      "source": "abstract_term",
+      "id": "KB2-048"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03522v1",
+      "question": "这篇论文研究什么问题？主要贡献是什么？请简述。",
+      "answer_hint": "Feed-forward novel view synthesis has recently shown promising results from sparse posed images, but most existing methods assume that context and target views share a fixed camera family. This homogeneous-camera assumption breaks in practical multi-sensor systems, where perspective, fisheye, and panoramic cam- eras may coexist and where the target projection may be unseen during training. We stud",
+      "keywords": [
+        "forward",
+        "synthesis",
+        "recently",
+        "promising",
+        "results",
+        "sparse"
+      ],
+      "source": "abstract_core",
+      "id": "KB2-049",
+      "key_points": [
+        "feed-forward novel view synthesis recently",
+        "homogeneous-camera assumption breaks practical multi-sensor",
+        "feed-forward novel view synthesis"
+      ],
+      "judge_mode": "coverage"
+    },
+    {
+      "type": "structure",
+      "pdf": "2610.03522v1",
+      "question": "材料中提到的 \"Camera\" 是什么？请说明它的含义或作用。",
+      "answer_hint": "To address this, we combine token-center relative Camera Positional Encodings and proposed local raymaps, a token-level representation that explicitly describes the intra-patch ray distribution summarized by each token.",
+      "keywords": [
+        "Camera"
+      ],
+      "source": "abstract_term",
+      "id": "KB2-050"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03524v1",
+      "question": "这篇论文研究什么问题？主要贡献是什么？请简述。",
+      "answer_hint": "General-purpose Text-to-SQL systems achieve strong performance on academic benchmarks like Spider and BIRD, where schemas are relatively shallow and column values are of- ten human readable. In production financial databases, where concepts are stored as opaque integer keys rather than human-readable strings, these methods fall below 50%, as even sim- ple queries require multiple joins and filter ",
+      "keywords": [
+        "General",
+        "purpose",
+        "systems",
+        "achieve",
+        "strong",
+        "performance"
+      ],
+      "source": "abstract_core",
+      "id": "KB2-051",
+      "key_points": [
+        "general-purpose text-to-sql systems achieve strong",
+        "production financial databases concepts stored",
+        "general-purpose text-to-sql systems achieve"
+      ],
+      "judge_mode": "coverage"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03524v1",
+      "question": "根据材料，补全下面这句话中缺失的数值：\n\nIn production financial databases, where concepts are stored as opaque integer keys rather than human-readable strings, these methods fall below ____%, as even sim- ple queries require multiple joins and filter predicates reference opaque IDs.",
+      "answer_hint": "50",
+      "keywords": [
+        "50"
+      ],
+      "source": "abstract_number",
+      "id": "KB2-052"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03524v1",
+      "question": "根据材料，补全下面这句话中缺失的数值：\n\nWe evaluate on two datasets totaling ____ questions over production financial schemas.",
+      "answer_hint": "359",
+      "keywords": [
+        "359"
+      ],
+      "source": "abstract_number",
+      "id": "KB2-053"
+    },
+    {
+      "type": "structure",
+      "pdf": "2610.03524v1",
+      "question": "材料中提到的 \"General\" 是什么？请说明它的含义或作用。",
+      "answer_hint": "General-purpose Text-to-SQL systems achieve strong performance on academic benchmarks like Spider and BIRD, where schemas are relatively shallow and column values are of- ten human readable.",
+      "keywords": [
+        "General"
+      ],
+      "source": "abstract_term",
+      "id": "KB2-054"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03525v1",
+      "question": "这篇论文研究什么问题？主要贡献是什么？请简述。",
+      "answer_hint": "—Table-to-report generation refers to the task of automatically generating article-level analytical reports from relational tables and is an essential capability for automated data science and decision support. Its central challenge lies in systematically discovering verifiable composite insights across tables, attributes, and analytical perspectives, and organizing them into coherent, complete, a",
+      "keywords": [
+        "report",
+        "generation",
+        "refers",
+        "automatically",
+        "generating",
+        "article"
+      ],
+      "source": "abstract_core",
+      "id": "KB2-055",
+      "key_points": [
+        "table-to-report generation refers task automatically",
+        "central challenge lies systematically discovering",
+        "table-to-report generation refers task"
+      ],
+      "judge_mode": "coverage"
+    },
+    {
+      "type": "structure",
+      "pdf": "2610.03525v1",
+      "question": "材料中提到的 \"Existing\" 是什么？请说明它的含义或作用。",
+      "answer_hint": "Existing methods primarily rely on sequential, reactive data agents or direct Large Language Model(LLM) generation.",
+      "keywords": [
+        "Existing"
+      ],
+      "source": "abstract_term",
+      "id": "KB2-056"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03531v1",
+      "question": "这篇论文研究什么问题？主要贡献是什么？请简述。",
+      "answer_hint": ": Authorship Attribution (AA) requires capturing ﬁne-grained stylistic characteristics, making it particularly challenging in zero-shot (ZS) settings where no task-speciﬁc supervision is available. In this work, we inves- tigate the effect of author representations on ZS AA by evaluating a label-only prompting baseline together with three author representation strategies: representative writing sa",
+      "keywords": [
+        "Authorship",
+        "Attribution",
+        "requires",
+        "capturing",
+        "grained",
+        "stylistic"
+      ],
+      "source": "abstract_core",
+      "id": "KB2-057",
+      "key_points": [
+        "authorship attribution requires capturing grained",
+        "work inves tigate effect author",
+        "authorship attribution requires capturing"
+      ],
+      "judge_mode": "coverage"
+    },
+    {
+      "type": "structure",
+      "pdf": "2610.03531v1",
+      "question": "材料中提到的 \"Authorship\" 是什么？请说明它的含义或作用。",
+      "answer_hint": ": Authorship Attribution (AA) requires capturing ﬁne-grained stylistic characteristics, making it particularly challenging in zero-shot (ZS) settings where no task-speciﬁc supervision is available.",
+      "keywords": [
+        "Authorship"
+      ],
+      "source": "abstract_term",
+      "id": "KB2-058"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03543v1",
+      "question": "这篇论文研究什么问题？主要贡献是什么？请简述。",
+      "answer_hint": "Streaming video generation has benefited from distribution matching distillation (DMD), which matches the joint distribution of video frames to a video teacher’s approximation of the real video distribution. Although this joint matching mitigates drift during autoregressive rollouts, limitations remain in visual quality and semantic alignment. To address these limitations, we propose DuoMatching, ",
+      "keywords": [
+        "Streaming",
+        "generation",
+        "benefited",
+        "distribution",
+        "matching",
+        "distillation"
+      ],
+      "source": "abstract_core",
+      "id": "KB2-059",
+      "key_points": [
+        "streaming video generation benefited distribution",
+        "although joint matching mitigates drift",
+        "streaming video generation benefited"
+      ],
+      "judge_mode": "coverage"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03543v1",
+      "question": "根据材料，补全下面这句话中缺失的数值：\n\nHuman evaluations show overall preference rates above ____% against all evaluated baselines.",
+      "answer_hint": "80",
+      "keywords": [
+        "80"
+      ],
+      "source": "abstract_number",
+      "id": "KB2-060"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03543v1",
+      "question": "根据材料，补全下面这句话中缺失的数值：\n\nDate:October 2, ____ Project Page:https://johnzhan2023.github.io/DuoMatching/",
+      "answer_hint": "2026",
+      "keywords": [
+        "2026"
+      ],
+      "source": "abstract_number",
+      "id": "KB2-061"
+    },
+    {
+      "type": "structure",
+      "pdf": "2610.03543v1",
+      "question": "材料中提到的 \"Streaming\" 是什么？请说明它的含义或作用。",
+      "answer_hint": "Streaming video generation has benefited from distribution matching distillation (DMD), which matches the joint distribution of video frames to a video teacher’s approximation of the real video distribution.",
+      "keywords": [
+        "Streaming"
+      ],
+      "source": "abstract_term",
+      "id": "KB2-062"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03558v1",
+      "question": "这篇论文研究什么问题？主要贡献是什么？请简述。",
+      "answer_hint": "Cephalonauts One is a whole-brain 3 Tesla (3T) functional magnetic resonance imaging (fMRI) dataset recorded while subjects listened to audio podcasts. Three healthy subjects underwent multiple scanning sessions, each consisting of five 15-minute runs, while listening to podcasts in their native language. With 30 hours of fMRI data per subject, the current release is the deepest available fMRI dat",
+      "keywords": [
+        "Cephalonauts",
+        "functional",
+        "magnetic",
+        "resonance",
+        "imaging",
+        "dataset"
+      ],
+      "source": "abstract_core",
+      "id": "KB2-063",
+      "key_points": [
+        "cephalonauts whole-brain tesla functional magnetic",
+        "three healthy subjects underwent multiple",
+        "hours fmri data subject current"
+      ],
+      "judge_mode": "coverage"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03558v1",
+      "question": "根据材料，补全下面这句话中缺失的数值：\n\nThree healthy subjects underwent multiple scanning sessions, each consisting of five ____-minute runs, while listening to podcasts in their native language.",
+      "answer_hint": "15",
+      "keywords": [
+        "15"
+      ],
+      "source": "abstract_number",
+      "id": "KB2-064"
+    },
+    {
+      "type": "structure",
+      "pdf": "2610.03558v1",
+      "question": "材料中提到的 \"Cephalonauts\" 是什么？请说明它的含义或作用。",
+      "answer_hint": "Cephalonauts One is a whole-brain 3 Tesla (3T) functional magnetic resonance imaging (fMRI) dataset recorded while subjects listened to audio podcasts.",
+      "keywords": [
+        "Cephalonauts"
+      ],
+      "source": "abstract_term",
+      "id": "KB2-065"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03567v1",
+      "question": "这篇论文研究什么问题？主要贡献是什么？请简述。",
+      "answer_hint": "We describe the Writerslogic team’s participation in the CLEF 2026 SimpleText shared task, addressing Task 1 (text simplification) and Task 2 (complexity spotting). The model reads the most relevant source sentence as premise and the candidate as hypothesis, directly learning to distinguish grounded from hallucinated content. We evaluate both tasks on English and multilingual biomedical text from ",
+      "keywords": [
+        "describe",
+        "Writerslogic",
+        "participation",
+        "SimpleText",
+        "shared",
+        "addressing"
+      ],
+      "source": "abstract_core",
+      "id": "KB2-066",
+      "key_points": [
+        "describe writerslogic team participation clef",
+        "reads relevant source sentence premise",
+        "evaluate both tasks english multilingual"
+      ],
+      "judge_mode": "coverage"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03567v1",
+      "question": "根据材料，补全下面这句话中缺失的数值：\n\nWe describe the Writerslogic team’s participation in the CLEF ____ SimpleText shared task, addressing Task 1 (text simplification) and Task 2 (complexity spotting).",
+      "answer_hint": "2026",
+      "keywords": [
+        "2026"
+      ],
+      "source": "abstract_number",
+      "id": "KB2-067"
+    },
+    {
+      "type": "structure",
+      "pdf": "2610.03567v1",
+      "question": "材料中提到的 \"Writerslogic\" 是什么？请说明它的含义或作用。",
+      "answer_hint": "We describe the Writerslogic team’s participation in the CLEF 2026 SimpleText shared task, addressing Task 1 (text simplification) and Task 2 (complexity spotting).",
+      "keywords": [
+        "Writerslogic"
+      ],
+      "source": "abstract_term",
+      "id": "KB2-068"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03570v1",
+      "question": "这篇论文研究什么问题？主要贡献是什么？请简述。",
+      "answer_hint": "—Contactless heart-rate sensing with millimeter-wave (mmWave) radar requires assessing whether individual mea- surements support reliable estimation. We study learning to assess heartbeat observability, defined as the readability of the heartbeat component in an acquired phase spectrum, for selective heart-rate estimation. Coherent superposition of scatterer returns can suppress this component eve",
+      "keywords": [
+        "Contactless",
+        "sensing",
+        "millimeter",
+        "mmWave",
+        "requires",
+        "assessing"
+      ],
+      "source": "abstract_core",
+      "id": "KB2-069",
+      "key_points": [
+        "contactless heart-rate sensing millimeter-wave mmwave",
+        "learning assess heartbeat observability defined",
+        "coherent superposition scatterer returns suppress"
+      ],
+      "judge_mode": "coverage"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03570v1",
+      "question": "根据材料，补全下面这句话中缺失的数值：\n\nTrained solely on simulated observations, HEAR transfers zero-shot to two public real-world datasets collected at 60 and ____ GHz from 134 subjects.",
+      "answer_hint": "120",
+      "keywords": [
+        "120"
+      ],
+      "source": "abstract_number",
+      "id": "KB2-070"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03570v1",
+      "question": "根据材料，补全下面这句话中缺失的数值：\n\nThe complete pipeline achieves an end-to-end processing latency of ____ ms on an edge device.",
+      "answer_hint": "50.8",
+      "keywords": [
+        "50.8"
+      ],
+      "source": "abstract_number",
+      "id": "KB2-071"
+    },
+    {
+      "type": "structure",
+      "pdf": "2610.03570v1",
+      "question": "材料中提到的 \"Contactless\" 是什么？请说明它的含义或作用。",
+      "answer_hint": "—Contactless heart-rate sensing with millimeter-wave (mmWave) radar requires assessing whether individual mea- surements support reliable estimation.",
+      "keywords": [
+        "Contactless"
+      ],
+      "source": "abstract_term",
+      "id": "KB2-072"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03574v1",
+      "question": "这篇论文研究什么问题？主要贡献是什么？请简述。",
+      "answer_hint": "We introduce HYPERBROWSECOMP, a multilingual and multimodal browsing benchmark comprising 423 manually authored and human-validated questions across 13 languages, written by native or highly proficient speakers. Questions are designed to be extremely challenging. Each question targets a concise, publicly verifiable answer whose discovery requires locating obscure evidence, following multi-step clu",
+      "keywords": [
+        "introduce",
+        "HYPERBROWSECOMP",
+        "multilingual",
+        "multimodal",
+        "browsing",
+        "benchmark"
+      ],
+      "source": "abstract_core",
+      "id": "KB2-073",
+      "key_points": [
+        "introduce hyperbrowsecomp multilingual multimodal browsing",
+        "question targets concise publicly verifiable",
+        "introduce hyperbrowsecomp multilingual multimodal"
+      ],
+      "judge_mode": "coverage"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03574v1",
+      "question": "根据材料，补全下面这句话中缺失的数值：\n\nWe introduce HYPERBROWSECOMP, a multilingual and multimodal browsing benchmark comprising ____ manually authored and human-validated questions across 13 languages, written by native or highly proficient speakers.",
+      "answer_hint": "423",
+      "keywords": [
+        "423"
+      ],
+      "source": "abstract_number",
+      "id": "KB2-074"
+    },
+    {
+      "type": "structure",
+      "pdf": "2610.03574v1",
+      "question": "材料中提到的 \"HYPERBROWSECOMP\" 是什么？请说明它的含义或作用。",
+      "answer_hint": "We introduce HYPERBROWSECOMP, a multilingual and multimodal browsing benchmark comprising 423 manually authored and human-validated questions across 13 languages, written by native or highly proficient speakers.",
+      "keywords": [
+        "HYPERBROWSECOMP"
+      ],
+      "source": "abstract_term",
+      "id": "KB2-075"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03591v1",
+      "question": "这篇论文研究什么问题？主要贡献是什么？请简述。",
+      "answer_hint": "Understanding and assessing natural hazards is essential for disaster prepared- ness and risk reduction. Recent advances in large language models have spurred growing interest in AI agents for hazard analysis, particularly their ability to in- tegrate scientific data, models, and tools into automated workflows. However, effective automation requires agents to determine which scientific methods are",
+      "keywords": [
+        "Understanding",
+        "assessing",
+        "natural",
+        "hazards",
+        "essential",
+        "disaster"
+      ],
+      "source": "abstract_core",
+      "id": "KB2-076",
+      "key_points": [
+        "understanding assessing natural hazards essential",
+        "recent advances large language spurred",
+        "effective automation requires agents determine"
+      ],
+      "judge_mode": "coverage"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03591v1",
+      "question": "根据材料，补全下面这句话中缺失的数值：\n\nTo evaluate both the scientific outputs and the decisions that produce them, we introduce the Hazard Weaver Benchmark, comprising ____ instances across seven single-hazard domains and four multi-hazard interaction classes.",
+      "answer_hint": "141",
+      "keywords": [
+        "141"
+      ],
+      "source": "abstract_number",
+      "id": "KB2-077"
+    },
+    {
+      "type": "structure",
+      "pdf": "2610.03591v1",
+      "question": "材料中提到的 \"Understanding\" 是什么？请说明它的含义或作用。",
+      "answer_hint": "Understanding and assessing natural hazards is essential for disaster prepared- ness and risk reduction.",
+      "keywords": [
+        "Understanding"
+      ],
+      "source": "abstract_term",
+      "id": "KB2-078"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03620v1",
+      "question": "这篇论文研究什么问题？主要贡献是什么？请简述。",
+      "answer_hint": "— Online reinforcement learning (RL) enables robot policies to improve through physical interaction, but the as- sistance they require changes as their competence evolves. Existing intervention strategies based on offline estimates or fixed decision rules can therefore become mismatched to the current policy. To address this, we proposeUniIntervene++, an adaptive intervention agent that learns to ",
+      "keywords": [
+        "Online",
+        "reinforcement",
+        "learning",
+        "enables",
+        "policies",
+        "improve"
+      ],
+      "source": "abstract_core",
+      "id": "KB2-079",
+      "key_points": [
+        "online reinforcement learning enables robot",
+        "existing intervention strategies based offline",
+        "address proposeuniintervene adaptive intervention agent"
+      ],
+      "judge_mode": "coverage"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03620v1",
+      "question": "根据材料，补全下面这句话中缺失的数值：\n\nAcross five real-world manipulation tasks,UniIntervene++achieves an average success rate of ____%, outperforming all baselines by at least 6 percentage points, while reducing human intervention to 0.77%, a relative reduction of at least 94.6% from the best baseline.",
+      "answer_hint": "89.67",
+      "keywords": [
+        "89.67"
+      ],
+      "source": "abstract_number",
+      "id": "KB2-080"
+    },
+    {
+      "type": "structure",
+      "pdf": "2610.03620v1",
+      "question": "材料中提到的 \"Online\" 是什么？请说明它的含义或作用。",
+      "answer_hint": "— Online reinforcement learning (RL) enables robot policies to improve through physical interaction, but the as- sistance they require changes as their competence evolves.",
+      "keywords": [
+        "Online"
+      ],
+      "source": "abstract_term",
+      "id": "KB2-081"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03626v1",
+      "question": "这篇论文研究什么问题？主要贡献是什么？请简述。",
+      "answer_hint": "The recent wave of one-step generative models, which compress the multi-step trajectory of diffusion via either distillation or learned flow maps, has reached an inflection point where they can generate high-quality images. Here, we ask a natural question that follows from these advances: what happens to the denoising trajectory of multi-step diffusion when generation is compressed into a single f",
+      "keywords": [
+        "recent",
+        "generative",
+        "models",
+        "compress",
+        "trajectory",
+        "diffusion"
+      ],
+      "source": "abstract_core",
+      "id": "KB2-082",
+      "key_points": [
+        "recent wave one-step generative compress",
+        "here natural question follows advances",
+        "recent wave one-step generative"
+      ],
+      "judge_mode": "coverage"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03626v1",
+      "question": "根据材料，补全下面这句话中缺失的数值：\n\nConsequently, we show that models that exhibit the depthwise denoising phenomenon are more compressible across the layerwise computation: a MeanFlow SiT-L/2 model can be compressed by ____× in parameters into a single time-conditioned block.",
+      "answer_hint": "16.6",
+      "keywords": [
+        "16.6"
+      ],
+      "source": "abstract_number",
+      "id": "KB2-083"
+    },
+    {
+      "type": "structure",
+      "pdf": "2610.03626v1",
+      "question": "材料中提到的 \"MeanFlow\" 是什么？请说明它的含义或作用。",
+      "answer_hint": "The most surprising case is MeanFlow, where probing shorter transport intervals reveals both denoising and renoising within a single network evaluation.",
+      "keywords": [
+        "MeanFlow"
+      ],
+      "source": "abstract_term",
+      "id": "KB2-084"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03634v1",
+      "question": "这篇论文研究什么问题？主要贡献是什么？请简述。",
+      "answer_hint": "Terminal-using agents benefit from reinforcement learning (RL) in coding, debugging, and other multi-step terminaltasks. In these tasks, later commandsoftendepend on informationor intermediate resultsproduced by earlier commands. However, existing trajectory-level and step-level credit assignment methods do not explicitly trace the read-write dependencies through which commands affect the final ou",
+      "keywords": [
+        "Terminal",
+        "agents",
+        "benefit",
+        "reinforcement",
+        "learning",
+        "coding"
+      ],
+      "source": "abstract_core",
+      "id": "KB2-085",
+      "key_points": [
+        "terminal-using agents benefit reinforcement learning",
+        "tasks later commandsoftendepend informationor intermediate",
+        "existing trajectory-level step-level credit assignment"
+      ],
+      "judge_mode": "coverage"
+    },
+    {
+      "type": "structure",
+      "pdf": "2610.03634v1",
+      "question": "材料中提到的 \"Terminal\" 是什么？请说明它的含义或作用。",
+      "answer_hint": "Terminal-using agents benefit from reinforcement learning (RL) in coding, debugging, and other multi-step terminaltasks.",
+      "keywords": [
+        "Terminal"
+      ],
+      "source": "abstract_term",
+      "id": "KB2-086"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03662v1",
+      "question": "这篇论文研究什么问题？主要贡献是什么？请简述。",
+      "answer_hint": "Deploying a new decision policy creates a cold-start problem for prediction mod- els whose targets depend on the policy’s actions: historical observations reflect earlier policies, while real observations under the new policy are not yet available. Simulation offers a way to address this gap by rolling out the target policy across counterfactual scenarios and using the resulting trajectories to le",
+      "keywords": [
+        "Deploying",
+        "decision",
+        "policy",
+        "creates",
+        "problem",
+        "prediction"
+      ],
+      "source": "abstract_core",
+      "id": "KB2-087",
+      "key_points": [
+        "deploying decision policy creates cold-start",
+        "simulation offers address rolling target",
+        "deploying decision policy creates"
+      ],
+      "judge_mode": "coverage"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03662v1",
+      "question": "根据材料，补全下面这句话中缺失的数值：\n\nThe simulator-trained forecaster achieves lower point-estimate mean absolute percentage error (MAPE) than the same architecture trained on historical real data, reducing MAPE by 1.2–3.1 percentage points in Study 1 and ____–18.7 points in Study 2.",
+      "answer_hint": "12.5",
+      "keywords": [
+        "12.5"
+      ],
+      "source": "abstract_number",
+      "id": "KB2-088"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03662v1",
+      "question": "根据材料，补全下面这句话中缺失的数值：\n\nAfter deployment, lightweight calibration using early real observations further reduces error by up to ____ percentage points.",
+      "answer_hint": "2.5",
+      "keywords": [
+        "2.5"
+      ],
+      "source": "abstract_number",
+      "id": "KB2-089"
+    },
+    {
+      "type": "structure",
+      "pdf": "2610.03662v1",
+      "question": "材料中提到的 \"Deploying\" 是什么？请说明它的含义或作用。",
+      "answer_hint": "Deploying a new decision policy creates a cold-start problem for prediction mod- els whose targets depend on the policy’s actions: historical observations reflect earlier policies, while real observations under the new policy are not yet available.",
+      "keywords": [
+        "Deploying"
+      ],
+      "source": "abstract_term",
+      "id": "KB2-090"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03679v1",
+      "question": "这篇论文研究什么问题？主要贡献是什么？请简述。",
+      "answer_hint": "The dynamics of cells, organisms, and fluids are often modeled as probability distri- butions evolving over time. Reconstructing and extrapolating this evolution from unpaired snapshots requires assumptions about the underlying process. Wasser- stein gradient flows are a common choice, but they cannot describe conservative or periodic dynamics.",
+      "keywords": [
+        "dynamics",
+        "organisms",
+        "fluids",
+        "modeled",
+        "probability",
+        "distri"
+      ],
+      "source": "abstract_core",
+      "id": "KB2-091",
+      "key_points": [
+        "dynamics cells organisms fluids often",
+        "reconstructing extrapolating evolution unpaired snapshots",
+        "wasser stein gradient flows common"
+      ],
+      "judge_mode": "coverage"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03679v1",
+      "question": "根据材料，补全下面这句话中缺失的数值：\n\nWe test Double- Stitch on synthetic, single-cell and ocean vortex datasets and find that it matches or outperforms gradient-flow methods and simulation-based WLM on most tasks, while training 4–____ times faster than WLM.",
+      "answer_hint": "14",
+      "keywords": [
+        "14"
+      ],
+      "source": "abstract_number",
+      "id": "KB2-092"
+    },
+    {
+      "type": "structure",
+      "pdf": "2610.03679v1",
+      "question": "材料中提到的 \"Reconstructing\" 是什么？请说明它的含义或作用。",
+      "answer_hint": "Reconstructing and extrapolating this evolution from unpaired snapshots requires assumptions about the underlying process.",
+      "keywords": [
+        "Reconstructing"
+      ],
+      "source": "abstract_term",
+      "id": "KB2-093"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03702v1",
+      "question": "这篇论文研究什么问题？主要贡献是什么？请简述。",
+      "answer_hint": "The choice of post-training data for large language models substantially affects downstream performance. Gradient-based data selection is a popular approach that ranks training data by how well their gradients align with those of a small validation set. However, ranking with full-parameter gradients requires an expen- sive backward pass on every sample, making computation intractable for large can",
+      "keywords": [
+        "choice",
+        "training",
+        "language",
+        "models",
+        "substantially",
+        "affects"
+      ],
+      "source": "abstract_core",
+      "id": "KB2-094",
+      "key_points": [
+        "choice post-training data large language",
+        "gradient-based data selection popular ranks",
+        "ranking full-parameter gradients requires expen"
+      ],
+      "judge_mode": "coverage"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03702v1",
+      "question": "根据材料，补全下面这句话中缺失的数值：\n\n1 Training data Pool Query 2 Feature extraction LESS features Output layer Body layers LESSER features 3 Rank and select Similarity scores 1 2 3 LESSER feature-extraction FLOP reduction 0× 2× 4× 6× 8× 10×1× ____× 3.0× SFT (vs.",
+      "answer_hint": "9.7",
+      "keywords": [
+        "9.7"
+      ],
+      "source": "abstract_number",
+      "id": "KB2-095"
+    },
+    {
+      "type": "structure",
+      "pdf": "2610.03702v1",
+      "question": "材料中提到的 \"Gradient\" 是什么？请说明它的含义或作用。",
+      "answer_hint": "Gradient-based data selection is a popular approach that ranks training data by how well their gradients align with those of a small validation set.",
+      "keywords": [
+        "Gradient"
+      ],
+      "source": "abstract_term",
+      "id": "KB2-096"
+    },
+    {
+      "type": "main_idea",
+      "pdf": "2610.03715v1",
+      "question": "这篇论文研究什么问题？主要贡献是什么？请简述。",
+      "answer_hint": "Given an input video, an agent must reconstruct it as an explicit 4D scene by writing graphics code; the scene is rendered back to video and its geometry is inspected over time.Bottom:we benchmark 18 models on 100 real and 100 synthetic scenes. Each example shows the input and two model reconstructions, split into render (left) and geometry (right). To accomplish this, agents must translate visual",
+      "keywords": [
+        "reconstruct",
+        "explicit",
+        "writing",
+        "graphics",
+        "rendered",
+        "geometry"
+      ],
+      "source": "abstract_core",
+      "id": "KB2-097",
+      "key_points": [
+        "given input video agent reconstruct",
+        "example shows input reconstructions split",
+        "given input video agent"
+      ],
+      "judge_mode": "coverage"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03715v1",
+      "question": "根据材料，补全下面这句话中缺失的数值：\n\nGiven an input video, an agent must reconstruct it as an explicit 4D scene by writing graphics code; the scene is rendered back to video and its geometry is inspected over time.Bottom:we benchmark 18 models on ____ real and 100 synthetic scenes.",
+      "answer_hint": "100",
+      "keywords": [
+        "100"
+      ],
+      "source": "abstract_number",
+      "id": "KB2-098"
+    },
+    {
+      "type": "structure",
+      "pdf": "2610.03715v1",
+      "question": "材料中提到的 \"Bottom\" 是什么？请说明它的含义或作用。",
+      "answer_hint": "Given an input video, an agent must reconstruct it as an explicit 4D scene by writing graphics code; the scene is rendered back to video and its geometry is inspected over time.Bottom:we benchmark 18 models on 100 real and 100 synthetic scenes.",
+      "keywords": [
+        "Bottom"
+      ],
+      "source": "abstract_term",
+      "id": "KB2-099"
+    },
+    {
+      "type": "detail",
+      "pdf": "2610.03176v1",
+      "question": "根据材料，补全下面这句话中缺失的数值：\n\nAbsolute accuracy remains low for all models—the task is hard at this scale—but within this ceiling a filtered variant (StudentF) achieves a small, statistically significant accuracy advantage over the teacher (p<____), concentrated in better-represented diseases.",
+      "answer_hint": "0.001",
+      "keywords": [
+        "0.001"
+      ],
+      "source": "abstract_number",
+      "id": "KB2-100",
+      "variant": 1
+    }
+  ],
+  "v2_changes": [
+    "R-3（2026-10-21）: main_idea 加 key_points（3-5 个短语 ✓）+ judge_mode=coverage ✓"
+  ]
+}

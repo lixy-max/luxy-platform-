@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>P-74 加大数据量 · 进度</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+       background:linear-gradient(160deg,#060912,#0d1a33 45%,#1a1030);color:#fff;padding:26px 30px}
+  h1{font-size:25px;font-weight:800}
+  .sub{color:#8ba3cc;font-size:12.5px;margin:5px 0 18px}
+  .row{display:flex;gap:14px;margin-bottom:14px;flex-wrap:wrap}
+  .card{flex:1;min-width:200px;border-radius:13px;padding:16px;
+        border:1px solid rgba(120,160,255,.18);background:rgba(255,255,255,.04)}
+  .card h2{font-size:13px;color:#8ba3cc;font-weight:600;margin-bottom:12px}
+  .big{font-size:34px;font-weight:900;line-height:1}
+  .lbl{font-size:11px;color:#8ba3cc;margin-top:6px}
+  .g{color:#52c41a}.r{color:#ff4d4f}.a{color:#faad14}.b{color:#5b8cff}
+  .step{display:flex;align-items:center;gap:11px;padding:12px 14px;margin:8px 0;
+        border-radius:10px;border:1px solid rgba(120,160,255,.16);background:rgba(255,255,255,.025)}
+  .step .no{width:27px;height:27px;border-radius:50%;display:flex;align-items:center;
+            justify-content:center;font-size:12px;font-weight:800;flex-shrink:0}
+  .ok{background:rgba(82,196,26,.2);color:#52c41a;border:1px solid rgba(82,196,26,.5)}
+  .no2{background:rgba(250,173,20,.2);color:#faad14;border:1px solid rgba(250,173,20,.5)}
+  .wait{background:rgba(120,140,180,.15);color:#8ba3cc;border:1px solid rgba(120,160,255,.3)}
+  .step .t{font-size:12.5px;font-weight:700}
+  .step .d{font-size:10.5px;color:#8ba3cc;margin-top:2px}
+  .step .m{margin-left:auto;font-size:10.5px;font-family:ui-monospace,monospace;color:#6b7fa3;text-align:right}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th{text-align:left;color:#8ba3cc;padding:7px 9px;border-bottom:1px solid rgba(120,160,255,.2);font-weight:600}
+  td{padding:7px 9px;border-bottom:1px solid rgba(255,255,255,.05)}
+  .bdg{display:inline-block;padding:2px 8px;border-radius:999px;font-size:10.5px;font-weight:700}
+  .b-ok{background:rgba(82,196,26,.15);color:#52c41a}
+  .b-no{background:rgba(255,77,79,.15);color:#ff4d4f}
+  .b-w{background:rgba(250,173,20,.15);color:#faad14}
+  .bar{display:flex;gap:9px;align-items:center;margin:7px 0;font-size:12px}
+  .bar .nm{width:150px;color:#c9d6f5}
+  .bar .bb{flex:1;height:16px;background:rgba(255,255,255,.06);border-radius:8px;overflow:hidden}
+  .bar .ff{height:100%;border-radius:8px}
+  .bar .vv{width:60px;text-align:right;font-weight:700;font-family:ui-monospace,monospace}
+  code{font-family:ui-monospace,monospace;font-size:11px;color:#a9c4ff}
+</style>
+</head>
+<body>
+  <h1>P-74 加大数据量 · 进度</h1>
+  <div class="sub">2026-10-21 · 目标 n≥100 题 · ≥20 篇 PDF · 多领域 · 当前 步骤 1-2 完成 ✓</div>
+
+  <div class="row">
+    <div class="card"><div class="big g">100</div><div class="lbl">题目已生成 ✓<br>（目标 100 ✓ 达成）</div></div>
+    <div class="card"><div class="big g">33</div><div class="lbl">PDF 篇数<br>（目标 20+ ✓ 超额）</div></div>
+    <div class="card"><div class="big a">2/6</div><div class="lbl">步骤完成<br>（步骤 1-2 ✓）</div></div>
+    <div class="card"><div class="big b">~4h</div><div class="lbl">剩余工时<br>（步骤 3-6）</div></div>
+  </div>
+
+  <div class="card" style="margin-bottom:14px">
+    <h2>6 步计划 · 逐项状态</h2>
+    <div class="step"><div class="no ok">1</div>
+      <div><div class="t">PDF 扩到 20+ 篇</div><div class="d">已有 33 篇 arXiv PDF（超额 ✓）⚠ 但单领域 ✗ 缺中文/法律/医疗</div></div>
+      <div class="m">✅ <strong class="g">33 篇</strong> ✓</div></div>
+    <div class="step"><div class="no ok">2</div>
+      <div><div class="t">题目扩到 100+ 题</div><div class="d">已生成 100 题 ✓ 但类型少 ⚠（main_idea 33 + detail 67 · structure 0 ✗）</div></div>
+      <div class="m">✅ <strong class="g">100 题</strong> ✓</div></div>
+    <div class="step"><div class="no no2">3</div>
+      <div><div class="t">加「LLM 答题准确率」</div><div class="d">让 LLM 用 top3 检索结果回答 → 判对错</div></div>
+      <div class="m">⏳ 待做 · ~1.5h</div></div>
+    <div class="step"><div class="no no2">4</div>
+      <div><div class="t">配对 Bootstrap 统计</div><div class="d">10000 次重采样 ✓ CI 不含 0 才算显著</div></div>
+      <div class="m">⏳ 待做 · ~1h</div></div>
+    <div class="step"><div class="no wait">5</div>
+      <div><div class="t">补齐噪声 pattern</div><div class="d">真实 PDF 噪声只降 24% → 目标残留 &lt;1%</div></div>
+      <div class="m">⏳ 待做 · ~1h</div></div>
+    <div class="step"><div class="no wait">6</div>
+      <div><div class="t">本地模型对照</div><div class="d">用本地 7B（不是云端 deepseek）⇒ 结论可迁移</div></div>
+      <div class="m">⏳ 待做 · ~0.5h</div></div>
+  </div>
+
+  <div class="card" style="margin-bottom:14px">
+    <h2>题目类型分布 vs 目标</h2>
+    <div class="bar"><div class="nm">main_idea（目标 30%）</div><div class="bb"><div class="ff" style="width:33%;background:#5b8cff"></div></div><div class="vv b">33%</div></div>
+    <div class="bar"><div class="nm">detail（目标 50%）</div><div class="bb"><div class="ff" style="width:67%;background:#faad14"></div></div><div class="vv a">67%</div></div>
+    <div class="bar"><div class="nm">structure（目标 20%）</div><div class="bb"><div class="ff" style="width:0%;background:#ff4d4f"></div></div><div class="vv r">0%</div></div>
+    <div style="margin-top:10px;font-size:11.5px;color:#8ba3cc">
+      ⚠ structure 题一个都没生成 ✗（正则太严）⇒ 需修 ✓ 但不影响 n≥100 的统计检验 ✓
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>产物</h2>
+    <table>
+      <tr><th>文件</th><th>内容</th><th>状态</th></tr>
+      <tr><td><code>docs/EVAL_SET_KB100.json</code></td><td>100 题 · 33 PDF · 带标准答案提示 + 关键词</td><td><span class="bdg b-ok">已生成 ✓</span></td></tr>
+      <tr><td><code>scripts/gen_kb100_questions.py</code></td><td>题目生成器（规则模板 ✗ 非 LLM ✗ 质量中等 ⚠）</td><td><span class="bdg b-ok">已提交 ✓</span></td></tr>
+    </table>
+    <div style="margin-top:11px;padding:10px 13px;border-radius:9px;background:rgba(250,173,20,.08);border:1px solid rgba(250,173,20,.3);font-size:11.5px">
+      <strong class="a">⚠ 诚实标注</strong>：题目用<strong>规则模板</strong>生成 ✗ 不是 LLM ✗
+      ⇒ 质量中等 ⚠（细节题是"挖数字填空" ✓ 主旨题是"概述主题" ✓）
+      ⇒ 足以做 <strong>n=100 配对统计</strong> ✓ 但不是高质量评测集 ⚠
+      ⇒ 要高质量需 LLM 生成（+1h ⚠）
+    </div>
+  </div>
+
+<script></script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "luxy-platform"
+version = "4.9.7"
+description = "单机模型垂直开发平台：数据 → 训练 → 知识库 → Agent → 工作流，闭环在自己的机器上"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "luxy" }]
+keywords = ["lora", "qlora", "rag", "local-llm", "vllm", "agent", "workflow", "single-machine"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+[project.urls]
+Documentation = "https://github.com/lixy-max/luxy-platform-/blob/main/docs/INSTALL.md"
+Changelog = "https://github.com/lixy-max/luxy-platform-/blob/main/CHANGELOG.md"
+
+# 说明：本项目不是 pip 包 —— 平台以「克隆 + 启动脚本」方式部署。
+# 此处仅提供元数据与工具链配置。
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+exclude = ["docs", "webui/vendor", ".venv"]
+
+[tool.ruff.lint]
+select = ["E9", "F63", "F7", "F82"]   # 语法类/未定义名 优先（历史 bug 主要来自这类）
+ignore = []
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["F401", "F811"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-q"

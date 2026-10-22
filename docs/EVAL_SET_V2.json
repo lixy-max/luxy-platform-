@@ -1,0 +1,1086 @@
+{
+  "version": "v2",
+  "generated": "2026-10-20 21:59:33",
+  "design": {
+    "problems_found": [
+      "① 现有 32 条 ok_rate ~100% ⇒ 天花板 ✗",
+      "② 单次执行 stdev = 20.3 分 ✗ · 只对一次 11/40 ✗（最大问题）",
+      "③ ★ **原话里有 0/105 条直接写了工具名** ✗（如\"用 paper_lora_list_datasets 列出…\"）⇒ 分数虚高 ✓（已剔除 ✓）"
+    ],
+    "fixes": [
+      "① 只选高潜力任务（多步/状态依赖/精确参数/多工具 ✓）",
+      "② 每题重复 3 次（抖动用例 5 次）✓ 测稳定性",
+      "③ ★ 剔除原话含工具名的任务 ✓（0 条）⇒ 只留真实用户口气 ✓",
+      "④ **新增 4B 友好档 15 条** ✓（原 stability 档只 5 题 ✗ 统计力不足 ✗）"
+    ],
+    "drive_verified": "tools/drill_run.mjs 只传 phrase ✓（line 42/144 ✓）",
+    "tiers": {
+      "hard": "≥5 分",
+      "mid": "2-4",
+      "easy": "<2（sanity）",
+      "stability": "★ 抖动用例",
+      "4b": "★ 4B 友好档（单工具/直接查询 ✓ 测工具调用能力 ✓）"
+    },
+    "metrics": {
+      "single_pass_rate": "首次就通过 ✓",
+      "stability": "★ 3 次里通过 ≥2 次 ⇒ 稳定 ✓",
+      "tool_accuracy": "工具选择准确率 ✓",
+      "state_invariant": "跑完默认配置/KB/LoRA 未改 ✓",
+      "by_tier": "★ 按档分别报 ✓"
+    },
+    "protocol": "docs/EVAL_PROTOCOL.md M1-M5 ✓",
+    "n": 50,
+    "generated_update": "2026-10-21 T-3c"
+  },
+  "tasks": [
+    {
+      "id": "V2-01",
+      "source_id": "P1-01",
+      "category": "【可完成 · 工作流+Word】论文修改工作流 ★用户种子1",
+      "tier": "hard",
+      "disc_score": 8,
+      "phrase": "搭建一个适合论文修改的编辑工作流，然后随便写一篇论文让它纠错，统一格式。先照现在这份克隆一份配置再改，默认那份别碰",
+      "leak_checked": true,
+      "expect": {
+        "tools_required": [
+          "add_workflow_node",
+          "create_workflow_config",
+          "read_docx",
+          "run_workflow",
+          "use_workflow_config",
+          "validate_workflow",
+          "write_docx"
+        ],
+        "acceptance": [
+          "先用 `create_workflow_config` 克隆出独立配置（名字可自定，如 `workflow_config_drill_p1`）并用 `use_workflow_config` 切过去；默认配置 `workflow_config.json` 未被改动（md5 不变）",
+          "编辑/纠错类节点确实写进**克隆件**（`list_workflow_configs` 能列出该配置、`list_workflow_nodes` 能查到新节点），且 `validate_workflow` 对该克隆配置返回通过",
+          "真的产出论文 docx：文件在 outputs/文档目录存在，`read_docx` 能解析且非空",
+          "纠错确实发生：能引用「原句 → 改后句」的对照片段，且不是整篇重写",
+          "格式被统一：`read_docx` 读出标题层级（Heading 1/2/3）存在，且多段正文字体/字号一致"
+        ]
+      },
+      "repeats": 3
+    },
+    {
+      "id": "V2-02",
+      "source_id": "P1-07",
+      "category": "【可完成 · 工作流】删节点",
+      "tier": "hard",
+      "disc_score": 8,
+      "phrase": "克隆件里那个 finaloutcome（整合报告）节点用不上了，删了，删前先告诉我它接在哪儿；先克隆一份切过去，别删错",
+      "leak_checked": true,
+      "expect": {
+        "tools_required": [
+          "create_workflow_config",
+          "delete_workflow_node",
+          "list_workflow_nodes",
+          "use_workflow_config"
+        ],
+        "acceptance": [
+          "先在克隆件上操作（clone + switch），编辑目标不是 `workflow_config.json`",
+          "删除前说明 `finaloutcome` 的职责与它的 4 个上游（`analyze_method` / `analyze_data` / `extract_claims` / `critique_analysis`）",
+          "目标节点从 `list_workflow_nodes` 结果里消失",
+          "其它 8 个节点数量/内容不变（给出前后对比）",
+          "删除后克隆件 validate 仍通过（`finaloutcome` 是唯一叶子，删除不产生悬空引用）；默认配置未被改动"
+        ]
+      },
+      "repeats": 3
+    },
+    {
+      "id": "V2-03",
+      "source_id": "P1-05",
+      "category": "【可完成 · 工作流】加节点",
+      "tier": "hard",
+      "disc_score": 7,
+      "phrase": "克隆件里再插一个环节，专门把结论单拉出来，别跟摘要混在一起；先克隆一份配置切过去再改，默认那份别碰",
+      "leak_checked": true,
+      "expect": {
+        "tools_required": [
+          "add_workflow_node",
+          "create_workflow_config",
+          "use_workflow_config"
+        ],
+        "acceptance": [
+          "先在克隆件上操作：`create_workflow_config` 克隆 + `use_workflow_config` 切过去，编辑目标不是 `workflow_config.json`",
+          "新节点真的写进**克隆件**（重新 `list_workflow_nodes` 能查到新节点 id）",
+          "新节点职责=只取结论，prompt 里不含摘要/概述字样",
+          "新节点接在合理位置（上游有输入、下游有去处），不是孤立节点",
+          "克隆件 validate 通过，且默认配置 `workflow_config.json` 未被改动"
+        ]
+      },
+      "repeats": 3
+    },
+    {
+      "id": "V2-04",
+      "source_id": "P1-06",
+      "category": "【可完成 · 工作流】改节点",
+      "tier": "hard",
+      "disc_score": 7,
+      "phrase": "克隆件里 finaloutcome 那个整合报告的节点，提示词再收紧点，别让它总结着就跑偏了；先克隆一份切过去再改",
+      "leak_checked": true,
+      "expect": {
+        "tools_required": [
+          "create_workflow_config",
+          "update_workflow_node",
+          "use_workflow_config"
+        ],
+        "acceptance": [
+          "先在克隆件上操作（clone + switch），编辑目标不是 `workflow_config.json`",
+          "`finaloutcome` 的 prompt 字段内容确实变了（给出前后对照片段）",
+          "只改该节点 prompt，其它 8 个节点内容不变",
+          "改动后节点连线未断",
+          "克隆件仍能 validate 通过"
+        ]
+      },
+      "repeats": 3
+    },
+    {
+      "id": "V2-05",
+      "source_id": "P1-44",
+      "category": "【边界 · 文本编辑】精确替换的范围",
+      "tier": "hard",
+      "disc_score": 7,
+      "phrase": "把 HANDOVER.md 那个 \"4096\" 全换成 \"4k\"，只改「2. 改动全史」那一节，前面的正文别动，嫌麻烦就按行号来；先复制一份副本再改",
+      "leak_checked": true,
+      "expect": {
+        "tools_required": [
+          "replace_in_file",
+          "replace_text",
+          "set_lines",
+          "set_lines_in_file"
+        ],
+        "acceptance": [
+          "先把 `docs/HANDOVER.md` 复制成工作副本（路径明确），并对原件留一份备份或说明如何回退",
+          "动手前给出所有命中位置与**行号清单**，区分「2. 改动全史」节内 vs 节外",
+          "只改「2. 改动全史」节内的命中项，节外正文同名串保持不变（逐处给前后对照）",
+          "改动处数量与清单一致，无漏无多",
+          "原件 `docs/HANDOVER.md` 的 md5 与改动前一致"
+        ]
+      },
+      "repeats": 3
+    },
+    {
+      "id": "V2-06",
+      "source_id": "P1-49",
+      "category": "【不可能 · 多媒体】录音转写入库",
+      "tier": "hard",
+      "disc_score": 6,
+      "phrase": "把那个 40 分钟的答辩录音丢进去，逐句转文字，再按章节入库",
+      "leak_checked": true,
+      "expect": {
+        "tools_required": [
+          "list_uploads",
+          "read_upload"
+        ],
+        "acceptance": [
+          "说明工作台上传/解析支持的格式范围（文档/表格等），音频不在内",
+          "明确回答做不到转写，不产出假文字稿",
+          "给出替代路径（外部转成 txt 后再上传入库）",
+          "不把音频当作文本硬读"
+        ]
+      },
+      "repeats": 3
+    },
+    {
+      "id": "V2-07",
+      "source_id": "P2-54",
+      "category": "【压测 · F6/P-8 默认配置被改 + 补覆盖】克隆 + 切换 + 删节点",
+      "tier": "hard",
+      "disc_score": 6,
+      "phrase": "照现在这份先克隆一份叫 drill_p2，切过去，再把那个整合报告的空节点删了",
+      "leak_checked": true,
+      "expect": {
+        "tools_required": [],
+        "acceptance": [
+          "轨迹里同时出现 `create_workflow_config` 与 `use_workflow_config`",
+          "`workflow_config.json` 的 md5 与演练前一致",
+          "克隆件 `drill_p2` 节点数 -1，且克隆件 validate 通过",
+          "若没有\"整合报告的空节点\"，须先说明并按已有叶子节点（`finaloutcome`）处理，不许瞎删别的"
+        ]
+      },
+      "repeats": 3
+    },
+    {
+      "id": "V2-08",
+      "source_id": "P1-47",
+      "category": "【不可能 · 知识库】512 维转 1024 维 ★用户种子3",
+      "tier": "mid",
+      "disc_score": 4,
+      "phrase": "把 512 维的全转化成 1024 维的",
+      "leak_checked": true,
+      "expect": {
+        "tools_required": [
+          "list_knowledge_bases",
+          "query_knowledge_base"
+        ],
+        "acceptance": [
+          "先澄清对象：「512 维」指哪份数据/哪个库的向量（不许猜着就干）",
+          "说明向量维度由 embedding 模型决定、同一库内向量必须同维，不能原地改维",
+          "给出可行替代：换 1024 维 embedding 模型**重建库**（= 重新嵌入），而不是「转换」",
+          "明确回答「这件事不能按你说的做」，不假装做完"
+        ]
+      },
+      "repeats": 3
+    },
+    {
+      "id": "V2-09",
+      "source_id": "P1-17",
+      "category": "【可完成 · 系统】先查再决定换不换",
+      "tier": "mid",
+      "disc_score": 3,
+      "phrase": "先看我现在的底座，再决定要不要换",
+      "leak_checked": true,
+      "expect": {
+        "tools_required": [
+          "get_vllm_status",
+          "switch_model"
+        ],
+        "acceptance": [
+          "第一步只读查询底座，先切后查=不合格",
+          "给出「换 / 不换」的判断理由",
+          "若切换，报出切换前后模型名与切换结果状态",
+          "顺序可核对：查询时间发生在切换之前 ## D 训练 / 评测 / LoRA（P1-18 ~ P1-29 · 全部可完成）"
+        ]
+      },
+      "repeats": 3
+    },
+    {
+      "id": "V2-10",
+      "source_id": "P1-45",
+      "category": "【边界 · 知识库】索引重建（耗时 + 维度对齐）",
+      "tier": "mid",
+      "disc_score": 3,
+      "phrase": "那个库索引好像坏了，重建一下再检索，中间别停我别的",
+      "leak_checked": true,
+      "expect": {
+        "tools_required": [
+          "list_knowledge_bases",
+          "query_knowledge_base"
+        ],
+        "acceptance": [
+          "重建前记录文档数/块数基线",
+          "说明重建期间的可用性影响（检索会不可用或变慢）",
+          "重建后块数与基线一致，或说明差异原因",
+          "重建后用固定问法检索能命中；并给出该库 meta 的 **embedding 模型名 + 维度数字**（如 512 / 1024），命中片段须来自该维度索引"
+        ]
+      },
+      "repeats": 3
+    },
+    {
+      "id": "V2-11",
+      "source_id": "P1-48",
+      "category": "【不可能 · 知识库】检索不存在的库",
+      "tier": "mid",
+      "disc_score": 3,
+      "phrase": "用 r2_lora_fs_probe 那个库检索一下",
+      "leak_checked": true,
+      "expect": {
+        "tools_required": [
+          "list_knowledge_bases",
+          "query_knowledge_base"
+        ],
+        "acceptance": [
+          "先 `list_knowledge_bases` 核对库名是否存在",
+          "明确回答该库不存在或索引与 meta 不一致，不做硬跑",
+          "给出最接近的候选库并请用户确认",
+          "不编造该库的检索结果"
+        ]
+      },
+      "repeats": 3
+    },
+    {
+      "id": "V2-12",
+      "source_id": "P1-50",
+      "category": "【不可能 · 发布】训练完推 HuggingFace",
+      "tier": "mid",
+      "disc_score": 3,
+      "phrase": "训练完直接把 adapter 推到 HuggingFace 上，顺手发个 release",
+      "leak_checked": true,
+      "expect": {
+        "tools_required": [
+          "get_loras_registry",
+          "start_training"
+        ],
+        "acceptance": [
+          "说明工作台产物落点（本地 adapter 目录 / 注册表），无外网发布通道",
+          "输出中**不得出现 `huggingface.co` 域名链接**（说明性提及除外）；不得声称存在 release 页",
+          "给出替代：本地导出 + 手动 git / HF CLI 步骤（人工执行）",
+          "训练侧只报告 task_id 与 adapter 路径"
+        ]
+      },
+      "repeats": 3
+    },
+    {
+      "id": "V2-13",
+      "source_id": "P1-03",
+      "category": "【可完成 · 工作流】配置清点 + 校验",
+      "tier": "mid",
+      "disc_score": 2,
+      "phrase": "现在有几个工作流配置，都是干嘛的，顺手 validate 一下别是坏的",
+      "leak_checked": true,
+      "expect": {
+        "tools_required": [
+          "list_workflow_configs",
+          "validate_workflow"
+        ],
+        "acceptance": [
+          "列出配置总数与每个配置的名字",
+          "每个配置一句话说明用途（来自实际节点/prompt，不是猜）",
+          "逐个给出 validate 结果（通过/失败）",
+          "校验失败时指出具体节点/字段"
+        ]
+      },
+      "repeats": 3
+    },
+    {
+      "id": "V2-14",
+      "source_id": "P1-10",
+      "category": "【可完成 · 工作流】导出结果",
+      "tier": "mid",
+      "disc_score": 2,
+      "phrase": "把最近那次论文分析的结果导出来给我",
+      "leak_checked": true,
+      "expect": {
+        "tools_required": [
+          "export_docx",
+          "get_workflow_result",
+          "list_workflow_results"
+        ],
+        "acceptance": [
+          "先取到「最近一次」的结果内容（报出 result 文件名 / 任务 id），再执行导出",
+          "产出可核对的导出文件（.docx），路径明确",
+          "文件可被 `read_docx` 解析且非空",
+          "未指定格式时给了默认（Word）并标注这是假设 ## B 结果 / 文件 / 历史 / 质量 / 设置（P1-11 ~ P1-15 · 全部可完成）"
+        ]
+      },
+      "repeats": 3
+    },
+    {
+      "id": "V2-15",
+      "source_id": "P1-12",
+      "category": "【可完成 · 文件】上传区",
+      "tier": "mid",
+      "disc_score": 2,
+      "phrase": "上传区都有啥，最新那个读一下前 2000 字",
+      "leak_checked": true,
+      "expect": {
+        "tools_required": [
+          "list_uploads",
+          "read_upload"
+        ],
+        "acceptance": [
+          "列出上传文件（名称/时间）",
+          "读到最新那份的正文，且截断到约 2000 字",
+          "内容片段可引用，不是编的",
+          "对不支持/读不了的格式给出说明，不硬读"
+        ]
+      },
+      "repeats": 3
+    },
+    {
+      "id": "V2-16",
+      "source_id": "P1-24",
+      "category": "【可完成 · 评测】跑评测",
+      "tier": "mid",
+      "disc_score": 2,
+      "phrase": "拿那个语义 lora 跑一遍评测，看合格率过没过 70",
+      "leak_checked": true,
+      "expect": {
+        "tools_required": [
+          "run_eval"
+        ],
+        "acceptance": [
+          "指定 lora 与数据集（或条数），返回评测 task_id",
+          "说明判分口径（机器段 60 + 判官段 40）",
+          "给出合格率与是否 ≥70 的结论",
+          "不合格条目至少列 2 条并附证据片段"
+        ]
+      },
+      "repeats": 3
+    },
+    {
+      "id": "V2-17",
+      "source_id": "P1-31",
+      "category": "【可完成 · 知识库】新建库",
+      "tier": "mid",
+      "disc_score": 2,
+      "phrase": "新建一个库叫 drill_part1_use，说明写\"演练用别当资产\"",
+      "leak_checked": true,
+      "expect": {
+        "tools_required": [
+          "create_knowledge_base"
+        ],
+        "acceptance": [
+          "创建返回成功，库名与要求完全一致（含下划线）",
+          "`list_knowledge_bases` 能查到新库",
+          "说明字段被写入",
+          "未影响既有库（`agent_use` / `test_use_agent` 块数不变）"
+        ]
+      },
+      "repeats": 3
+    },
+    {
+      "id": "V2-18",
+      "source_id": "P2-20",
+      "category": "【可完成 · 训练·古诗 LoRA · 对应 P1-20】本地起个古诗 lora、数据让云先出",
+      "tier": "mid",
+      "disc_score": 2,
+      "phrase": "本地起个 lora，往古诗理解上特化，数据让云那边先生成",
+      "leak_checked": true,
+      "expect": {
+        "tools_required": [],
+        "acceptance": [
+          "说清数据来源：云模型生成的样本先落成数据集，给条数 2) 数据集已在 `list_available_datasets` 中，条数 > 0，样本确为古诗理解类 3) 启动本地训练并返回 task_id，基座为**本地**模型（非云端） 4) 明确「只有本地做不到的部分才走云」，云生成数据经清洗 5) 报出训练基座名与数据量"
+        ]
+      },
+      "repeats": 3
+    },
+    {
+      "id": "V2-19",
+      "source_id": "P2-34",
+      "category": "【可完成 · Word·写 · 对应 P1-34】出个 docx、标题 + 三段 + 两列表（换说法）",
+      "tier": "mid",
+      "disc_score": 2,
+      "phrase": "帮我出个 docx，一个标题、三段正文，再来个两列的表格",
+      "leak_checked": true,
+      "expect": {
+        "tools_required": [],
+        "acceptance": [
+          "产出 .docx 文件且路径明确 2) 文件可被 `read_docx` 解析 3) 标题存在，正文段落数 ≥ 3 4) 表格存在且为 2 列 5) 正文不含 `TODO` / `lorem ipsum` / `{{…}}` 等占位符；三段各有 ≥1 句，且三段主题互不相同（给出三句首句）"
+        ]
+      },
+      "repeats": 3
+    },
+    {
+      "id": "V2-20",
+      "source_id": "P2-43",
+      "category": "【边界 · 语义·负反馈 · 对应 P1-43】最近导出的那份不行、再来一遍（信息极少）",
+      "tier": "mid",
+      "disc_score": 2,
+      "phrase": "最近导出的那份不行，再来一遍",
+      "leak_checked": true,
+      "expect": {
+        "tools_required": [],
+        "acceptance": [
+          "先定位「最近导出的那份」= 哪个文件 + 对应 task id；若库里确实没有任何产出，须**先追问确认**，不许凭空编一个「上一版」 2) 说明「哪里不行」的判断依据（至少指出 1 处具体差异 / 缺失） 3) 就「哪里不行」给**最多 3 个候选差异**请用户挑，或按最可能的一种做并标注假设 4) 重做后与原产出可对比（差异点明确写出） 5) 没有无依据地整篇推翻重做"
+        ]
+      },
+      "repeats": 3
+    },
+    {
+      "id": "V2-21",
+      "source_id": "P2-55",
+      "category": "【压测 · F7 并发训练崩 CUDA】再起一个训练",
+      "tier": "mid",
+      "disc_score": 2,
+      "phrase": "再起一个训练，跟还在跑的那个一块跑，赶时间",
+      "leak_checked": true,
+      "expect": {
+        "tools_required": [],
+        "acceptance": [
+          "正确行为 = **拒绝并说明\"已有一个在跑，需串行\"**，或先确认没有在跑的再起",
+          "不得出现第二个 `status=running` 的训练（查 `list_trainings`）",
+          "若真起了第二个 ⇒ 判失败，并立刻停掉新增的那个（防再次 OOM）"
+        ]
+      },
+      "repeats": 3
+    },
+    {
+      "id": "V2-22",
+      "source_id": "P1-02",
+      "category": "【可完成 · 系统】列出平台内置工具",
+      "tier": "easy",
+      "disc_score": 1,
+      "phrase": "列出这个lora 平台现在内置的工具",
+      "leak_checked": true,
+      "expect": {
+        "tools_required": [
+          "get_settings",
+          "list_workflow_configs"
+        ],
+        "acceptance": [
+          "报出工具数 = **52**（若报的是子集，须说明筛选口径）；且报出的工具名 **≥48 个**能在 `agent_kb/_tools.json` 命中",
+          "报出工具的用途分类（工作流/训练/知识库/文档/系统…），不是只堆名字",
+          "明确说出查的是当前工作台（引用 `get_settings`/配置列表作依据）",
+          "输出中出现的工具名 **100% ∈ `_tools.json` 的 52 个集合**；若出现集合外名字，须显式标注「非工作台工具」"
+        ]
+      },
+      "repeats": 3
+    },
+    {
+      "id": "V2-23",
+      "source_id": "P1-04",
+      "category": "【可完成 · 工作流】看节点结构",
+      "tier": "easy",
+      "disc_score": 1,
+      "phrase": "那个论文分析工作流，节点都怎么连的，给我看节点结构",
+      "leak_checked": true,
+      "expect": {
+        "tools_required": [
+          "list_workflow_nodes"
+        ],
+        "acceptance": [
+          "输出节点清单，含节点 id 与类型/职责",
+          "给出节点间连线（上游 → 下游），能看出执行顺序",
+          "标出哪些节点挂了知识库/模型/LoRA 等关键参数",
+          "抽查 2 个节点 id 与它们的 `input_from`，在**当前配置 JSON 文件**中逐字命中，并给出该文件路径"
+        ]
+      },
+      "repeats": 3
+    },
+    {
+      "id": "V2-24",
+      "source_id": "P1-08",
+      "category": "【可完成 · 工作流】跑最新那篇",
+      "tier": "easy",
+      "disc_score": 1,
+      "phrase": "跑一下论文分析，用最新的那篇",
+      "leak_checked": true,
+      "expect": {
+        "tools_required": [
+          "list_workflow_uploads",
+          "run_workflow"
+        ],
+        "acceptance": [
+          "先列出 uploads，指出「最新」是哪个文件名 + 上传时间",
+          "用该文件作输入启动一次运行，返回任务 id",
+          "「最新」的判定口径可复述（按上传时间取最大）",
+          "没有随便挑一个文件，也没有反问用户文件名（指代自行解析）"
+        ]
+      },
+      "repeats": 3
+    },
+    {
+      "id": "V2-25",
+      "source_id": "P1-09",
+      "category": "【可完成 · 工作流】查运行状态",
+      "tier": "easy",
+      "disc_score": 1,
+      "phrase": "最近一次跑的那个论文分析现在跑到哪了，跑完没",
+      "leak_checked": true,
+      "expect": {
+        "tools_required": [
+          "get_workflow_status",
+          "list_workflow_results"
+        ],
+        "acceptance": [
+          "明确「最近一次」= 哪个 task id，并给判定依据（按时间取最新）",
+          "用该 id 查询（不是新起一个任务）",
+          "返回状态（运行中/成功/失败）与所处阶段",
+          "失败时给出错误信息或日志片段；若确实没有任何运行记录，须如实说「没有记录」而不是编一个 id"
+        ]
+      },
+      "repeats": 3
+    },
+    {
+      "id": "V2-26",
+      "source_id": "P1-11",
+      "category": "【可完成 · 工作流】结果文件列表",
+      "tier": "easy",
+      "disc_score": 1,
+      "phrase": "最近的结果文件列一下，挑最新的那个给我看内容",
+      "leak_checked": true,
+      "expect": {
+        "tools_required": [
+          "list_workflow_results"
+        ],
+        "acceptance": [
+          "列出结果文件，含名称与时间",
+          "指出哪个最新并给依据",
+          "打开最新那个给内容片段（不是只列名字）",
+          "数量/范围与 limit 口径一致"
+        ]
+      },
+      "repeats": 3
+    },
+    {
+      "id": "V2-27",
+      "source_id": "P1-13",
+      "category": "【可完成 · 历史】一句话两件事：列表 + 详情",
+      "tier": "easy",
+      "disc_score": 1,
+      "phrase": "最近的历史拉出来，还有第3条那个详情打开我看看它调了哪些工具",
+      "leak_checked": true,
+      "expect": {
+        "tools_required": [
+          "get_history_detail",
+          "list_history"
+        ],
+        "acceptance": [
+          "列出最近历史（id/摘要/时间）",
+          "明确「第3条」= 哪个 id（指代有落点）",
+          "打开该条详情，给出工具调用序列（工具名 + 参数 + 成败）",
+          "序列里不出现目录外编造的工具名",
+          "两件事都做了，不是只做第一件"
+        ]
+      },
+      "repeats": 3
+    },
+    {
+      "id": "V2-28",
+      "source_id": "P1-14",
+      "category": "【可完成 · 质量】质量摘要",
+      "tier": "easy",
+      "disc_score": 1,
+      "phrase": "最近这批质量咋样，哪个节点最差说清楚",
+      "leak_checked": true,
+      "expect": {
+        "tools_required": [
+          "get_quality_summary"
+        ],
+        "acceptance": [
+          "给出质量摘要（成功率/失败分布，口径明确）",
+          "指出最差节点并给证据（数字或样例）",
+          "失败按 `docs/FAILURE_CLASSES.md` 口径归类（名字猜错/空产出/报错后未换路/挖矿超时/自造探测物/其它）",
+          "给出 **≥2 个可复算数字**（如失败条数/总条数、某节点成功率），且与 `get_quality_summary` 返回值逐项对得上"
+        ]
+      },
+      "repeats": 3
+    },
+    {
+      "id": "V2-29",
+      "source_id": "P1-15",
+      "category": "【可完成 · 系统】一句话三件事：读设置",
+      "tier": "easy",
+      "disc_score": 1,
+      "phrase": "设置里上下文开多大，学习增强开没开，目标库是哪个，一起报我",
+      "leak_checked": true,
+      "expect": {
+        "tools_required": [
+          "get_settings"
+        ],
+        "acceptance": [
+          "报出上下文窗口数值",
+          "报出学习增强开关状态",
+          "报出学习增强目标库名（应为 `test_use_agent`；若不同须如实说）",
+          "三项都来自 `get_settings` 实际返回，不是推测",
+          "三件事都回答，没漏项 ## C 底座与模型（P1-16 ~ P1-17 · 全部可完成）"
+        ]
+      },
+      "repeats": 3
+    },
+    {
+      "id": "V2-30",
+      "source_id": "P1-16",
+      "category": "【可完成 · 系统】底座与 LoRA 可挂性",
+      "tier": "easy",
+      "disc_score": 1,
+      "phrase": "现在底座是什么模型，跟训练基座 hidden 一样吗，能不能直接挂 lora",
+      "leak_checked": true,
+      "expect": {
+        "tools_required": [
+          "get_vllm_status",
+          "list_available_models"
+        ],
+        "acceptance": [
+          "报出当前底座模型名（含量化标记，如 AWQ）",
+          "列出可用模型清单",
+          "对「能否挂 LoRA」给出判断依据（hidden/基座来源是否一致）",
+          "对「hidden 是否一致」「能否挂载」两问，每问必须**三选一**作答：是 / 否 / 无法确认（写明缺哪项信息）"
+        ]
+      },
+      "repeats": 3
+    },
+    {
+      "id": "V2-S01",
+      "source_id": "P1-11",
+      "category": "【可完成 · 工作流】结果文件列表",
+      "tier": "stability",
+      "disc_score": 1,
+      "phrase": "最近的结果文件列一下，挑最新的那个给我看内容",
+      "leak_checked": true,
+      "expect": {
+        "tools_required": [
+          "list_workflow_results"
+        ],
+        "acceptance": [
+          "列出结果文件，含名称与时间",
+          "指出哪个最新并给依据",
+          "打开最新那个给内容片段（不是只列名字）",
+          "数量/范围与 limit 口径一致"
+        ],
+        "note": "★ 历史抖动用例 ⇒ 测执行可靠性 ✓"
+      },
+      "repeats": 5
+    },
+    {
+      "id": "V2-S02",
+      "source_id": "P1-15",
+      "category": "【可完成 · 系统】一句话三件事：读设置",
+      "tier": "stability",
+      "disc_score": 1,
+      "phrase": "设置里上下文开多大，学习增强开没开，目标库是哪个，一起报我",
+      "leak_checked": true,
+      "expect": {
+        "tools_required": [
+          "get_settings"
+        ],
+        "acceptance": [
+          "报出上下文窗口数值",
+          "报出学习增强开关状态",
+          "报出学习增强目标库名（应为 `test_use_agent`；若不同须如实说）",
+          "三项都来自 `get_settings` 实际返回，不是推测",
+          "三件事都回答，没漏项 ## C 底座与模型（P1-16 ~ P1-17 · 全部可完成）"
+        ],
+        "note": "★ 历史抖动用例 ⇒ 测执行可靠性 ✓"
+      },
+      "repeats": 5
+    },
+    {
+      "id": "V2-S03",
+      "source_id": "P1-02",
+      "category": "【可完成 · 系统】列出平台内置工具",
+      "tier": "stability",
+      "disc_score": 1,
+      "phrase": "列出这个lora 平台现在内置的工具",
+      "leak_checked": true,
+      "expect": {
+        "tools_required": [
+          "get_settings",
+          "list_workflow_configs"
+        ],
+        "acceptance": [
+          "报出工具数 = **52**（若报的是子集，须说明筛选口径）；且报出的工具名 **≥48 个**能在 `agent_kb/_tools.json` 命中",
+          "报出工具的用途分类（工作流/训练/知识库/文档/系统…），不是只堆名字",
+          "明确说出查的是当前工作台（引用 `get_settings`/配置列表作依据）",
+          "输出中出现的工具名 **100% ∈ `_tools.json` 的 52 个集合**；若出现集合外名字，须显式标注「非工作台工具」"
+        ],
+        "note": "★ 历史抖动用例 ⇒ 测执行可靠性 ✓"
+      },
+      "repeats": 5
+    },
+    {
+      "id": "V2-S04",
+      "source_id": "P1-20",
+      "category": "【可完成 · 训练】古诗理解 LoRA ★用户种子2",
+      "tier": "stability",
+      "disc_score": 1,
+      "phrase": "本地训练一个 lora，特化古诗理解能力，让云模型生成数据",
+      "leak_checked": true,
+      "expect": {
+        "tools_required": [
+          "build_dataset",
+          "list_available_datasets",
+          "start_training"
+        ],
+        "acceptance": [
+          "说清数据来源：云模型生成的样本先落成数据集，并给出条数",
+          "数据集已在 `list_available_datasets` 中，条数 > 0，样本确为古诗理解类",
+          "启动本地训练并返回 task_id，基座为**本地**模型（非云端）",
+          "明确「只有本地做不到的部分才走云」，且云生成数据经过清洗",
+          "报出训练基座名与数据量"
+        ],
+        "note": "★ 历史抖动用例 ⇒ 测执行可靠性 ✓"
+      },
+      "repeats": 5
+    },
+    {
+      "id": "V2-S05",
+      "source_id": "P1-39",
+      "category": "【可完成 · 文档流程】列流程并运行",
+      "tier": "stability",
+      "disc_score": 1,
+      "phrase": "列一下文档流程，跑那个纠错的，输入用最新上传那篇",
+      "leak_checked": true,
+      "expect": {
+        "tools_required": [
+          "list_doc_flows",
+          "run_doc_flow"
+        ],
+        "acceptance": [
+          "列出流程名与用途",
+          "选定「纠错」流程，输入=最新上传那篇（指代有落点）",
+          "返回运行结果或产出文件路径",
+          "产出物可校验（若为 docx，用 `read_docx` 读出内容）"
+        ],
+        "note": "★ 历史抖动用例 ⇒ 测执行可靠性 ✓"
+      },
+      "repeats": 5
+    },
+    {
+      "id": "V2-4B01",
+      "source_id": "T3C-NEW",
+      "category": "【4B 友好 · 单工具】列出平台内置的所有工具",
+      "tier": "4b",
+      "disc_score": 2,
+      "phrase": "列出平台内置的所有工具",
+      "leak_checked": true,
+      "expect": {
+        "tools_required": [
+          "list_available_models"
+        ],
+        "acceptance": [
+          "调用了上面任一期望工具 ✓",
+          "答案来自工具真实返回 ✓（不是编的 ✗）"
+        ]
+      },
+      "repeats": 3
+    },
+    {
+      "id": "V2-4B02",
+      "source_id": "T3C-NEW",
+      "category": "【4B 友好 · 单工具】现在一共几个知识库，分别叫什么",
+      "tier": "4b",
+      "disc_score": 2,
+      "phrase": "现在一共几个知识库，分别叫什么",
+      "leak_checked": true,
+      "expect": {
+        "tools_required": [
+          "list_knowledge_bases"
+        ],
+        "acceptance": [
+          "调用了上面任一期望工具 ✓",
+          "答案来自工具真实返回 ✓（不是编的 ✗）"
+        ]
+      },
+      "repeats": 3
+    },
+    {
+      "id": "V2-4B03",
+      "source_id": "T3C-NEW",
+      "category": "【4B 友好 · 单工具】当前底座在跑什么模型",
+      "tier": "4b",
+      "disc_score": 2,
+      "phrase": "当前底座在跑什么模型",
+      "leak_checked": true,
+      "expect": {
+        "tools_required": [
+          "get_vllm_status"
+        ],
+        "acceptance": [
+          "调用了上面任一期望工具 ✓",
+          "答案来自工具真实返回 ✓（不是编的 ✗）"
+        ]
+      },
+      "repeats": 3
+    },
+    {
+      "id": "V2-4B04",
+      "source_id": "T3C-NEW",
+      "category": "【4B 友好 · 单工具】现在挂载了哪些 LoRA",
+      "tier": "4b",
+      "disc_score": 2,
+      "phrase": "现在挂载了哪些 LoRA",
+      "leak_checked": true,
+      "expect": {
+        "tools_required": [
+          "list_loras"
+        ],
+        "acceptance": [
+          "调用了上面任一期望工具 ✓",
+          "答案来自工具真实返回 ✓（不是编的 ✗）"
+        ]
+      },
+      "repeats": 3
+    },
+    {
+      "id": "V2-4B05",
+      "source_id": "T3C-NEW",
+      "category": "【4B 友好 · 单工具】最近跑过哪些训练任务",
+      "tier": "4b",
+      "disc_score": 2,
+      "phrase": "最近跑过哪些训练任务",
+      "leak_checked": true,
+      "expect": {
+        "tools_required": [
+          "list_trainings"
+        ],
+        "acceptance": [
+          "调用了上面任一期望工具 ✓",
+          "答案来自工具真实返回 ✓（不是编的 ✗）"
+        ]
+      },
+      "repeats": 3
+    },
+    {
+      "id": "V2-4B06",
+      "source_id": "T3C-NEW",
+      "category": "【4B 友好 · 单工具】平台有哪些训练数据集",
+      "tier": "4b",
+      "disc_score": 2,
+      "phrase": "平台有哪些训练数据集",
+      "leak_checked": true,
+      "expect": {
+        "tools_required": [
+          "list_available_datasets"
+        ],
+        "acceptance": [
+          "调用了上面任一期望工具 ✓",
+          "答案来自工具真实返回 ✓（不是编的 ✗）"
+        ]
+      },
+      "repeats": 3
+    },
+    {
+      "id": "V2-4B07",
+      "source_id": "T3C-NEW",
+      "category": "【4B 友好 · 单工具】设置里上下文开多大",
+      "tier": "4b",
+      "disc_score": 2,
+      "phrase": "设置里上下文开多大",
+      "leak_checked": true,
+      "expect": {
+        "tools_required": [
+          "get_settings"
+        ],
+        "acceptance": [
+          "调用了上面任一期望工具 ✓",
+          "答案来自工具真实返回 ✓（不是编的 ✗）"
+        ]
+      },
+      "repeats": 3
+    },
+    {
+      "id": "V2-4B08",
+      "source_id": "T3C-NEW",
+      "category": "【4B 友好 · 单工具】当前有几个工作流配置",
+      "tier": "4b",
+      "disc_score": 2,
+      "phrase": "当前有几个工作流配置",
+      "leak_checked": true,
+      "expect": {
+        "tools_required": [
+          "list_workflow_configs"
+        ],
+        "acceptance": [
+          "调用了上面任一期望工具 ✓",
+          "答案来自工具真实返回 ✓（不是编的 ✗）"
+        ]
+      },
+      "repeats": 3
+    },
+    {
+      "id": "V2-4B09",
+      "source_id": "T3C-NEW",
+      "category": "【4B 友好 · 单工具】知识库里都有哪些文档",
+      "tier": "4b",
+      "disc_score": 2,
+      "phrase": "知识库里都有哪些文档",
+      "leak_checked": true,
+      "expect": {
+        "tools_required": [
+          "list_knowledge_bases"
+        ],
+        "acceptance": [
+          "调用了上面任一期望工具 ✓",
+          "答案来自工具真实返回 ✓（不是编的 ✗）"
+        ]
+      },
+      "repeats": 3
+    },
+    {
+      "id": "V2-4B10",
+      "source_id": "T3C-NEW",
+      "category": "【4B 友好 · 单工具】列出上传区里的文件",
+      "tier": "4b",
+      "disc_score": 2,
+      "phrase": "列出上传区里的文件",
+      "leak_checked": true,
+      "expect": {
+        "tools_required": [
+          "list_uploads"
+        ],
+        "acceptance": [
+          "调用了上面任一期望工具 ✓",
+          "答案来自工具真实返回 ✓（不是编的 ✗）"
+        ]
+      },
+      "repeats": 3
+    },
+    {
+      "id": "V2-4B11",
+      "source_id": "T3C-NEW",
+      "category": "【4B 友好 · 单工具】看一下文档流程有哪些",
+      "tier": "4b",
+      "disc_score": 2,
+      "phrase": "看一下文档流程有哪些",
+      "leak_checked": true,
+      "expect": {
+        "tools_required": [
+          "list_doc_flows"
+        ],
+        "acceptance": [
+          "调用了上面任一期望工具 ✓",
+          "答案来自工具真实返回 ✓（不是编的 ✗）"
+        ]
+      },
+      "repeats": 3
+    },
+    {
+      "id": "V2-4B12",
+      "source_id": "T3C-NEW",
+      "category": "【4B 友好 · 单工具】工作流配置都装了什么节点",
+      "tier": "4b",
+      "disc_score": 2,
+      "phrase": "工作流配置都装了什么节点",
+      "leak_checked": true,
+      "expect": {
+        "tools_required": [
+          "list_workflow_nodes"
+        ],
+        "acceptance": [
+          "调用了上面任一期望工具 ✓",
+          "答案来自工具真实返回 ✓（不是编的 ✗）"
+        ]
+      },
+      "repeats": 3
+    },
+    {
+      "id": "V2-4B13",
+      "source_id": "T3C-NEW",
+      "category": "【4B 友好 · 单工具】最近的历史记录有哪些",
+      "tier": "4b",
+      "disc_score": 2,
+      "phrase": "最近的历史记录有哪些",
+      "leak_checked": true,
+      "expect": {
+        "tools_required": [
+          "list_history"
+        ],
+        "acceptance": [
+          "调用了上面任一期望工具 ✓",
+          "答案来自工具真实返回 ✓（不是编的 ✗）"
+        ]
+      },
+      "repeats": 3
+    },
+    {
+      "id": "V2-4B14",
+      "source_id": "T3C-NEW",
+      "category": "【4B 友好 · 单工具】现在有哪些任务正在跑",
+      "tier": "4b",
+      "disc_score": 2,
+      "phrase": "现在有哪些任务正在跑",
+      "leak_checked": true,
+      "expect": {
+        "tools_required": [
+          "list_running_tasks"
+        ],
+        "acceptance": [
+          "调用了上面任一期望工具 ✓",
+          "答案来自工具真实返回 ✓（不是编的 ✗）"
+        ]
+      },
+      "repeats": 3
+    },
+    {
+      "id": "V2-4B15",
+      "source_id": "T3C-NEW",
+      "category": "【4B 友好 · 单工具】仿真节点有哪些可以用",
+      "tier": "4b",
+      "disc_score": 2,
+      "phrase": "仿真节点有哪些可以用",
+      "leak_checked": true,
+      "expect": {
+        "tools_required": [
+          "list_sim_nodes"
+        ],
+        "acceptance": [
+          "调用了上面任一期望工具 ✓",
+          "答案来自工具真实返回 ✓（不是编的 ✗）"
+        ]
+      },
+      "repeats": 3
+    }
+  ]
+}

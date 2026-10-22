@@ -1,0 +1,45 @@
+{
+  "name": "doc_flow_macro_edit.json",
+  "title": "文档润色：格式修正 -> 补写 -> 逻辑排查 -> 导出 Word",
+  "steps": [
+    {
+      "id": "s1",
+      "tool": "read_docx",
+      "args": {
+        "filename": "{{file}}"
+      }
+    },
+    {
+      "id": "s2",
+      "tool": "format_fix",
+      "args": {
+        "text": "{{steps.0.text}}"
+      }
+    },
+    {
+      "id": "s3",
+      "tool": "add_content",
+      "args": {
+        "text": "{{steps.1.text}}",
+        "topic": "补充该主题的应用场景与注意事项",
+        "paragraphs": 1
+      }
+    },
+    {
+      "id": "s4",
+      "tool": "logic_check",
+      "args": {
+        "text": "{{steps.2.text}}"
+      }
+    },
+    {
+      "id": "s5",
+      "tool": "write_docx",
+      "args": {
+        "name": "润色结果",
+        "title": "润色后文档",
+        "paragraphs": "{{steps.3.text}}"
+      }
+    }
+  ]
+}

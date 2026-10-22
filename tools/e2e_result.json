@@ -1,0 +1,59 @@
+{
+ "at": "2026-10-19T06:07:26.629Z",
+ "base": "http://127.0.0.1:8080",
+ "results": [
+  {
+   "name": "e2e-01-page-load",
+   "ok": true,
+   "detail": "title=LoRA 工作台 · 2616ms"
+  },
+  {
+   "name": "e2e-02-no-console-errors",
+   "ok": true,
+   "detail": "无 JS 错误 ✓"
+  },
+  {
+   "name": "e2e-03-pages-exist",
+   "ok": true,
+   "detail": "12 个: page-lora,page-editflow,page-config,page-rolechat,page-chat,page-kb…"
+  },
+  {
+   "name": "e2e-04-hash-routing",
+   "ok": true,
+   "detail": "6/6"
+  },
+  {
+   "name": "e2e-05-markdown-render",
+   "ok": true,
+   "detail": "<p><strong>加粗</strong> 和 <code>代码</code></p>\n<table>\n<thead>\n<tr>\n<th>a</th>\n<th>b</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>1"
+  },
+  {
+   "name": "e2e-06-xss-blocked",
+   "ok": true,
+   "detail": "{\"out\":[{\"hasScript\":false,\"hasOn\":false,\"hasJs\":false},{\"hasScript\":false,\"hasOn\":false,\"hasJs\":false},{\"hasScript\":false,\"hasOn\":false,\"hasJs\":false},{\"hasScript\":false,\"hasOn\":false,\"hasJs\":false}]"
+  },
+  {
+   "name": "e2e-07-nav-tools",
+   "ok": true,
+   "detail": "工具二级导航可见 ✓"
+  },
+  {
+   "name": "e2e-08-api-tools",
+   "ok": true,
+   "detail": "{\"ok\":true,\"count\":48,\"hasBrowser\":true}"
+  },
+  {
+   "name": "e2e-09-browser-page-ui",
+   "ok": true,
+   "detail": "{\"page\":true,\"model\":true,\"url\":true,\"skills\":7,\"messages\":true,\"shot\":true,\"status\":\"○ 未连接 · 先启动 sidecar（cd browser_sidecar && node server.mjs）\"}"
+  },
+  {
+   "name": "e2e-10-theme-toggle",
+   "ok": true,
+   "detail": "{\"ok\":true,\"before\":\"light\",\"after\":\"dark\"}"
+  }
+ ],
+ "consoleErrors": [
+  "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+ ]
+}

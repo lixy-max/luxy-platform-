@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>学习增强 · 状态</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+       background:linear-gradient(160deg,#060912,#0d1a33 45%,#1a1030);
+       color:#fff;padding:26px 30px}
+  h1{font-size:25px;font-weight:800}
+  .sub{color:#8ba3cc;font-size:12.5px;margin:5px 0 18px}
+  .row{display:flex;gap:14px;margin-bottom:14px;flex-wrap:wrap}
+  .card{flex:1;min-width:200px;border-radius:13px;padding:15px;
+        border:1px solid rgba(120,160,255,.18);background:rgba(255,255,255,.04)}
+  .card h2{font-size:13px;color:#8ba3cc;font-weight:600;margin-bottom:12px}
+  .big{font-size:34px;font-weight:900;line-height:1}
+  .lbl{font-size:11px;color:#8ba3cc;margin-top:5px}
+  .g{color:#52c41a}.r{color:#ff4d4f}.a{color:#faad14}.b{color:#5b8cff}.p{color:#a78bfa}
+  .step{display:flex;align-items:center;gap:10px;padding:11px 13px;margin:7px 0;
+        border-radius:10px;border:1px solid rgba(120,160,255,.16);background:rgba(255,255,255,.025)}
+  .step .no{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;
+            justify-content:center;font-size:12px;font-weight:800;flex-shrink:0}
+  .ok{background:rgba(82,196,26,.2);color:#52c41a;border:1px solid rgba(82,196,26,.5)}
+  .no2{background:rgba(250,173,20,.2);color:#faad14;border:1px solid rgba(250,173,20,.5)}
+  .bad{background:rgba(255,77,79,.18);color:#ff4d4f;border:1px solid rgba(255,77,79,.45)}
+  .step .t{font-size:12.5px;font-weight:700}
+  .step .d{font-size:10.5px;color:#8ba3cc;margin-top:2px}
+  .step .m{margin-left:auto;font-size:10.5px;font-family:ui-monospace,monospace;color:#6b7fa3;text-align:right}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th{text-align:left;color:#8ba3cc;padding:7px 9px;border-bottom:1px solid rgba(120,160,255,.2);font-weight:600}
+  td{padding:7px 9px;border-bottom:1px solid rgba(255,255,255,.05)}
+  .bdg{display:inline-block;padding:2px 8px;border-radius:999px;font-size:10.5px;font-weight:700}
+  .bdg-ok{background:rgba(82,196,26,.15);color:#52c41a}
+  .bdg-no{background:rgba(255,77,79,.15);color:#ff4d4f}
+  .bdg-w{background:rgba(250,173,20,.15);color:#faad14}
+  .bar{display:flex;gap:8px;align-items:center;margin:6px 0;font-size:12px}
+  .bar .nm{width:140px;color:#c9d6f5}
+  .bar .bb{flex:1;height:15px;background:rgba(255,255,255,.06);border-radius:8px;overflow:hidden}
+  .bar .ff{height:100%;border-radius:8px}
+  .bar .vv{width:56px;text-align:right;font-weight:700;font-family:ui-monospace,monospace}
+</style>
+</head>
+<body>
+  <h1>学习增强 · 状态</h1>
+  <div class="sub">2026-10-21 实测 · 6 步能力全通 ✓ · 但**未自动化** ⚠</div>
+
+  <div class="row">
+    <div class="card"><div class="big g">6/6</div><div class="lbl">能力步骤全通 ✓</div></div>
+    <div class="card"><div class="big r">0/5</div><div class="lbl">自动化环节 ✗</div></div>
+    <div class="card"><div class="big a">34%</div><div class="lbl">飞轮通道完成率<br>（B done · A/C pending）</div></div>
+    <div class="card"><div class="big b">167</div><div class="lbl">真实轨迹训练数据<br>（100% 合格）</div></div>
+  </div>
+
+  <div class="row">
+    <div class="card" style="flex:2">
+      <h2>6 步能力（全部实测验证 ✓）</h2>
+      <div class="step"><div class="no ok">1</div><div><div class="t">采集</div><div class="d">8 个轨迹文件 · 587 条</div></div><div class="m">✓ 1,438 事件</div></div>
+      <div class="step"><div class="no ok">2</div><div><div class="t">蒸馏</div><div class="d">做法库 22 条 · 元做法 10 条</div></div><div class="m">✓ skills.jsonl</div></div>
+      <div class="step"><div class="no ok">3</div><div><div class="t">固化 A · 训练数据</div><div class="d">真实轨迹 → sharegpt（含 function_call）</div></div><div class="m">✓ 167 条 100% 合格</div></div>
+      <div class="step"><div class="no ok">4</div><div><div class="t">训练</div><div class="d">QLoRA r16 · 3 epoch · 30 步</div></div><div class="m">✓ loss 2.038</div></div>
+      <div class="step"><div class="no ok">5</div><div><div class="t">验证</div><div class="d">EVAL_SET_V2 · 4b 档 30 跑次</div></div><div class="m">✓ 30/30 = 100%</div></div>
+      <div class="step"><div class="no ok">6</div><div><div class="t">晋级 / 回滚</div><div class="d">真安装 + 真恢复 + md5 校验</div></div><div class="m">✓ 今日修 2 BUG</div></div>
+    </div>
+
+    <div class="card" style="flex:1.1">
+      <h2>未自动化的 5 个环节 ✗</h2>
+      <table>
+        <tr><th>项</th><th>实际值</th><th>应为</th></tr>
+        <tr><td>enabled</td><td><span class="bdg bdg-no">False</span></td><td>True</td></tr>
+        <tr><td>sync_train</td><td><span class="bdg bdg-no">False</span></td><td>True</td></tr>
+        <tr><td>channels.A</td><td><span class="bdg bdg-w">pending</span></td><td>done</td></tr>
+        <tr><td>channels.C</td><td><span class="bdg bdg-no">pending</span></td><td>done</td></tr>
+        <tr><td>训练触发</td><td><span class="bdg bdg-no">手动</span></td><td>自动</td></tr>
+      </table>
+      <div style="margin-top:12px">
+        <div class="bar"><div class="nm">固化 A 训练数据</div><div class="bb"><div class="ff" style="width:100%;background:#52c41a"></div></div><div class="vv g">✓</div></div>
+        <div class="bar"><div class="nm">固化 B 工具路由</div><div class="bb"><div class="ff" style="width:100%;background:#52c41a"></div></div><div class="vv g">✓</div></div>
+        <div class="bar"><div class="nm">固化 C 系统提示</div><div class="bb"><div class="ff" style="width:0%;background:#ff4d4f"></div></div><div class="vv r">✗</div></div>
+        <div class="bar"><div class="nm">自动触发训练</div><div class="bb"><div class="ff" style="width:0%;background:#ff4d4f"></div></div><div class="vv r">✗</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>飞轮版本历史（4 轮）</h2>
+    <table>
+      <tr><th>版本</th><th>时间</th><th>channels</th><th>rollback</th></tr>
+      <tr><td><code>v901_drill</code></td><td>12:29:24</td><td><span class="bdg bdg-w">测试</span></td><td>—</td></tr>
+      <tr><td><code>v902_drill</code></td><td>12:29:32</td><td><span class="bdg bdg-w">测试</span></td><td>—</td></tr>
+      <tr><td><code>v20261021_162637</code></td><td>16:26</td><td><span class="bdg bdg-w">A pending</span></td><td>—</td></tr>
+      <tr><td><code>v20261021_162653_p21b</code> ← current</td><td>16:26</td><td><span class="bdg bdg-w">A/C pending</span></td><td>✓ 1 条</td></tr>
+    </table>
+    <div style="margin-top:11px;font-size:11.5px;color:#8ba3cc">
+      ⚠ <code>channels</code> 是静态字段 ✗ 从未随实际进度更新 ⇒ <strong>状态显示不可信</strong> ✗
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px;border-color:rgba(250,173,20,.35);background:rgba(250,173,20,.06)">
+    <h2 style="color:#ffd666">结论</h2>
+    <div style="font-size:13px;line-height:1.75;color:#e8eef9">
+      <strong class="g">✅ 通</strong> —— 6 步每一步都单独跑通并验证过，含 100% 的端到端结果。<br>
+      <strong class="r">❌ 但没通"自动"</strong> —— <code>enabled=False</code>、训练手动触发、C 通道缺失、<code>channels</code> 状态从没更新。<br>
+      <strong class="a">⚠ 所以现在它是「一套能跑的手工流水线」，不是「学习增强开关」</strong>。<br>
+      <span style="color:#8ba3cc;font-size:12px">要变成"通"，需要：开 enabled ✓ · 补 C 通道 ✓ · 接 sync_train ✓ · 修 channels 状态回写 ✓ ≈ 4h</span>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,89 @@
+# ===== 运行时数据：可再生 / 体积大 =====
+# 4.2 GB LLaMA-Factory 检查点，单个 optimizer.pt 就有 264MB
+training_output/
+# SQLite 库 + ChromaDB 向量库 + 知识库元数据
+data/
+# 工作流结果 JSON
+outputs/
+# 上传的论文等原始文件
+uploads/
+# data_generator.py 生成的数据集
+training_data/
+
+# ===== 日志与运行态 =====
+*.log
+lora_manager.out
+.vllm.pid
+.vllm.args.json
+
+# ===== 会话备份文件（git 历史已覆盖当前状态）=====
+*.bak-*
+
+# ===== 敏感配置：绝不入库 =====
+# settings.json 含明文 api_key，模板见 settings.example.json
+settings.json
+.credentials*
+*.credentials.yaml
+
+# ===== Python =====
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# ===== 大体积权重兜底 =====
+# .gitattributes 给这些后缀配了 filter=lfs；未装 git-lfs 时 add 会报错，
+# 这里统一排除，避免误提交几 GB 权重。
+*.safetensors
+*.pt
+*.bin
+*.ckpt
+*.pth
+*.h5
+*.onnx
+
+# ===== 杂项 =====
+*.swp
+*~
+.DS_Store
+Thumbs.db
+
+# arXiv 论文素材（数据，不进版本库）
+papers/
+# 节点结果缓存（可重建）
+cache/
+
+# 发布包产物
+release/
+
+# 生成物
+# agent_kb/_tools.json  ← F-2: 运行必需 ✓ 不能忽略 ✗（发布包测试发现 ✗）
+data/trajectories/
+agent_kb/90_learned.md
+!agent_kb/_tools.json
+
+# 会话中的临时备份（.orig-* 是一律可丢弃的旧版本 ✓）
+*.orig-*
+_reflect_out/
+.vllm.start.lock
+
+# 演练/测试产生的配置克隆（2026-10-19）
+workflow_config_clone*.json
+workflow_config_config_clone*.json
+workflow_config_edit_*.json
+
+# 演练/测试 Agent 自动创建的配置（2026-10-19）
+workflow_config_paper_editing*.json
+
+# 补丁备份（patch_util.py 产生 ✓ 不入库 ✗）
+*.bak_*
+.env
+.env.local
+models/
+*.gguf
+**.sidecar_token
+runs/
+loras/
+logs/
+chroma_db/
+browser_sidecar/node_modules/

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>顿悟 Luxy · 平台架构</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+         background:linear-gradient(160deg,#060912 0%,#0d1a33 45%,#1a1030 100%);
+         color:#fff; padding:26px 34px; min-height:100vh; }
+  h1 { font-size:26px; font-weight:800; letter-spacing:1px; }
+  .sub { color:#8ba3cc; font-size:12.5px; margin:5px 0 20px; }
+  .layer { border-radius:14px; padding:14px 16px 16px; margin-bottom:12px;
+           border:1px solid rgba(120,160,255,.16); background:rgba(255,255,255,.035); }
+  .layer-h { display:flex; align-items:center; gap:10px; margin-bottom:11px; }
+  .layer-h .t { font-size:14px; font-weight:800; letter-spacing:.5px; }
+  .layer-h .n { font-size:11px; color:#8ba3cc; }
+  .cols { display:grid; gap:9px; }
+  .b { border-radius:9px; padding:9px 11px; border:1px solid rgba(120,160,255,.22);
+       background:rgba(91,140,255,.07); }
+  .b .n { font-size:12.5px; font-weight:700; color:#a9c4ff; }
+  .b .d { font-size:10.5px; color:#8ba3cc; margin-top:3px; line-height:1.45; }
+  .b .m { font-size:10px; color:#6b7fa3; margin-top:3px; font-family:ui-monospace,monospace; }
+  .b.hot { border-color:rgba(82,196,26,.45); background:rgba(82,196,26,.09); }
+  .b.hot .n { color:#7ee03a; }
+  .b.warn { border-color:rgba(250,173,20,.4); background:rgba(250,173,20,.08); }
+  .b.warn .n { color:#ffd666; }
+  .b.bug { border-color:rgba(255,77,79,.4); background:rgba(255,77,79,.08); }
+  .b.bug .n { color:#ff8a8a; }
+  .arrow-row { text-align:center; color:#5b8cff; font-size:15px; line-height:1;
+               margin:2px 0 10px; letter-spacing:6px; }
+  .legend { display:flex; gap:16px; font-size:11px; color:#8ba3cc; margin-top:14px;
+            padding:10px 14px; border-radius:10px; background:rgba(255,255,255,.03); }
+  .dot { display:inline-block; width:9px; height:9px; border-radius:3px; margin-right:5px; }
+  .g4 { grid-template-columns:repeat(4,1fr); }
+  .g5 { grid-template-columns:repeat(5,1fr); }
+  .g6 { grid-template-columns:repeat(6,1fr); }
+  .g3 { grid-template-columns:repeat(3,1fr); }
+  .flowline { font-size:10.5px; color:#6b7fa3; text-align:center; margin-top:5px; }
+</style>
+</head>
+<body>
+  <h1>顿悟 Luxy · 平台架构</h1>
+  <div class="sub">2026-10-21 · 实测盘点 · 144 个 API · 15 个核心模块 · 92 工具 · 29 KB · 42 LoRA</div>
+
+  <!-- L1 用户层 -->
+  <div class="layer">
+    <div class="layer-h"><div class="t">① 用户交互层</div><div class="n">浏览器 · index3.html 9,919 行 · 9 个页面模块</div></div>
+    <div class="cols g6">
+      <div class="b"><div class="n">对话</div><div class="d">原生 function-calling + 置信度显示</div></div>
+      <div class="b"><div class="n">训练</div><div class="d">任务列表 · 进度 · 数据集</div></div>
+      <div class="b hot"><div class="n">知识库</div><div class="d">29 库 · 多库同时挂载 ✓</div></div>
+      <div class="b"><div class="n">工作流</div><div class="d">DAG 画布 · 15 个端点</div></div>
+      <div class="b"><div class="n">历史/设置</div><div class="d">4+4 端点</div></div>
+      <div class="b hot"><div class="n">仪表盘</div><div class="d">图表可视化 ✓</div></div>
+    </div>
+  </div>
+  <div class="arrow-row">↓ HTTP ↓</div>
+
+  <!-- L2 API 层 -->
+  <div class="layer">
+    <div class="layer-h"><div class="t">② API 网关层</div><div class="n">FastAPI :8001 · 144 个端点 · 28 个前缀分组</div></div>
+    <div class="cols g6">
+      <div class="b"><div class="n">/kb · 17</div><div class="d">增删查 · 清洗 · 重建 · 多库</div></div>
+      <div class="b"><div class="n">/workflow · 15</div><div class="d">配置 · 节点 · 运行</div></div>
+      <div class="b"><div class="n">/training · 14</div><div class="d">启动 · 状态 · 数据集</div></div>
+      <div class="b"><div class="n">/chat · 13</div><div class="d">对话 · 工具 · 模型</div></div>
+      <div class="b"><div class="n">/docs · 13</div><div class="d">Word/Excel 读写</div></div>
+      <div class="b"><div class="n">其他 · 72</div><div class="d">loras/vllm/sim/models…</div></div>
+    </div>
+  </div>
+  <div class="arrow-row">↓ 决策 ↓</div>
+
+  <!-- L3 决策层 -->
+  <div class="layer">
+    <div class="layer-h"><div class="t">③ 智能决策层</div><div class="n">今日新增 4 个模块 · 全部实测 ✓</div></div>
+    <div class="cols g4">
+      <div class="b hot"><div class="n">orchestrator · 594 行</div><div class="d">编排决策：出计划不执行 · 模型路由 + 多库选 + 硬约束</div><div class="m">POST /orchestrate</div></div>
+      <div class="b hot"><div class="n">model_router · 153 行</div><div class="d">本地 vs 云端 · 双向 fallback · 审计</div><div class="m">13/13 测试 ✓</div></div>
+      <div class="b hot"><div class="n">tool_retriever · 299 行</div><div class="d">92 工具 → top-8 · 省 70% token</div><div class="m">T-4 验证 ✓</div></div>
+      <div class="b hot"><div class="n">confidence_live · 144 行</div><div class="d">实时置信度 · 共形预测切档</div><div class="m">ECE 0.092 · AUROC 0.983</div></div>
+    </div>
+  </div>
+  <div class="arrow-row">↓ 能力 ↓</div>
+
+  <!-- L4 能力层 -->
+  <div class="layer">
+    <div class="layer-h"><div class="t">④ 能力层</div><div class="n">92 工具 · 29 KB · 6 仿真 · 13 浏览器 · Grounding</div></div>
+    <div class="cols g3">
+      <div class="b hot"><div class="n">92 个工具</div><div class="d">文档读写 · 表格 · 翻译 · 工作流 · KB · 训练 · 仿真 · 浏览器</div><div class="m">质量: A14 B2 C2 D14 ?9</div></div>
+      <div class="b hot"><div class="n">29 个知识库</div><div class="d">多库挂载 · 清洗(2.8×) · 分块 · 向量检索</div><div class="m">14 有索引 · 15 僵尸</div></div>
+      <div class="b hot"><div class="n">6 仿真节点</div><div class="d">math_eval / stats / physics / geometry / ratio / unit_convert</div><div class="m">41/41 用例 ✓</div></div>
+      <div class="b"><div class="n">13 浏览器工具</div><div class="d">open/read/find/click/fill/snapshot…</div><div class="m">依赖类强制 ✓</div></div>
+      <div class="b"><div class="n">Grounding 检索</div><div class="d">arXiv + CrossRef + Semantic Scholar</div><div class="m">grounding_confidence</div></div>
+      <div class="b"><div class="n">57 文档工具</div><div class="d">Word/Excel/PDF 读写编辑</div><div class="m">/docs/tool 单一真源</div></div>
+    </div>
+  </div>
+  <div class="arrow-row">↓ 推理 ↓</div>
+
+  <!-- L5 推理层 -->
+  <div class="layer">
+    <div class="layer-h"><div class="t">⑤ 推理层</div><div class="n">vLLM :8000 · Qwen2.5-7B-AWQ · 42 LoRA · 双卡</div></div>
+    <div class="cols g4">
+      <div class="b"><div class="n">vLLM 8000</div><div class="d">Qwen2.5-7B-Instruct-AWQ · max-len 8192 · hermes 工具解析</div><div class="m">GPU1 (3060 12G)</div></div>
+      <div class="b hot"><div class="n">42 个 LoRA</div><div class="d">p16_7b_v2 (100%) · flywheel_tc (100%) · swk_persona…</div><div class="m">动态挂载 ✓</div></div>
+      <div class="b"><div class="n">双卡异构</div><div class="d">GPU0 5060Ti 16G 训练 · GPU1 3060 12G 推理</div><div class="m">gpu_mode=dual</div></div>
+      <div class="b"><div class="n">云端 fallback</div><div class="d">deepseek-chat · 本地挂了自动切</div><div class="m">model_router ✓</div></div>
+    </div>
+  </div>
+  <div class="arrow-row">↓ 数据 ↓</div>
+
+  <!-- L6 数据层 -->
+  <div class="layer">
+    <div class="layer-h"><div class="t">⑥ 数据与学习层</div><div class="n">飞轮 5 步 · 今日打通的闭环</div></div>
+    <div class="cols g6">
+      <div class="b"><div class="n">① 采集</div><div class="d">轨迹 8 文件 · 587 条</div><div class="m">1,438 事件</div></div>
+      <div class="b"><div class="n">② 蒸馏</div><div class="d">做法库 22 条 · 元做法 10</div><div class="m">skills.jsonl</div></div>
+      <div class="b hot"><div class="n">③ 固化 A</div><div class="d">真实轨迹→训练数据</div><div class="m">167 条 100% 合格 ✓</div></div>
+      <div class="b"><div class="n">④ 训练</div><div class="d">QLoRA r16 · 30 步 · 15 分钟</div><div class="m">train_loss 2.038</div></div>
+      <div class="b"><div class="n">⑤ 验证</div><div class="d">EVAL_SET_V2 50 题 · Bootstrap</div><div class="m">30/30 = 100% ✓</div></div>
+      <div class="b hot"><div class="n">⑥ 晋级/回滚</div><div class="d">真安装 + 真恢复 + md5</div><div class="m">今日修真 BUG ✓</div></div>
+    </div>
+    <div class="flowline">数据: 29 KB(1037+670 行) · 8 轨迹文件 · 16 训练目录 · 42 LoRA · 50 评测题</div>
+  </div>
+
+  <!-- 图例 -->
+  <div class="legend">
+    <span><span class="dot" style="background:#52c41a"></span>今日打通/新增 ✓</span>
+    <span><span class="dot" style="background:#5b8cff"></span>原有能力 ✓</span>
+    <span><span class="dot" style="background:#faad14"></span>部分完成 ⚠</span>
+    <span><span class="dot" style="background:#ff4d4f"></span>有已知问题 ✗</span>
+    <span style="margin-left:auto">总计: 15 模块 · 8,000+ 行后端 · 9,919 行前端 · 144 API</span>
+  </div>
+</body>
+</html>

@@ -1,0 +1,65 @@
+*.7z filter=lfs diff=lfs merge=lfs -text
+*.arrow filter=lfs diff=lfs merge=lfs -text
+*.bin filter=lfs diff=lfs merge=lfs -text
+*.bz2 filter=lfs diff=lfs merge=lfs -text
+*.ckpt filter=lfs diff=lfs merge=lfs -text
+*.ftz filter=lfs diff=lfs merge=lfs -text
+*.gz filter=lfs diff=lfs merge=lfs -text
+*.h5 filter=lfs diff=lfs merge=lfs -text
+*.joblib filter=lfs diff=lfs merge=lfs -text
+*.lfs.* filter=lfs diff=lfs merge=lfs -text
+*.mlmodel filter=lfs diff=lfs merge=lfs -text
+*.model filter=lfs diff=lfs merge=lfs -text
+*.msgpack filter=lfs diff=lfs merge=lfs -text
+*.npy filter=lfs diff=lfs merge=lfs -text
+*.npz filter=lfs diff=lfs merge=lfs -text
+*.onnx filter=lfs diff=lfs merge=lfs -text
+*.ot filter=lfs diff=lfs merge=lfs -text
+*.parquet filter=lfs diff=lfs merge=lfs -text
+*.pb filter=lfs diff=lfs merge=lfs -text
+*.pickle filter=lfs diff=lfs merge=lfs -text
+*.pkl filter=lfs diff=lfs merge=lfs -text
+*.pt filter=lfs diff=lfs merge=lfs -text
+*.pth filter=lfs diff=lfs merge=lfs -text
+*.rar filter=lfs diff=lfs merge=lfs -text
+*.safetensors filter=lfs diff=lfs merge=lfs -text
+saved_model/**/* filter=lfs diff=lfs merge=lfs -text
+*.tar.* filter=lfs diff=lfs merge=lfs -text
+*.tar filter=lfs diff=lfs merge=lfs -text
+*.tflite filter=lfs diff=lfs merge=lfs -text
+*.tgz filter=lfs diff=lfs merge=lfs -text
+*.wasm filter=lfs diff=lfs merge=lfs -text
+*.xz filter=lfs diff=lfs merge=lfs -text
+*.zip filter=lfs diff=lfs merge=lfs -text
+*.zst filter=lfs diff=lfs merge=lfs -text
+*tfevents* filter=lfs diff=lfs merge=lfs -text
+
+# export-ignore: 发布包排除项（开发过程记录 / 历史实验配置 / 内部规划）
+# 说明：这些文件**保留在仓库里**（有价值的过程记录），只是不进"下载解压即用"的发布包。
+HANDOVER.md            export-ignore
+AGENT_TODO_AUDIT.md    export-ignore
+AGENT_TOOLS_TEST_REPORT.md export-ignore
+AB_AGG_REPORT.md       export-ignore
+AB_COVERAGE_REPORT.md  export-ignore
+BATCH1_REPORT.md       export-ignore
+FRONTEND_IA_PLAN.md    export-ignore
+FULL_EVAL_REPORT.md    export-ignore
+WORKFLOW_CLOSED_LOOP.md   export-ignore
+WORKFLOW_CLOUD_EDGE_PLAN.md export-ignore
+WORKFLOW_ROADMAP.md    export-ignore
+WORKFLOW_STRATEGY.md   export-ignore
+archive/               export-ignore
+agent_kb/_last_eval.json export-ignore
+data/trajectories/ export-ignore
+agent_kb/90_learned.md export-ignore
+
+# ===== 开源发布包排除项（v4.9.7 补全）=====
+# 注意：用 `git archive` 打 tarball 才会生效；直接 tar -czf 打包会全带上。
+# 内部研发记录：不随发布包分发（仓库里保留）
+docs/internal/          export-ignore
+docs/research/          export-ignore
+docs/dsh/               export-ignore
+runs/                   export-ignore
+scripts/dev/            export-ignore
+
+# 说明：tests/ scripts/ tools/ _awq_patch/ 随包分发（对使用者有价值）

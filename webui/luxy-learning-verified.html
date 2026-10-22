@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>学习增强 · 打通验证</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+       background:linear-gradient(160deg,#060912,#0d1a33 45%,#1a1030);color:#fff;padding:26px 30px}
+  h1{font-size:25px;font-weight:800}
+  .sub{color:#8ba3cc;font-size:12.5px;margin:5px 0 18px}
+  .row{display:flex;gap:14px;margin-bottom:14px;flex-wrap:wrap}
+  .card{flex:1;min-width:220px;border-radius:13px;padding:16px;
+        border:1px solid rgba(120,160,255,.18);background:rgba(255,255,255,.04)}
+  .card h2{font-size:13px;color:#8ba3cc;font-weight:600;margin-bottom:12px}
+  .big{font-size:38px;font-weight:900;line-height:1}
+  .lbl{font-size:11px;color:#8ba3cc;margin-top:6px}
+  .g{color:#52c41a}.r{color:#ff4d4f}.a{color:#faad14}.b{color:#5b8cff}.p{color:#a78bfa}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+  .chart{position:relative;height:210px}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th{text-align:left;color:#8ba3cc;padding:7px 9px;border-bottom:1px solid rgba(120,160,255,.2);font-weight:600}
+  td{padding:7px 9px;border-bottom:1px solid rgba(255,255,255,.05)}
+  .bdg{display:inline-block;padding:2px 8px;border-radius:999px;font-size:10.5px;font-weight:700}
+  .ok{background:rgba(82,196,26,.15);color:#52c41a}
+  .no{background:rgba(255,77,79,.15);color:#ff4d4f}
+  .w{background:rgba(250,173,20,.15);color:#faad14}
+  .ch{display:inline-flex;align-items:center;gap:6px;padding:2px 9px;border-radius:999px;
+      font-size:10.5px;font-weight:700;background:rgba(82,196,26,.15);color:#52c41a}
+  code{font-family:ui-monospace,monospace;font-size:11px;color:#a9c4ff}
+</style>
+</head>
+<body>
+  <h1>学习增强 · 打通验证</h1>
+  <div class="sub">2026-10-21 18:46 · 4 轮验证 · 29/29 通过 ✓ · 3 通道全 done ✓</div>
+
+  <div class="row">
+    <div class="card"><div class="big g">29/29</div><div class="lbl">验证通过 ✓</div></div>
+    <div class="card"><div class="big g">3/3</div><div class="lbl">通道全 done ✓</div></div>
+    <div class="card"><div class="big b">12</div><div class="lbl">固化 C 纪律建议<br>（首次产出）</div></div>
+    <div class="card"><div class="big a">16/20</div><div class="lbl">固化 A 格式闸门<br>（⚠ 80% 待修）</div></div>
+  </div>
+
+  <div class="cols">
+    <div class="card">
+      <h2>4 轮验证结果</h2>
+      <div class="chart"><canvas id="c1"></canvas></div>
+    </div>
+    <div class="card">
+      <h2>学习增强 · 打通前后对比</h2>
+      <div class="chart"><canvas id="c2"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:14px">
+    <h2>通道产物（3/3 全 done ✓）</h2>
+    <table>
+      <tr><th>通道</th><th>状态</th><th>产物</th><th>内容</th><th>消费端</th></tr>
+      <tr><td><strong>A 训练数据</strong></td><td><span class="ch">done ✓</span></td>
+          <td><code>train_round5.jsonl</code></td><td>20 条 · 格式 16/20 ⚠</td><td>train_lora.py</td></tr>
+      <tr><td><strong>B 工具路由</strong></td><td><span class="ch">done ✓</span></td>
+          <td><code>routing_suggestion.json</code></td><td>5 域 37 行</td><td>tool_retriever 域</td></tr>
+      <tr><td><strong>C 系统提示</strong></td><td><span class="ch">done ✓</span></td>
+          <td><code>prompt_suggestion.json</code></td><td>12 条纪律 54 行 ← 首次 ✓</td><td>buildAgentSystemPrompt</td></tr>
+    </table>
+  </div>
+
+  <div class="card" style="margin-bottom:14px">
+    <h2>已打通的 4 项</h2>
+    <table>
+      <tr><th>#</th><th>项</th><th>改前</th><th>改后</th></tr>
+      <tr><td>1</td><td>enabled</td><td><span class="bdg no">False</span></td><td><span class="bdg ok">True</span></td></tr>
+      <tr><td>2</td><td>固化 C 通道</td><td><span class="bdg no">从未产出</span></td><td><span class="bdg ok">12 条纪律 ✓</span></td></tr>
+      <tr><td>3</td><td>sync_train</td><td><span class="bdg no">False</span></td><td><span class="bdg ok">True</span></td></tr>
+      <tr><td>4</td><td>channels 状态回写</td><td><span class="bdg no">静态 pending ✗</span></td><td><span class="bdg ok">真实 done + 时间戳 + 产物路径 ✓</span></td></tr>
+    </table>
+  </div>
+
+  <div class="card" style="border-color:rgba(250,173,20,.35);background:rgba(250,173,20,.06)">
+    <h2 style="color:#ffd666">⚠ 验证发现 2 个残余问题</h2>
+    <table>
+      <tr><th>问题</th><th>影响</th><th>严重度</th></tr>
+      <tr><td><code>solidify()</code> 用 <code>skills_candidate.jsonl</code>（20 条旧）✗ 不是 live 22 条</td>
+          <td>三通道产物基于旧数据</td><td><span class="bdg w">中</span></td></tr>
+      <tr><td>固化 A 产物 <strong>16/20 格式不合格</strong> ✗（"步骤总结"没有 function_call）</td>
+          <td>通道 A 产出不能直接训练 ⚠ 需用我们的 167 条真实轨迹 ✓</td><td><span class="bdg w">中</span></td></tr>
+    </table>
+    <div style="margin-top:10px;font-size:11.5px;color:#8ba3cc">
+      ✅ 但 <strong>回滚安全性 7/7 全过</strong>：promote 真安装 ✓ dry-run ✓ 真回滚 ✓ md5 校验 3 文件 ✓ 审计 2 条 ✓
+    </div>
+  </div>
+
+<script>
+Chart.defaults.color='#8ba3cc'; Chart.defaults.borderColor='rgba(120,160,255,.12)';
+Chart.defaults.font.family='"PingFang SC","Microsoft YaHei",system-ui,sans-serif';
+
+new Chart(document.getElementById('c1'),{
+  type:'bar',
+  data:{
+    labels:['轮次1\n配置状态','轮次2\n产物内容','轮次3\n可用性','轮次4\n回滚安全'],
+    datasets:[
+      {label:'通过',data:[7,8,7,7],backgroundColor:'rgba(82,196,26,.75)',borderRadius:6},
+      {label:'失败',data:[0,0,0,0],backgroundColor:'rgba(255,77,79,.7)',borderRadius:6}
+    ]
+  },
+  options:{responsive:true,maintainAspectRatio:false,
+    scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,beginAtZero:true,max:9,grid:{color:'rgba(120,160,255,.1)'}}},
+    plugins:{legend:{labels:{boxWidth:12,font:{size:11}}}}}
+});
+
+new Chart(document.getElementById('c2'),{
+  type:'radar',
+  data:{
+    labels:['enabled','sync_train','固化A','固化B','固化C','channels回写','自动触发'],
+    datasets:[
+      {label:'打通前',data:[0,0,1,1,0,0,0],borderColor:'rgba(255,77,79,.9)',
+       backgroundColor:'rgba(255,77,79,.18)',pointRadius:3},
+      {label:'打通后',data:[1,1,1,1,1,1,0],borderColor:'rgba(82,196,26,.9)',
+       backgroundColor:'rgba(82,196,26,.18)',pointRadius:3}
+    ]
+  },
+  options:{responsive:true,maintainAspectRatio:false,
+    scales:{r:{min:0,max:1,ticks:{stepSize:.5,display:false},grid:{color:'rgba(120,160,255,.15)'},
+               pointLabels:{font:{size:10.5}}}},
+    plugins:{legend:{labels:{boxWidth:12,font:{size:11}}}}}
+});
+</script>
+</body>
+</html>

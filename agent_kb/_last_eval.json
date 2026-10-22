@@ -1,0 +1,25 @@
+{
+  "cases": 186,
+  "arms": {
+    "B 工具清单 + 知识库 top-3": {
+      "ok": 184,
+      "misses": [
+        [
+          "把文档流程的结果导出成 Excel",
+          [
+            "run_doc_flow",
+            "list_doc_flows"
+          ],
+          "write_sheet"
+        ],
+        [
+          "可用的适配器列一下",
+          [
+            "list_loras"
+          ],
+          "get_loras_registry"
+        ]
+      ]
+    }
+  }
+}

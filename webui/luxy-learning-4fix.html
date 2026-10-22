@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>学习增强 · 4 项修复结果</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+       background:linear-gradient(160deg,#060912,#0d1a33 45%,#1a1030);color:#fff;padding:26px 30px}
+  h1{font-size:25px;font-weight:800}
+  .sub{color:#8ba3cc;font-size:12.5px;margin:5px 0 18px}
+  .row{display:flex;gap:14px;margin-bottom:14px;flex-wrap:wrap}
+  .card{flex:1;min-width:210px;border-radius:13px;padding:16px;
+        border:1px solid rgba(120,160,255,.18);background:rgba(255,255,255,.04)}
+  .card h2{font-size:13px;color:#8ba3cc;font-weight:600;margin-bottom:12px}
+  .big{font-size:36px;font-weight:900;line-height:1}
+  .lbl{font-size:11px;color:#8ba3cc;margin-top:6px}
+  .g{color:#52c41a}.r{color:#ff4d4f}.a{color:#faad14}.b{color:#5b8cff}
+  .item{display:flex;align-items:flex-start;gap:12px;padding:13px 15px;margin:9px 0;
+        border-radius:11px;border:1px solid rgba(120,160,255,.16);background:rgba(255,255,255,.025)}
+  .item .ic{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;
+            justify-content:center;font-size:14px;font-weight:900;flex-shrink:0}
+  .ok{background:rgba(82,196,26,.2);color:#52c41a}
+  .no{background:rgba(255,77,79,.2);color:#ff4d4f}
+  .w{background:rgba(250,173,20,.2);color:#faad14}
+  .item .t{font-size:13px;font-weight:700}
+  .item .d{font-size:11px;color:#8ba3cc;margin-top:3px;line-height:1.55}
+  .item .s{margin-left:auto;font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:999px;flex-shrink:0;height:fit-content}
+  .s-ok{background:rgba(82,196,26,.15);color:#52c41a}
+  .s-no{background:rgba(255,77,79,.15);color:#ff4d4f}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th{text-align:left;color:#8ba3cc;padding:7px 9px;border-bottom:1px solid rgba(120,160,255,.2);font-weight:600}
+  td{padding:7px 9px;border-bottom:1px solid rgba(255,255,255,.05)}
+  code{font-family:ui-monospace,monospace;font-size:11px;color:#a9c4ff}
+</style>
+</head>
+<body>
+  <h1>学习增强 · 4 项修复结果</h1>
+  <div class="sub">2026-10-21 · 2/4 成功 · 2/4 诚实放弃（语法风险 / 范围外）· 提交 <code>8af4e7e</code></div>
+
+  <div class="row">
+    <div class="card"><div class="big g">2/4</div><div class="lbl">修复成功 ✓</div></div>
+    <div class="card"><div class="big g">3/3</div><div class="lbl">通道仍全 done ✓</div></div>
+    <div class="card"><div class="big b">885</div><div class="lbl">flywheel.py 行数<br>（语法 OK ✓）</div></div>
+    <div class="card"><div class="big a">2</div><div class="lbl">遗留问题<br>（诚实标注 ✓）</div></div>
+  </div>
+
+  <div class="card" style="margin-bottom:14px">
+    <h2>4 项修复逐项结果</h2>
+
+    <div class="item">
+      <div class="ic ok">✓</div>
+      <div><div class="t">#4 固化用 live（最新）不是 candidate（旧）</div>
+           <div class="d">原: 优先 <code>skills_candidate.jsonl</code>（11:39 旧文件）✗ 三通道产物基于旧数据<br>
+           修: 改成 <code>src = SKILLS</code> 优先 ✓ 实测输出 "做法来源: <strong>skills.jsonl</strong>（20 条）" ✓</div></div>
+      <div class="s s-ok">已修 ✓</div>
+    </div>
+
+    <div class="item">
+      <div class="ic ok">✓</div>
+      <div><div class="t">#2 蒸馏默认 use_llm=True</div>
+           <div class="d">原: <code>use_llm=False</code> ✗ 规则模式输出"（规则模式未抽象）"触发词空 ✗<br>
+           修: 默认 True ✓ 可用 <code>FLYWHEEL_USE_LLM=0</code> 关闭 ✓</div></div>
+      <div class="s s-ok">已修 ✓</div>
+    </div>
+
+    <div class="item">
+      <div class="ic no">✗</div>
+      <div><div class="t">#3 固化 A 改用真实轨迹</div>
+           <div class="d">两次尝试都<strong>破坏 Python 缩进 / 字符串</strong> ✗（已自动回滚 ✓）<br>
+           ⇒ <strong>放弃</strong> ✓ 现在仍造"步骤总结"（<code>train_round6.jsonl</code> 20 条 ✗ 格式不合格）<br>
+           ✅ 替代方案：直接跑 <code>scripts/traj_to_training.py</code>（已产出 167 条 <strong>100% 合格</strong> ✓）</div></div>
+      <div class="s s-no">放弃 ✗</div>
+    </div>
+
+    <div class="item">
+      <div class="ic no">✗</div>
+      <div><div class="t">#1 WSL 侧 DSH 完整环境</div>
+           <div class="d">已修 <code>/reflect/run</code>（从完全崩 → done rc=0 ✓ 轨迹 587→589 ✓）<br>
+           但 DSH 在 WSL 里<strong>空跑</strong>：20ms · 0 token · 无工具 · final 空 ✗<br>
+           ⇒ 需 WSL 侧 DSH 完整配置（keys/plugins）✗ <strong>本轮未解</strong></div></div>
+      <div class="s s-no">未解 ✗</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:14px">
+    <h2>学习增强当前状态（第 2 轮后）</h2>
+    <table>
+      <tr><th>环节</th><th>状态</th><th>说明</th></tr>
+      <tr><td>① 采集</td><td>⚠ 半通</td><td><code>/reflect/run</code> 修好 ✓ 但 DSH 空跑 ⇒ 轨迹空 ✗</td></tr>
+      <tr><td>② 蒸馏</td><td>✅ 通</td><td>默认 LLM ✓（需在跑的 LLM 配置 ✓）</td></tr>
+      <tr><td>③ 固化 A</td><td>⚠ 差</td><td>仍 20 条步骤总结 ✗ 建议用 <code>traj_to_training.py</code> 的 167 条 ✓</td></tr>
+      <tr><td>④ 固化 B</td><td>✅ 通</td><td>5 域 37 行 ✓ 基于 live ✓</td></tr>
+      <tr><td>⑤ 固化 C</td><td>✅ 通</td><td>12 条纪律 ✓ 基于 live ✓</td></tr>
+      <tr><td>⑥ 训练</td><td>✅ 通</td><td>手工用 167 条真实轨迹 → 100% ✓</td></tr>
+      <tr><td>⑦ 验证</td><td>✅ 通</td><td>29/29 ✓</td></tr>
+      <tr><td>⑧ 晋级/回滚</td><td>✅ 通</td><td>真安装 + 真恢复 + md5 ✓</td></tr>
+    </table>
+  </div>
+
+  <div class="card" style="border-color:rgba(250,173,20,.35);background:rgba(250,173,20,.06)">
+    <h2 style="color:#ffd666">🎯 诚实结论：学习增强现在"能用"但还"不好用"</h2>
+    <div style="font-size:12.5px;line-height:1.8;color:#e8eef9">
+      <strong class="g">✅ 能用</strong> —— 管道 8 环节全部有实现 ✓ 3 通道全 done ✓ 固化 B/C 基于 live ✓ 验证 29/29 ✓<br>
+      <strong class="r">❌ 不好用</strong> —— 两个关键缺口：<br>
+      &nbsp;&nbsp;&nbsp;① <strong>采集是垃圾</strong>：DSH 在 WSL 空跑 ⇒ 学到的轨迹是空的 ✗（最致命 ✗）<br>
+      &nbsp;&nbsp;&nbsp;② <strong>固化 A 质量差</strong>：20 条步骤总结 ✗ 不如手工 167 条真实轨迹 ✓<br>
+      <strong class="a">⇒ 要真"好用"，必须先解决 #1（WSL DSH 环境）</strong>，否则整个飞轮的输入是空的 ⚠
+    </div>
+  </div>
+</body>
+</html>

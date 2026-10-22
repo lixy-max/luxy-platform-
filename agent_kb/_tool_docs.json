@@ -1,0 +1,2015 @@
+{
+  "version": "v1",
+  "created": "2026-10-19",
+  "note": "T4 工具文档增强: 描述具体化 + 参数说明 + 真实调用示例 + 真实错误 ✓（Toolshed 模式 ✓） | 2026-10-22: 移除 37 个无执行路径的幽灵工具（模型看得见但调不动）",
+  "tools": {
+    "add_workflow_node": {
+      "desc": "给当前工作流配置加一个节点（参数 type/node_type + 可选 id/params）· 用户说\"加一个节点\"时用",
+      "params": [
+        {
+          "name": "type",
+          "type": "string",
+          "desc": "（真实调用出现过 285 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "prompt",
+          "type": "string",
+          "desc": "（真实调用出现过 19 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "lora",
+          "type": "string",
+          "desc": "（真实调用出现过 313 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "id",
+          "type": "string",
+          "desc": "（真实调用出现过 57 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "node_type",
+          "type": "string",
+          "desc": "（真实调用出现过 167 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "desc": "（真实调用出现过 211 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "inputs",
+          "type": "string",
+          "desc": "（真实调用出现过 28 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "outputs",
+          "type": "string",
+          "desc": "（真实调用出现过 25 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "config",
+          "type": "string",
+          "desc": "（真实调用出现过 92 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "parent",
+          "type": "string",
+          "desc": "（真实调用出现过 8 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "position",
+          "type": "string",
+          "desc": "（真实调用出现过 71 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "workflow_name",
+          "type": "string",
+          "desc": "（真实调用出现过 120 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "node_id",
+          "type": "string",
+          "desc": "（真实调用出现过 152 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "new_node_id",
+          "type": "string",
+          "desc": "（真实调用出现过 24 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "clone_from",
+          "type": "string",
+          "desc": "（真实调用出现过 66 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "before_node_id",
+          "type": "string",
+          "desc": "（真实调用出现过 1 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "after_node_id",
+          "type": "string",
+          "desc": "（真实调用出现过 4 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "parent_id",
+          "type": "string",
+          "desc": "（真实调用出现过 155 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "desc": "（真实调用出现过 320 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "provider",
+          "type": "string",
+          "desc": "（真实调用出现过 312 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "input_from",
+          "type": "string",
+          "desc": "（真实调用出现过 313 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "new_id",
+          "type": "string",
+          "desc": "（真实调用出现过 42 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "new_type",
+          "type": "string",
+          "desc": "（真实调用出现过 21 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "node_name",
+          "type": "string",
+          "desc": "（真实调用出现过 20 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "node",
+          "type": "string",
+          "desc": "（真实调用出现过 16 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "config_name",
+          "type": "string",
+          "desc": "（真实调用出现过 4 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "target_node",
+          "type": "string",
+          "desc": "（真实调用出现过 4 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "desc": "（真实调用出现过 19 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "params",
+          "type": "string",
+          "desc": "（真实调用出现过 19 次 ✓）",
+          "required": false
+        }
+      ],
+      "examples": [
+        {
+          "clone_from": "finaloutcome",
+          "id": "new_finaloutcome",
+          "type": "aggregate"
+        },
+        {
+          "parent_id": "finaloutcome",
+          "type": "aggregate",
+          "description": "整合为文本报告（收紧提示词）",
+          "lora": "None"
+        }
+      ],
+      "errors": [
+        "需要 id（节点唯一标识，字符串）与 type（节点类型）。可先调用 list_workflow_nodes 看现有节点，避免 id 冲突。",
+        "需要 type（节点类型，如 extract/process/terminal）。",
+        "add_workflow_node：默认配置只读，拒绝执行（当前配置 workflow_config.json）。要改请先用 create_workflow_config 克隆一份，再用 use_workflow_config 切过去。"
+      ],
+      "usage_count": 542,
+      "source": "tool_docs_v1"
+    },
+    "build_dataset": {
+      "desc": "从工作流结果构建训练数据集（参数 源结果 + 输出名）· 用户说\"结果转数据集\"时用",
+      "params": [
+        {
+          "name": "kb_name",
+          "type": "string",
+          "desc": "（真实调用出现过 2 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "desc": "（真实调用出现过 5 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "desc": "（真实调用出现过 5 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "filename",
+          "type": "string",
+          "desc": "（真实调用出现过 4 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "node",
+          "type": "string",
+          "desc": "（真实调用出现过 4 次 ✓）",
+          "required": false
+        }
+      ],
+      "examples": [],
+      "errors": [
+        "需要 filename（结果文件名）与 node（节点 id）",
+        "结果文件不存在: results.csv",
+        "结果文件不存在: evaluation_set.csv"
+      ],
+      "usage_count": 7,
+      "source": "tool_docs_v1"
+    },
+    "create_knowledge_base": {
+      "desc": "新建一个知识库（参数 name 只能用字母数字下划线中划线 ✓ description 可选）",
+      "params": [
+        {
+          "name": "name",
+          "type": "string",
+          "desc": "（真实调用出现过 74 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "desc": "（真实调用出现过 74 次 ✓）",
+          "required": false
+        }
+      ],
+      "examples": [
+        {
+          "name": "drill_part1_use",
+          "description": "演练用别当资产"
+        },
+        {
+          "name": "new_semantic_intent_lora_kb",
+          "description": "用于存储新语义理解 LoRA 的知识库"
+        }
+      ],
+      "errors": [
+        "知识库 'drill_part1_use' 已存在",
+        "知识库 'drill_part2_use' 已存在",
+        "知识库 'test_use_agent_rebuilt' 已存在"
+      ],
+      "usage_count": 74,
+      "source": "tool_docs_v1"
+    },
+    "create_workflow_config": {
+      "desc": "新建/克隆一个工作流配置（参数 name 必须以 workflow_config 开头且 .json 结尾 ✓ from_current=true 表示克隆当前 ✓）",
+      "params": [
+        {
+          "name": "name",
+          "type": "string",
+          "desc": "（真实调用出现过 204 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "from_current",
+          "type": "string",
+          "desc": "（真实调用出现过 204 次 ✓）",
+          "required": false
+        }
+      ],
+      "examples": [
+        {
+          "name": "workflow_config_paper_edit_flow.json",
+          "from_current": false
+        },
+        {
+          "name": "workflow_config_doc_flow_paper_edit_flow.json",
+          "from_current": false
+        }
+      ],
+      "errors": [
+        "文件名不合法：必须以 .json 结尾，且不能含路径分隔符、不能以 . 开头",
+        "文件名要形如 workflow_config*.json —— 后端只列出这个模式的配置，用别的名字会存下来但在界面上看不到。建议改名 workflow_config_paper_edit_flow_json，现有配置用 list_workflow_configs 查。",
+        "配置 'workflow_config_paper_edit_flow.json' 已存在，不覆盖。换个名字，或用 list_workflow_configs 看现有配置、use_workflow_config 直接切过去。"
+      ],
+      "usage_count": 204,
+      "source": "tool_docs_v1"
+    },
+    "delete_workflow_node": {
+      "desc": "删除当前工作流的某个节点（参数 node_id）· 默认配置只读 ✗ 需先 create_workflow_config 克隆",
+      "params": [
+        {
+          "name": "id",
+          "type": "string",
+          "desc": "（真实调用出现过 5 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "node_id",
+          "type": "string",
+          "desc": "（真实调用出现过 15 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "desc": "（真实调用出现过 7 次 ✓）",
+          "required": false
+        }
+      ],
+      "examples": [
+        {
+          "id": "input_paper"
+        },
+        {
+          "id": "kb_context"
+        }
+      ],
+      "errors": [
+        "需要 id（要删除的节点标识）。请先用 list_workflow_nodes 确认。",
+        "delete_workflow_node：默认配置只读，拒绝执行（当前配置 workflow_config.json）。要改请先用 create_workflow_config 克隆一份，再用 use_workflow_config 切过去。",
+        "节点 'finaloutcome' 不存在"
+      ],
+      "usage_count": 28,
+      "source": "tool_docs_v1"
+    },
+    "export_docx": {
+      "desc": "把文本文件导出成 Word（参数 source ✓ name ✓ title）",
+      "params": [
+        {
+          "name": "source",
+          "type": "string",
+          "desc": "文本文件名",
+          "required": true
+        },
+        {
+          "name": "out_dir",
+          "type": "string",
+          "desc": "输出目录",
+          "required": true
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "desc": "输出文件名",
+          "required": true
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "desc": "文档标题",
+          "required": true
+        }
+      ],
+      "examples": [],
+      "errors": [
+        "export_docx 执行失败：ValueError: All strings must be XML compatible: Unicode or ASCII, no NULL bytes or control characters"
+      ],
+      "usage_count": 3,
+      "source": "tool_docs_v1"
+    },
+    "filter_rows": {
+      "desc": "按条件筛选 Excel 行（参数 filename ✓ sheet ✓ column ✓ op ✓ value）· 用于\"筛出某某的行\"",
+      "params": [
+        {
+          "name": "filename",
+          "type": "string",
+          "desc": "文件名",
+          "required": true
+        },
+        {
+          "name": "sheet",
+          "type": "string",
+          "desc": "工作表名",
+          "required": true
+        },
+        {
+          "name": "column",
+          "type": "string",
+          "desc": "列名",
+          "required": true
+        },
+        {
+          "name": "op",
+          "type": "string",
+          "desc": "比较符",
+          "required": true
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "desc": "比较值",
+          "required": true
+        },
+        {
+          "name": "limit",
+          "type": "string",
+          "desc": "最多返回",
+          "required": true
+        }
+      ],
+      "examples": [],
+      "errors": [
+        "文件不存在: score_data.xlsx（可用 list_uploads 查看已上传文件）",
+        "文件不存在: example.xlsx（可用 list_uploads 查看已上传文件）",
+        "只支持 .xlsx / .xlsm（Excel）"
+      ],
+      "usage_count": 23,
+      "source": "tool_docs_v1"
+    },
+    "get_eval_status": {
+      "desc": "查评测任务状态（参数 task_id）",
+      "params": [
+        {
+          "name": "task_id",
+          "type": "string",
+          "desc": "（真实调用出现过 1 次 ✓）",
+          "required": false
+        }
+      ],
+      "examples": [
+        {
+          "task_id": "edf7e058"
+        }
+      ],
+      "errors": [],
+      "usage_count": 8,
+      "source": "tool_docs_v1"
+    },
+    "get_history_detail": {
+      "desc": "取某条历史记录的详情（参数 task_id · 先用 list_history 拿到 id）",
+      "params": [
+        {
+          "name": "task_id",
+          "type": "string",
+          "desc": "（真实调用出现过 6 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "index",
+          "type": "string",
+          "desc": "（真实调用出现过 1 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "id",
+          "type": "string",
+          "desc": "（真实调用出现过 1 次 ✓）",
+          "required": false
+        }
+      ],
+      "examples": [
+        {
+          "task_id": "8e1bec69"
+        },
+        {
+          "task_id": "75a29ac0"
+        }
+      ],
+      "errors": [
+        "需要 task_id"
+      ],
+      "usage_count": 10,
+      "source": "tool_docs_v1"
+    },
+    "get_loras_registry": {
+      "desc": "取 LoRA 注册表详情（名字/绑定底座/大小/兼容性）· 用户问\"LoRA 有哪些/能不能挂\"时调它",
+      "params": [],
+      "examples": [],
+      "errors": [],
+      "usage_count": 1,
+      "source": "tool_docs_v1"
+    },
+    "get_quality_summary": {
+      "desc": "取平台质量摘要（最近跑批通过率/失败统计）· 用户问\"质量怎么样/成功率高不高\"时调它",
+      "params": [],
+      "examples": [],
+      "errors": [],
+      "usage_count": 3,
+      "source": "tool_docs_v1"
+    },
+    "get_settings": {
+      "desc": "读取平台设置（底座路径/LoRA 目录/Provider 配置等）· 用户问\"配置是什么/设置对不对\"时先调它",
+      "params": [],
+      "examples": [],
+      "errors": [],
+      "usage_count": 17,
+      "source": "tool_docs_v1"
+    },
+    "get_training_status": {
+      "desc": "查某个训练任务的进度与日志（参数 task_id · 先用 list_trainings 拿 id）",
+      "params": [
+        {
+          "name": "task_id",
+          "type": "string",
+          "desc": "（真实调用出现过 31 次 ✓）",
+          "required": false
+        }
+      ],
+      "examples": [
+        {
+          "task_id": "46a08003"
+        },
+        {
+          "task_id": "6e17c95d"
+        }
+      ],
+      "errors": [],
+      "usage_count": 51,
+      "source": "tool_docs_v1"
+    },
+    "get_vllm_status": {
+      "desc": "查本地推理底座 vLLM 状态（是否在跑/端口/当前模型/显存）· 用户问\"底座起没起/显存多少\"时调它",
+      "params": [],
+      "examples": [],
+      "errors": [],
+      "usage_count": 6,
+      "source": "tool_docs_v1"
+    },
+    "get_workflow_result": {
+      "desc": "取某次工作流运行的结果内容（参数 filename 或 node）· 用户说\"看结果/导出内容\"时用",
+      "params": [
+        {
+          "name": "filename",
+          "type": "string",
+          "desc": "（真实调用出现过 11 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "desc": "（真实调用出现过 25 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "result_id",
+          "type": "string",
+          "desc": "（真实调用出现过 15 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "timestamp",
+          "type": "string",
+          "desc": "（真实调用出现过 5 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "workflow",
+          "type": "string",
+          "desc": "（真实调用出现过 26 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "index",
+          "type": "string",
+          "desc": "（真实调用出现过 22 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "workflow_id",
+          "type": "string",
+          "desc": "（真实调用出现过 2 次 ✓）",
+          "required": false
+        }
+      ],
+      "examples": [],
+      "errors": [
+        "文件不存在",
+        "需要 filename（见 list_workflow_results）"
+      ],
+      "usage_count": 105,
+      "source": "tool_docs_v1"
+    },
+    "get_workflow_status": {
+      "desc": "查工作流运行状态（参数 可选）· 用户问\"跑完了吗/进度\"时用",
+      "params": [
+        {
+          "name": "name",
+          "type": "string",
+          "desc": "（真实调用出现过 1 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "task_id",
+          "type": "string",
+          "desc": "（真实调用出现过 35 次 ✓）",
+          "required": false
+        }
+      ],
+      "examples": [
+        {
+          "name": ""
+        },
+        {
+          "task_id": ""
+        }
+      ],
+      "errors": [
+        "任务不存在"
+      ],
+      "usage_count": 51,
+      "source": "tool_docs_v1"
+    },
+    "group_sum": {
+      "desc": "按列分组求和（参数 filename ✓ sheet ✓ group_by ✓ sum_column）",
+      "params": [
+        {
+          "name": "filename",
+          "type": "string",
+          "desc": "文件名",
+          "required": true
+        },
+        {
+          "name": "sheet",
+          "type": "string",
+          "desc": "工作表名",
+          "required": true
+        },
+        {
+          "name": "group_by",
+          "type": "string",
+          "desc": "分组列",
+          "required": true
+        },
+        {
+          "name": "sum_column",
+          "type": "string",
+          "desc": "汇总列",
+          "required": true
+        },
+        {
+          "name": "limit",
+          "type": "string",
+          "desc": "最多返回",
+          "required": true
+        }
+      ],
+      "examples": [
+        {
+          "filename": "score_category.xlsx",
+          "sheet": "Sheet1",
+          "group_by": "category",
+          "sum_column": "score"
+        },
+        {
+          "filename": "scores.xlsx",
+          "sheet": "Sheet1",
+          "group_by": "Category",
+          "sum_column": "Score"
+        }
+      ],
+      "errors": [
+        "只支持 .xlsx / .xlsm（Excel）"
+      ],
+      "usage_count": 21,
+      "source": "tool_docs_v1"
+    },
+    "list_available_datasets": {
+      "desc": "列出可用于训练的数据集（名字/行数/大小）· 训练前选数据时调它",
+      "params": [],
+      "examples": [],
+      "errors": [],
+      "usage_count": 25,
+      "source": "tool_docs_v1"
+    },
+    "list_available_models": {
+      "desc": "列出所有可用模型（本地底座 + LoRA + 云 + Ollama）· 用户问\"有哪些模型/能用什么\"时调它",
+      "params": [],
+      "examples": [],
+      "errors": [],
+      "usage_count": 58,
+      "source": "tool_docs_v1"
+    },
+    "list_history": {
+      "desc": "列出历史运行记录（最近的 task/file/状态）· 用户问\"历史/之前的记录/上次跑的什么\"时调它",
+      "params": [],
+      "examples": [],
+      "errors": [],
+      "usage_count": 17,
+      "source": "tool_docs_v1"
+    },
+    "list_knowledge_bases": {
+      "desc": "列出所有知识库（名字/说明/块数）· 用户问\"有哪些库/知识库列表\"时调它",
+      "params": [],
+      "examples": [],
+      "errors": [],
+      "usage_count": 73,
+      "source": "tool_docs_v1"
+    },
+    "list_loras": {
+      "desc": "列出所有 LoRA 及其加载状态 · 用户问\"有哪些 LoRA/挂载情况\"时调它",
+      "params": [],
+      "examples": [],
+      "errors": [],
+      "usage_count": 69,
+      "source": "tool_docs_v1"
+    },
+    "list_running_tasks": {
+      "desc": "列出当前正在运行的后台任务（训练/入库/跑批）· 用户问\"在跑什么/跑到哪了/有没有任务\"时先调它",
+      "params": [],
+      "examples": [],
+      "errors": [],
+      "usage_count": 27,
+      "source": "tool_docs_v1"
+    },
+    "list_sheets": {
+      "desc": "列出 Excel 的所有工作表名（参数 filename）",
+      "params": [
+        {
+          "name": "filename",
+          "type": "string",
+          "desc": "文件名",
+          "required": true
+        }
+      ],
+      "examples": [],
+      "errors": [
+        "文件不存在: example.xlsx（可用 list_uploads 查看已上传文件）",
+        "文件不存在: data.xlsx（可用 list_uploads 查看已上传文件）",
+        "文件不存在: your_file.xlsx（可用 list_uploads 查看已上传文件）"
+      ],
+      "usage_count": 31,
+      "source": "tool_docs_v1"
+    },
+    "list_sim_nodes": {
+      "desc": "列出可用的仿真节点（确定性计算 ✓）· 任何计算前先调它看有哪些节点",
+      "params": [
+        {
+          "name": "tag",
+          "type": "string",
+          "desc": "可选分类: math / stats",
+          "required": true
+        }
+      ],
+      "examples": [],
+      "errors": [],
+      "usage_count": 19,
+      "source": "tool_docs_v1"
+    },
+    "list_trainings": {
+      "desc": "列出最近的训练任务（id/LoRA 名/状态/时间）· 用户问\"训练过什么/训练列表\"时调它",
+      "params": [
+        {
+          "name": "lora_name",
+          "type": "string",
+          "desc": "（真实调用出现过 1 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "dataset_file",
+          "type": "string",
+          "desc": "（真实调用出现过 1 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "data_count",
+          "type": "string",
+          "desc": "（真实调用出现过 1 次 ✓）",
+          "required": false
+        }
+      ],
+      "examples": [
+        {
+          "lora_name": "exercise-v3-2-0",
+          "dataset_file": "exercise_book_v3_2_0_v2.jsonl",
+          "data_count": 430
+        }
+      ],
+      "errors": [],
+      "usage_count": 26,
+      "source": "tool_docs_v1"
+    },
+    "list_uploads": {
+      "desc": "列出 uploads 目录里的文件（用户上传的文档/表格）· 用户问\"我传的文件/上传区有什么\"时先调它",
+      "params": [],
+      "examples": [],
+      "errors": [],
+      "usage_count": 119,
+      "source": "tool_docs_v1"
+    },
+    "list_workflow_configs": {
+      "desc": "列出所有工作流配置（名字 + 节点数 + 说明）· 用户问\"有哪些工作流/配置列表\"时调它",
+      "params": [
+        {
+          "name": "name",
+          "type": "string",
+          "desc": "（真实调用出现过 1 次 ✓）",
+          "required": false
+        }
+      ],
+      "examples": [
+        {
+          "name": "workflow_config_001.json"
+        }
+      ],
+      "errors": [],
+      "usage_count": 31,
+      "source": "tool_docs_v1"
+    },
+    "list_workflow_nodes": {
+      "desc": "列出当前工作流配置的节点结构（id/类型/参数）· 用户问\"节点结构/流程长什么样\"时调它",
+      "params": [
+        {
+          "name": "config",
+          "type": "string",
+          "desc": "（真实调用出现过 2 次 ✓）",
+          "required": false
+        }
+      ],
+      "examples": [
+        {
+          "config": "workflow_config_clone.json"
+        },
+        {
+          "config": "workflow_config_clone2.json"
+        }
+      ],
+      "errors": [],
+      "usage_count": 130,
+      "source": "tool_docs_v1"
+    },
+    "list_workflow_results": {
+      "desc": "列出工作流产出的结果文件（参数 limit）· 用户问\"结果文件有哪些/最近的导出\"时用",
+      "params": [],
+      "examples": [],
+      "errors": [],
+      "usage_count": 117,
+      "source": "tool_docs_v1"
+    },
+    "list_workflow_uploads": {
+      "desc": "列出工作流上传区的文件 · 跑工作流前确认输入文件时用",
+      "params": [],
+      "examples": [],
+      "errors": [],
+      "usage_count": 13,
+      "source": "tool_docs_v1"
+    },
+    "load_lora": {
+      "desc": "把某个 LoRA 挂到 vLLM（参数 lora_name）· 会改当前推理模型 ⚠",
+      "params": [
+        {
+          "name": "lora_name",
+          "type": "string",
+          "desc": "（真实调用出现过 63 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "desc": "（真实调用出现过 1 次 ✓）",
+          "required": false
+        }
+      ],
+      "examples": [
+        {
+          "lora_name": "semantic_intent_v1"
+        },
+        {
+          "lora_name": "swk_persona_v3"
+        }
+      ],
+      "errors": [
+        "❌ 架构不兼容\n该 LoRA 'extract_v2' 是为 hidden_size=2560 的模型训练的，\n但当前 vLLM 底座 'Qwen2.5-7B-Instruct-AWQ' 的 hidden_size=3584。\n\n请先切换 vLLM 到与该 LoRA 匹配的底座模型。",
+        "lora_name: Field required",
+        "路径不存在: ~loras/semantic_intent_v4"
+      ],
+      "usage_count": 74,
+      "source": "tool_docs_v1"
+    },
+    "query_knowledge_base": {
+      "desc": "在指定知识库里检索内容（参数 kb_name ✓ query ✓ top_k 可选）· 用户问\"库里的内容/查一下\"时用",
+      "params": [
+        {
+          "name": "kb_name",
+          "type": "string",
+          "desc": "（真实调用出现过 33 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "query",
+          "type": "string",
+          "desc": "（真实调用出现过 33 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "top_k",
+          "type": "string",
+          "desc": "（真实调用出现过 33 次 ✓）",
+          "required": false
+        }
+      ],
+      "examples": [
+        {
+          "kb_name": "test_use_agent",
+          "query": "agent 失败换云",
+          "top_k": 1
+        },
+        {
+          "kb_name": "test_use_agent",
+          "query": "最新论文",
+          "top_k": 1
+        }
+      ],
+      "errors": [
+        "知识库 'test_use_agent_rebuilt' 索引不存在: Collection [kb_test_use_agent_rebuilt] does not exist",
+        "知识库 'drill_part1_use' 索引不存在: Collection [kb_drill_part1_use] does not exist",
+        "知识库 'r2_lora_fs_probe' 索引不存在: Collection [kb_r2_lora_fs_probe] does not exist"
+      ],
+      "usage_count": 33,
+      "source": "tool_docs_v1"
+    },
+    "read_docx": {
+      "desc": "读 Word 文档的正文与表格（参数 filename）· 用户说\"读这份 Word\"时用",
+      "params": [
+        {
+          "name": "filename",
+          "type": "string",
+          "desc": "文件名（.docx）",
+          "required": true
+        },
+        {
+          "name": "out_dir",
+          "type": "string",
+          "desc": "可选：文件所在目录（如 E:\\zy.work\\from_agent）；缺省在 uploads/outputs 找",
+          "required": true
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "desc": "（真实调用出现过 5 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "desc": "（真实调用出现过 5 次 ✓）",
+          "required": false
+        }
+      ],
+      "examples": [
+        {
+          "filename": "example_paper.docx"
+        },
+        {
+          "filename": "example_paper_9.docx"
+        }
+      ],
+      "errors": [
+        "只支持 .docx",
+        "文件不存在: doc_flow_standard_edit.json（找过 uploads/doc_flow_standard_edit.json, outputs/doc_flow_standard_edit.json, ~paper_lora_projec",
+        "文件不存在: doc_flow_word_outline.json（找过 uploads/doc_flow_word_outline.json, outputs/doc_flow_word_outline.json, d"
+      ],
+      "usage_count": 92,
+      "source": "tool_docs_v1"
+    },
+    "read_sheet": {
+      "desc": "读 Excel 的表头与若干行（参数 filename ✓ sheet ✓ rows）",
+      "params": [
+        {
+          "name": "filename",
+          "type": "string",
+          "desc": "文件名",
+          "required": true
+        },
+        {
+          "name": "sheet",
+          "type": "string",
+          "desc": "工作表名",
+          "required": true
+        },
+        {
+          "name": "rows",
+          "type": "string",
+          "desc": "读取行数",
+          "required": true
+        },
+        {
+          "name": "out_dir",
+          "type": "string",
+          "desc": "可选：文件所在目录（如 E:\\目录）；缺省在 uploads/outputs 找",
+          "required": true
+        }
+      ],
+      "examples": [
+        {
+          "filename": "example_scores.xlsx",
+          "sheet": "Sheet1",
+          "rows": "all"
+        },
+        {
+          "filename": "transform_matrix.xlsx",
+          "sheet": "TransformMatrix",
+          "rows": "",
+          "out_dir": ""
+        }
+      ],
+      "errors": [
+        "文件不存在: example.xlsx（可用 list_uploads 查看已上传文件）",
+        "只支持 .xlsx / .xlsm（Excel）",
+        "Failed to fetch"
+      ],
+      "usage_count": 37,
+      "source": "tool_docs_v1"
+    },
+    "read_upload": {
+      "desc": "读取 uploads 里某个文件的文本内容（参数 filename）· 用户说\"读一下我传的那份\"时用它",
+      "params": [
+        {
+          "name": "filename",
+          "type": "string",
+          "desc": "（真实调用出现过 111 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "limit",
+          "type": "string",
+          "desc": "（真实调用出现过 1 次 ✓）",
+          "required": false
+        }
+      ],
+      "examples": [
+        {
+          "filename": "formatted_paper.docx"
+        },
+        {
+          "filename": "example_paper_9.docx"
+        }
+      ],
+      "errors": [
+        "文件不存在: 最新上传的文档（可用 list_uploads 查看已上传文件）",
+        "文件不存在: workflow_config.json（可用 list_uploads 查看已上传文件）",
+        "文件不存在: 最近上传的文件名（可用 list_uploads 查看已上传文件）"
+      ],
+      "usage_count": 111,
+      "source": "tool_docs_v1"
+    },
+    "replace_in_file": {
+      "desc": "在指定文件里精确替换文本（参数 filename ✓ find ✓ replace）· 会自动备份 .orig",
+      "params": [
+        {
+          "name": "filename",
+          "type": "string",
+          "desc": "文件名",
+          "required": true
+        },
+        {
+          "name": "find",
+          "type": "string",
+          "desc": "查找内容",
+          "required": true
+        },
+        {
+          "name": "replace",
+          "type": "string",
+          "desc": "替换成",
+          "required": true
+        },
+        {
+          "name": "count",
+          "type": "string",
+          "desc": "最多几处（0=全部）",
+          "required": true
+        },
+        {
+          "name": "regex",
+          "type": "string",
+          "desc": "是否按正则",
+          "required": true
+        },
+        {
+          "name": "out_name",
+          "type": "string",
+          "desc": "另存为（缺省=原地覆盖）",
+          "required": true
+        },
+        {
+          "name": "from",
+          "type": "string",
+          "desc": "（真实调用出现过 12 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "to",
+          "type": "string",
+          "desc": "（真实调用出现过 12 次 ✓）",
+          "required": false
+        }
+      ],
+      "examples": [
+        {
+          "filename": "HANDOVER.md",
+          "find": "4096",
+          "replace": "4k",
+          "count": "0"
+        },
+        {
+          "filename": "HANDOVER.md",
+          "find": "4096",
+          "replace": "4k",
+          "from": "2"
+        }
+      ],
+      "errors": [
+        "文件不存在: history_chapters.txt（找过 uploads/history_chapters.txt, outputs/history_chapters.txt, history_chapters.tx",
+        "文件不存在: example_paper_fixed.xlsx（找过 uploads/example_paper_fixed.xlsx, outputs/example_paper_fixed.xlsx, example",
+        "文件不存在: temp_vector.txt（找过 uploads/temp_vector.txt, outputs/temp_vector.txt, temp_vector.txt）"
+      ],
+      "usage_count": 22,
+      "source": "tool_docs_v1"
+    },
+    "replace_text": {
+      "desc": "在给定正文里精确替换（参数 text ✓ find ✓ replace）",
+      "params": [
+        {
+          "name": "text",
+          "type": "string",
+          "desc": "正文",
+          "required": true
+        },
+        {
+          "name": "find",
+          "type": "string",
+          "desc": "查找内容",
+          "required": true
+        },
+        {
+          "name": "replace",
+          "type": "string",
+          "desc": "替换成",
+          "required": true
+        },
+        {
+          "name": "count",
+          "type": "string",
+          "desc": "最多几处（0=全部）",
+          "required": true
+        },
+        {
+          "name": "regex",
+          "type": "string",
+          "desc": "是否按正则",
+          "required": true
+        }
+      ],
+      "examples": [],
+      "errors": [],
+      "usage_count": 0,
+      "source": "tool_docs_v1"
+    },
+    "run_eval": {
+      "desc": "启动一次评测（参数 可选）· 用户说\"评测一下/跑个分\"时用",
+      "params": [
+        {
+          "name": "lora_name",
+          "type": "string",
+          "desc": "（真实调用出现过 59 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "threshold",
+          "type": "string",
+          "desc": "（真实调用出现过 4 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "dataset_file",
+          "type": "string",
+          "desc": "（真实调用出现过 51 次 ✓）",
+          "required": false
+        }
+      ],
+      "examples": [
+        {
+          "lora_name": "swk_persona_v3",
+          "dataset_file": "training_data/swk_persona_v3.j"
+        }
+      ],
+      "errors": [
+        "需要 lora_name 与 dataset_file",
+        "评测集不存在: semantic_dataset.csv",
+        "评测集不存在: temp_dataset.csv"
+      ],
+      "usage_count": 64,
+      "source": "tool_docs_v1"
+    },
+    "run_simulation": {
+      "desc": "调仿真节点做确定性计算（参数 node ✓ args 对象 ✓）· 算术/统计/占比必须走它 ✗ 禁止心算",
+      "params": [
+        {
+          "name": "node",
+          "type": "string",
+          "desc": "节点名（math_eval, ratio, stats）",
+          "required": true
+        },
+        {
+          "name": "args",
+          "type": "object",
+          "desc": "该节点参数对象（对象类型 ✓ 不要传字符串 ✗），如 {\"expr\":\"(1+2)*3\"} 或 {\"values\":[1,2,3]}",
+          "required": true
+        }
+      ],
+      "examples": [
+        {
+          "node": "stats",
+          "args": "{'values': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}"
+        },
+        {
+          "node": "math_eval",
+          "args": "{'expr': '(1024 - 512) / 512'}"
+        }
+      ],
+      "errors": [
+        "仿真节点执行失败: ValueError: 只允许调用 abs/round/min/max/sqrt/log/exp/sin/cos/tan/pow",
+        "仿真节点执行失败: 未知仿真节点 'hidden_layer_size'，可用: math_eval, ratio, stats",
+        "仿真节点执行失败: ValueError: 不允许的语法 Compare"
+      ],
+      "usage_count": 24,
+      "source": "tool_docs_v1"
+    },
+    "run_workflow": {
+      "desc": "运行工作流（参数 name 可选 · 不传则跑当前配置）· 用户说\"跑一下/执行流程\"时用",
+      "params": [
+        {
+          "name": "name",
+          "type": "string",
+          "desc": "（真实调用出现过 96 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "inputs",
+          "type": "string",
+          "desc": "（真实调用出现过 59 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "input_text",
+          "type": "string",
+          "desc": "（真实调用出现过 3 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "input_file",
+          "type": "string",
+          "desc": "（真实调用出现过 4 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "config",
+          "type": "string",
+          "desc": "（真实调用出现过 6 次 ✓）",
+          "required": false
+        }
+      ],
+      "examples": [],
+      "errors": [
+        "paper 缺失：请先用 list_workflow_uploads 看有哪些论文"
+      ],
+      "usage_count": 96,
+      "source": "tool_docs_v1"
+    },
+    "search_existing_models": {
+      "desc": "★ 先找不训：检索现成模型/LoRA/项目/论文（参数 query ✓ kind 可选）· 用户说\"有没有现成的/别人做过吗\"时用",
+      "params": [
+        {
+          "name": "query",
+          "type": "string",
+          "desc": "要找什么能力，例如 function calling / 角色扮演 / embedding / tool retrieval",
+          "required": true
+        },
+        {
+          "name": "kind",
+          "type": "string",
+          "desc": "all / model / lora / repo / paper，默认 all",
+          "required": false
+        },
+        {
+          "name": "limit",
+          "type": "number",
+          "desc": "返回条数，默认 8",
+          "required": false
+        }
+      ],
+      "examples": [],
+      "errors": [],
+      "usage_count": 0,
+      "source": "tool_docs_v1"
+    },
+    "set_lines": {
+      "desc": "定点修改正文某几行（参数 text ✓ from ✓ to ✓ replacement）",
+      "params": [
+        {
+          "name": "text",
+          "type": "string",
+          "desc": "正文",
+          "required": true
+        },
+        {
+          "name": "from",
+          "type": "string",
+          "desc": "起始行号",
+          "required": true
+        },
+        {
+          "name": "to",
+          "type": "string",
+          "desc": "结束行号",
+          "required": true
+        },
+        {
+          "name": "replacement",
+          "type": "string",
+          "desc": "新内容（缺省=删除）",
+          "required": true
+        }
+      ],
+      "examples": [],
+      "errors": [],
+      "usage_count": 0,
+      "source": "tool_docs_v1"
+    },
+    "set_lines_in_file": {
+      "desc": "定点修改文件某几行（参数 filename ✓ from ✓ to ✓ replacement）",
+      "params": [
+        {
+          "name": "filename",
+          "type": "string",
+          "desc": "文件名",
+          "required": true
+        },
+        {
+          "name": "from",
+          "type": "string",
+          "desc": "起始行号",
+          "required": true
+        },
+        {
+          "name": "to",
+          "type": "string",
+          "desc": "结束行号",
+          "required": true
+        },
+        {
+          "name": "replacement",
+          "type": "string",
+          "desc": "新内容（缺省=删除）",
+          "required": true
+        },
+        {
+          "name": "out_name",
+          "type": "string",
+          "desc": "另存为（缺省=原地）",
+          "required": true
+        }
+      ],
+      "examples": [
+        {
+          "filename": "example.docx",
+          "from": "2",
+          "to": "2",
+          "replacement": "\\t姓名\\t年龄\\n\\t张三\\t25\\n\\t李四\\t30"
+        }
+      ],
+      "errors": [],
+      "usage_count": 1,
+      "source": "tool_docs_v1"
+    },
+    "start_training": {
+      "desc": "启动一个 LoRA 训练任务（参数 lora_name ✓ base_model ✓ dataset_file 或 data_count ✓）· 会占 GPU ⚠",
+      "params": [
+        {
+          "name": "lora_name",
+          "type": "string",
+          "desc": "（真实调用出现过 26 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "dataset_file",
+          "type": "string",
+          "desc": "（真实调用出现过 26 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "data_count",
+          "type": "string",
+          "desc": "（真实调用出现过 26 次 ✓）",
+          "required": false
+        }
+      ],
+      "examples": [],
+      "errors": [],
+      "usage_count": 26,
+      "source": "tool_docs_v1"
+    },
+    "switch_model": {
+      "desc": "切换当前对话使用的模型（参数 target 形如 vllm:base / vllm:lora:<名字> / openai:<模型>）",
+      "params": [
+        {
+          "name": "target",
+          "type": "string",
+          "desc": "（真实调用出现过 42 次 ✓）",
+          "required": false
+        }
+      ],
+      "examples": [
+        {
+          "target": "vllm:base"
+        },
+        {
+          "target": "vllm:lora:drill_v2r32"
+        }
+      ],
+      "errors": [
+        "模型 'Qwen2.5-7B-Instruct' 不在可选列表里。可用：vllm:base, vllm:lora:semantic_intent_v1, vllm:lora:drill_v2r32_direct, vllm:lora:extract_v2, vllm:lora:drill_v2r128x, vllm:lora:extract_v3, vllm:lora:swk_persona_v3",
+        "模型 'Qwen2.5-7B-Instruct-AWQ' 不在可选列表里。可用：vllm:base, vllm:lora:semantic_intent_v1, vllm:lora:drill_v2r32_direct, vllm:lora:extract_v2, vllm:lora:drill_v2r128x, vllm:lora:extract_v3, vllm:lora:swk_person",
+        "模型 'Qwen2.5-2560-Instruct-AWQ' 不在可选列表里。可用：vllm:base, vllm:lora:semantic_intent_v1, vllm:lora:drill_v2r32_direct, vllm:lora:extract_v2, vllm:lora:drill_v2r128x, vllm:lora:extract_v3, vllm:lora:swk_pers"
+      ],
+      "usage_count": 42,
+      "source": "tool_docs_v1"
+    },
+    "unload_lora": {
+      "desc": "从 vLLM 卸载某个 LoRA（参数 lora_name ✓ 不传则卸全部）",
+      "params": [
+        {
+          "name": "lora_name",
+          "type": "string",
+          "desc": "（真实调用出现过 59 次 ✓）",
+          "required": false
+        }
+      ],
+      "examples": [
+        {
+          "lora_name": "semantic_intent_v1"
+        },
+        {
+          "lora_name": "swk_persona_v3"
+        }
+      ],
+      "errors": [
+        "lora_name: Field required"
+      ],
+      "usage_count": 75,
+      "source": "tool_docs_v1"
+    },
+    "update_workflow_node": {
+      "desc": "修改当前工作流的某个节点参数（参数 node_id + params）· 用户说\"改节点参数\"时用",
+      "params": [
+        {
+          "name": "name",
+          "type": "string",
+          "desc": "（真实调用出现过 4 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "config",
+          "type": "string",
+          "desc": "（真实调用出现过 9 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "id",
+          "type": "string",
+          "desc": "（真实调用出现过 3 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "node_id",
+          "type": "string",
+          "desc": "（真实调用出现过 8 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "desc": "（真实调用出现过 4 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "prompt",
+          "type": "string",
+          "desc": "（真实调用出现过 4 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "type",
+          "type": "string",
+          "desc": "（真实调用出现过 1 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "lora",
+          "type": "string",
+          "desc": "（真实调用出现过 1 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "provider",
+          "type": "string",
+          "desc": "（真实调用出现过 1 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "input_from",
+          "type": "string",
+          "desc": "（真实调用出现过 1 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "node_index",
+          "type": "string",
+          "desc": "（真实调用出现过 5 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "new_node",
+          "type": "string",
+          "desc": "（真实调用出现过 5 次 ✓）",
+          "required": false
+        }
+      ],
+      "examples": [],
+      "errors": [
+        "id 缺失"
+      ],
+      "usage_count": 17,
+      "source": "tool_docs_v1"
+    },
+    "use_workflow_config": {
+      "desc": "切换当前会话使用的工作流配置（参数 name）· 只影响当前会话 ✗ 不动文件数据",
+      "params": [
+        {
+          "name": "name",
+          "type": "string",
+          "desc": "（真实调用出现过 59 次 ✓）",
+          "required": false
+        }
+      ],
+      "examples": [
+        {
+          "name": "workflow_config_paper_edit_flow.json"
+        },
+        {
+          "name": "workflow_config_doc_flow_paper_edit_flow.json"
+        }
+      ],
+      "errors": [
+        "没有名为 'paper_edit_flow' 的配置，不切换。可选：workflow_config.json、workflow_config_fast_analyze_data.json。要新建用 create_workflow_config。",
+        "没有名为 'workflow_config_paper_edit_workflow_config_json' 的配置，不切换。可选：workflow_config.json、workflow_config_doc_flow_paper_edit_flow.json、workflow_config_fast_analyze_data.json、workflow_config_paper_edit_f",
+        "没有名为 'workflow_config_paper_edit_flow_new' 的配置，不切换。可选：workflow_config.json、workflow_config_doc_flow_paper_edit_flow.json、workflow_config_fast_analyze_data.json、workflow_config_paper_edit_flow.json、wor"
+      ],
+      "usage_count": 59,
+      "source": "tool_docs_v1"
+    },
+    "validate_workflow": {
+      "desc": "校验当前工作流配置是否合法（参数 name 可选）· 改完节点后应该调它确认",
+      "params": [
+        {
+          "name": "name",
+          "type": "string",
+          "desc": "（真实调用出现过 7 次 ✓）",
+          "required": false
+        },
+        {
+          "name": "config_names",
+          "type": "string",
+          "desc": "（真实调用出现过 2 次 ✓）",
+          "required": false
+        }
+      ],
+      "examples": [
+        {
+          "name": "workflow_config.json"
+        },
+        {
+          "name": "workflow_config_fast_analyze_data.json"
+        }
+      ],
+      "errors": [],
+      "usage_count": 15,
+      "source": "tool_docs_v1"
+    },
+    "write_docx": {
+      "desc": "写一个新的 Word 文档（参数 title ✓ paragraphs ✓ table 可选）· 只生成新文件 ✗ 不覆盖原件",
+      "params": [
+        {
+          "name": "paragraphs",
+          "type": "string",
+          "desc": "正文来源",
+          "required": true
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "desc": "输出文件名",
+          "required": true
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "desc": "文档标题",
+          "required": true
+        },
+        {
+          "name": "table",
+          "type": "string",
+          "desc": "表格数据",
+          "required": true
+        },
+        {
+          "name": "out_dir",
+          "type": "string",
+          "desc": "输出目录",
+          "required": true
+        },
+        {
+          "name": "filename",
+          "type": "string",
+          "desc": "（真实调用出现过 1 次 ✓）",
+          "required": false
+        }
+      ],
+      "examples": [
+        {
+          "paragraphs": "## 引言\n本文旨在探讨如何利用人工智能技术提高论文写作效率。\n\n## 方法\n我们采用了自然语言处理技术，通过机器学习模",
+          "name": "example_paper.docx",
+          "title": "示例论文",
+          "table": ""
+        },
+        {
+          "paragraphs": "这是一个示例论文。它将被用来演示如何使用编辑工作流进行修改。第一部分是引言。第二部分是方法。第三部分是结果。最后一部分是",
+          "name": "formatted_paper.docx",
+          "title": "格式化后的示例论文"
+        }
+      ],
+      "errors": [],
+      "usage_count": 33,
+      "source": "tool_docs_v1"
+    },
+    "write_sheet": {
+      "desc": "写一个新的 Excel（参数 name ✓ sheet ✓ rows ✓ header 可选）",
+      "params": [
+        {
+          "name": "rows",
+          "type": "string",
+          "desc": "数据来源",
+          "required": true
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "desc": "输出文件名",
+          "required": true
+        },
+        {
+          "name": "sheet",
+          "type": "string",
+          "desc": "工作表名",
+          "required": true
+        },
+        {
+          "name": "header",
+          "type": "string",
+          "desc": "表头",
+          "required": true
+        },
+        {
+          "name": "columns",
+          "type": "string",
+          "desc": "列名",
+          "required": true
+        },
+        {
+          "name": "out_dir",
+          "type": "string",
+          "desc": "输出目录",
+          "required": true
+        }
+      ],
+      "examples": [
+        {
+          "rows": "## 引言\n本文旨在探讨如何利用人工智能技术提高论文写作效率。\n\n## 方法\n我们采用了自然语言处理技术，通过机器学习模",
+          "name": "example_paper.docx",
+          "sheet": "Sheet1",
+          "header": "Title"
+        },
+        {
+          "rows": "标题：机器学习在自然语言处理中的应用\n\n摘要：本文旨在探讨机器学习技术如何应用于自然语言处理领域，提高文本理解和生成的能",
+          "name": "example_paper.txt",
+          "sheet": "example_paper",
+          "header": "段落"
+        }
+      ],
+      "errors": [],
+      "usage_count": 23,
+      "source": "tool_docs_v1"
+    },
+    "list_doc_flows": {
+      "desc": "列出已保存的文档流程（名字/说明/步骤数）· 用户问\"有哪些文档流程\"时调它",
+      "params": [],
+      "examples": [],
+      "errors": [],
+      "usage_count": 0,
+      "source": "tool_docs_v1"
+    },
+    "run_doc_flow": {
+      "desc": "运行一个文档流程（参数 name ✓ inputs 对象可选）· 用户说\"跑一下那个流程\"时用",
+      "params": [
+        {
+          "name": "name",
+          "type": "string",
+          "desc": "",
+          "required": true
+        },
+        {
+          "name": "inputs",
+          "type": "object",
+          "desc": "",
+          "required": true
+        }
+      ],
+      "examples": [],
+      "errors": [],
+      "usage_count": 0,
+      "source": "tool_docs_v1"
+    },
+    "save_doc_flow": {
+      "desc": "保存一个文档流程（参数 name ✓ steps 数组 ✓）· 步骤间可引用 {{steps.0.字段}}",
+      "params": [
+        {
+          "name": "name",
+          "type": "string",
+          "desc": "",
+          "required": true
+        },
+        {
+          "name": "steps",
+          "type": "array",
+          "desc": "",
+          "required": true
+        }
+      ],
+      "examples": [],
+      "errors": [],
+      "usage_count": 0,
+      "source": "tool_docs_v1"
+    },
+    "mount_knowledge_bases": {
+      "desc": "挂载知识库到当前会话（多个）· 用户说\"挂上我的资料库/用这几个库\"时用 · 端点 PUT /kb/mount",
+      "params": [
+        {
+          "name": "kb_names",
+          "type": "array",
+          "desc": "知识库名列表，如 [\"xiyouji\",\"learned_skills\"]",
+          "required": true
+        }
+      ],
+      "examples": [
+        "挂载 xiyouji 和 learned_skills",
+        "用我的资料库回答"
+      ],
+      "errors": []
+    },
+    "list_datasets": {
+      "desc": "列出可用的训练数据集（文件名 + 条数）· 训练前先看有哪些数据",
+      "params": [],
+      "examples": [
+        "有哪些训练集",
+        "数据集清单"
+      ],
+      "errors": []
+    },
+    "upload_dataset": {
+      "desc": "上传训练数据集（jsonl/json/csv）· 用户说\"用我的数据训练\"时用",
+      "params": [
+        {
+          "name": "filename",
+          "type": "string",
+          "desc": "目标文件名",
+          "required": true
+        },
+        {
+          "name": "content",
+          "type": "string",
+          "desc": "文件内容（jsonl 每行一条样本）",
+          "required": true
+        }
+      ],
+      "examples": [
+        "上传这个数据集",
+        "用我给的 jsonl 训练"
+      ],
+      "errors": []
+    },
+    "clean_dataset": {
+      "desc": "清洗训练数据集（去重 / 格式闸门 / 只留合格样本）· 训练前必做",
+      "params": [
+        {
+          "name": "dataset_file",
+          "type": "string",
+          "desc": "数据集文件名",
+          "required": true
+        },
+        {
+          "name": "mode",
+          "type": "string",
+          "desc": "clean / dedup / validate",
+          "required": false
+        }
+      ],
+      "examples": [
+        "清洗这个数据集",
+        "去掉不合格样本"
+      ],
+      "errors": []
+    },
+    "academic_search": {
+      "desc": "学术检索（OpenAlex + 中国科技论文在线）· 找论文/文献/研究时用 · 返回标题/年份/DOI/PDF 链接",
+      "params": [
+        {
+          "name": "query",
+          "type": "string",
+          "desc": "检索词，如 \"artificial general intelligence\"",
+          "required": true
+        },
+        {
+          "name": "limit",
+          "type": "number",
+          "desc": "返回条数，默认 6",
+          "required": false
+        }
+      ],
+      "examples": [
+        "找一篇关于 AGI 的文献",
+        "检索农业知识相关论文"
+      ],
+      "errors": []
+    },
+    "browser_open": {
+      "desc": "打开网页（浏览器自动化）· 直接给完整 URL，不要先开首页",
+      "params": [
+        {
+          "name": "url",
+          "type": "string",
+          "desc": "完整 URL",
+          "required": true
+        }
+      ],
+      "examples": [
+        "打开 https://www.baidu.com/s?wd=AGI"
+      ],
+      "errors": []
+    },
+    "browser_snapshot": {
+      "desc": "获取当前页面元素快照（ref 列表 + 正文）",
+      "params": [],
+      "examples": [
+        "看看这个页面有什么"
+      ],
+      "errors": []
+    },
+    "browser_screenshot": {
+      "desc": "截图当前页面 · 返回 url 字段，回答时用 ![说明](该url) 引用，禁止自写 base64",
+      "params": [],
+      "examples": [
+        "截个图给我看看"
+      ],
+      "errors": []
+    },
+    "browser_click": {
+      "desc": "点击页面元素（按 ref）",
+      "params": [
+        {
+          "name": "ref",
+          "type": "string",
+          "desc": "元素 ref，如 r1",
+          "required": true
+        }
+      ],
+      "examples": [
+        "点第一个链接"
+      ],
+      "errors": []
+    },
+    "browser_fill": {
+      "desc": "填写页面输入框（按 ref）",
+      "params": [
+        {
+          "name": "ref",
+          "type": "string",
+          "desc": "输入框 ref",
+          "required": true
+        },
+        {
+          "name": "text",
+          "type": "string",
+          "desc": "要填的内容",
+          "required": true
+        }
+      ],
+      "examples": [
+        "在搜索框填 AGI"
+      ],
+      "errors": []
+    },
+    "browser_read": {
+      "desc": "读取页面元素文本（按 ref）",
+      "params": [
+        {
+          "name": "ref",
+          "type": "string",
+          "desc": "元素 ref",
+          "required": true
+        }
+      ],
+      "examples": [
+        "读一下这段内容"
+      ],
+      "errors": []
+    },
+    "rebuild_knowledge_base": {
+      "desc": "重建知识库索引（改过切分/embedding 后必做）· 端点 POST /kb/{kb_name}/rebuild",
+      "params": [
+        {
+          "name": "kb_name",
+          "type": "string",
+          "desc": "知识库名",
+          "required": true
+        }
+      ],
+      "examples": [
+        "重建 xiyouji 的索引",
+        "知识库加完内容后重建"
+      ],
+      "errors": []
+    },
+    "physics_calc": {
+      "desc": "物理公式确定性计算 · 必须走这里 ✗ 禁止心算 · formula 可选: projectile_range/speed/acceleration/force/work/kinetic_energy/potential_energy/power/density/pressure/buoyancy/ohm/momentum/centripetal_acceleration/free_fall_time · **抛体射程用 speed 而非 v0**",
+      "params": [
+        {
+          "name": "formula",
+          "type": "string",
+          "desc": "公式名: projectile_range / free_fall_time / force / kinetic_energy / gravitational_potential",
+          "required": true
+        },
+        {
+          "name": "speed",
+          "type": "number",
+          "desc": "速度 m/s（抛体射程用它，不是 v0）",
+          "required": false
+        },
+        {
+          "name": "angle_deg",
+          "type": "number",
+          "desc": "抛射角 度（抛体）",
+          "required": false
+        },
+        {
+          "name": "mass",
+          "type": "number",
+          "desc": "质量 kg",
+          "required": false
+        },
+        {
+          "name": "height",
+          "type": "number",
+          "desc": "高度 m",
+          "required": false
+        },
+        {
+          "name": "acceleration",
+          "type": "number",
+          "desc": "加速度 m/s²",
+          "required": false
+        },
+        {
+          "name": "speed",
+          "type": "number",
+          "desc": "速度 m/s",
+          "required": false
+        }
+      ],
+      "examples": [
+        "以 speed=20 m/s、angle_deg=45 抛出，射程多少 → formula=projectile_range",
+        "质量2kg 加速度5，受力多少 → formula=force"
+      ],
+      "errors": []
+    }
+  }
+}

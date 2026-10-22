@@ -1,0 +1,132 @@
+{
+  "generated": "2026-10-21 19:27:01",
+  "judge": "LLM (local 7B) ⚠ 自我偏好偏差",
+  "rows": [
+    {
+      "arm": "clean",
+      "qid": "KB-001",
+      "type": "main_idea",
+      "pdf": "2610.03176v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论了训练语言模型（LMs）以对其不确定性进行推理的方法，特别是超越二元奖励的问题。具体来说，它探讨了如何使语言模型在处理不确定性时表现得更好，而不是仅仅依赖于二元奖励信号。",
+      "elapsed_s": 4.45,
+      "llm_score": 0.0,
+      "llm_raw": "0",
+      "llm_correct": false
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-001",
+      "type": "main_idea",
+      "pdf": "2610.03176v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料主要讨论语言模型（LLMs）的选择偏好和偏差，以及影响这些模型选择的因素，如答案位置、上下文线索、信息来源、权威性和社会证明等。此外，还提到了一些研究和方法，如CaRT（教LLM代理何时知道足够了）和MedCaseReasoning（从临床案例报告中评估和学习诊断推理），用于研究和改进LLMs的表现。",
+      "elapsed_s": 1.76,
+      "llm_score": 0.0,
+      "llm_raw": "0",
+      "llm_correct": false
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-002",
+      "type": "detail",
+      "pdf": "2610.03176v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "Shyama Prasad Mukherjee International Institute of Information Technology, Naya Raipur aarav24101@iiitnr.edu.in, animesh24100@iiitnr.edu.in, navyansh24102@iiitnr.edu.in Abstract We study hindsight-guid",
+      "elapsed_s": 1.55,
+      "llm_score": 1.0,
+      "llm_raw": "1",
+      "llm_correct": true
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-002",
+      "type": "detail",
+      "pdf": "2610.03176v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "Shyama Prasad Mukherjee International Institute of Information Technology, Naya Raipur aarav24101@iiitnr.edu.in, animesh24100@iiitnr.edu.in, navyansh24102@iiitnr.edu.in Abstract We study hindsight-guid",
+      "elapsed_s": 1.54,
+      "llm_score": 1.0,
+      "llm_raw": "1",
+      "llm_correct": true
+    },
+    {
+      "arm": "clean",
+      "qid": "KB-003",
+      "type": "detail",
+      "pdf": "2610.03176v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "Absolute accuracy remains low for all models—the task is hard at this scale—but within this ceiling a filtered variant (StudentF) achieves a small, statistically significant accuracy advantage over the base model.",
+      "elapsed_s": 0.86,
+      "llm_score": 0.5,
+      "llm_raw": "0.5",
+      "llm_correct": true
+    },
+    {
+      "arm": "raw",
+      "qid": "KB-003",
+      "type": "detail",
+      "pdf": "2610.03176v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "Absolute accuracy remains low for all models—the task is hard at this scale—but within this ceiling a filtered variant (StudentF) achieves a small, statistically significant accuracy advantage over the unfiltered variant (Student).",
+      "elapsed_s": 0.89,
+      "llm_score": 0.5,
+      "llm_raw": "0.5",
+      "llm_correct": true
+    }
+  ],
+  "summary": {
+    "clean": {
+      "n": 3,
+      "kw_acc": 0.6667,
+      "kw_ci": [
+        0.0,
+        1.0
+      ],
+      "llm_acc": 0.6667,
+      "llm_ci": [
+        0.0,
+        1.0
+      ],
+      "llm_avg_score": 0.5
+    },
+    "raw": {
+      "n": 3,
+      "kw_acc": 0.6667,
+      "kw_ci": [
+        0.0,
+        1.0
+      ],
+      "llm_acc": 0.6667,
+      "llm_ci": [
+        0.0,
+        1.0
+      ],
+      "llm_avg_score": 0.5
+    },
+    "paired_kw": {
+      "diff_pp": 0.0,
+      "ci": [
+        0.0,
+        0.0
+      ],
+      "p": 1.0,
+      "significant": false
+    },
+    "paired_llm": {
+      "diff_pp": 0.0,
+      "ci": [
+        0.0,
+        0.0
+      ],
+      "p": 1.0,
+      "significant": false
+    }
+  }
+}

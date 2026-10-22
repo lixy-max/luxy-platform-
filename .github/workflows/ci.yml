@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # ★ 门 1：卫生检查 —— **必须在跑测试之前**
+      #   历史教训：v4.9.7 首次 CI 把卫生检查排在单元测试之后，
+      #   测试会在 data/ 下写临时文件 ⇒ 卫生检查误报"运行产物不应提交" ✗
+      - name: 卫生检查（仓库快照，跑测试前）
+        run: |
+          set -e
+          for d in data chroma_db loras training_data uploads logs training_output outputs models; do
+            [ -d "$d" ] || continue
+            n=$(find "$d" -type f ! -name '.gitkeep' | wc -l)
+            if [ "$n" -gt 0 ]; then echo "✗ $d 含 $n 个文件（运行产物不应提交）"; exit 1; fi
+          done
+          n=$(find . -name '*.pyc' -not -path './.git/*' | wc -l)
+          if [ "$n" -gt 0 ]; then echo "✗ 有 $n 个 .pyc"; exit 1; fi
+          echo "✓ 卫生检查通过"
+
+      # ★ 门 2：全量语法（含根目录 27 个模块 —— 历史教训：只查 2 个文件时漏网过）
+      - name: 语法门（全量 compileall）
+        run: python -m compileall -q . && echo "✓ compileall OK"
+
+      # ★ 门 3：密钥扫描（不需要依赖，先跑省时间）
+      - name: 密钥扫描
+        run: bash scripts/check_no_secrets.sh
+
+      # ★ 门 4：安装依赖（CPU 版 torch，避免 2GB CUDA 轮子）
+      - name: 安装依赖
+        run: |
+          python -m pip install --upgrade pip
+          pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision 2>/dev/null || true
+          pip install -r requirements.txt \
+            || pip install fastapi uvicorn pydantic python-multipart requests \
+                           pypdf openpyxl python-docx pillow
+
+      # ★ 门 5：逐模块 import 冒烟（能抓 NameError / 缺 import 这类语法检查抓不到的）
+      - name: import 冒烟
+        run: |
+          python - <<'PY'
+          import pathlib, subprocess, sys
+          root = pathlib.Path('.')
+          files = sorted(root.glob('*.py'))
+          bad = []
+          for p in files:
+              r = subprocess.run([sys.executable, '-c', f'import {p.stem}'],
+                                 capture_output=True, text=True, timeout=120)
+              if r.returncode != 0:
+                  bad.append((p.name, (r.stderr or '').strip().split('\n')[-1]))
+          print(f'import 冒烟: {len(files) - len(bad)}/{len(files)} 通过')
+          for n, e in bad:
+              print(f'  ✗ {n}: {e}')
+          sys.exit(1 if bad else 0)
+          PY
+
+      # ★ 门 6：后端单元测试
+      #   · 不设 PYTHON：run_tests.sh 自动探测 .venv → ~/.venv → python3
+      #     （历史教训：写 PYTHON: python 在 ubuntu-latest 上不存在 ⇒ 直接失败）
+      #   · SKIP_FE_TESTS=1：前端 harness 面向 Windows/WSL 侧 node，
+      #     Linux 上缺 MutationObserver 等浏览器 API（详见 tests/frontend/README.md）
+      - name: 单元测试（后端 828）
+        timeout-minutes: 15
+        env:
+          SKIP_FE_TESTS: '1'
+        run: bash run_tests.sh

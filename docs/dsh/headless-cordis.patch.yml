@@ -1,0 +1,29 @@
+# headless profile 的补丁层（applied after every bundle layer ✓）
+#
+# 为什么在这里写（而不是在任务文本里）:
+#   实测: 把"WSL 文件别用 pwsh 访问"写在【任务前缀】里 → ACL 报错不降反升（25→39 次）✗
+#   因为它只是任务里的一段文字 ✓ 而这里是【系统提示层】✓✓ 优先级高得多 ✓
+#
+# 依据（146 条轨迹的实测）:
+#   · 空产出 7 条的共同模式: 第一步就调对了工具 ✓ 但【不满足 → 自己去深挖】✗
+#     read×12 / glob×8 / 自写 ps1 探测脚本 ✗ → 22~33 次调用 → 100s 超时 ✓
+#   · pwsh 访问 \\wsl.localhost\… → "Access is denied"（61 次 ✗）
+#   · 自作主张建探测知识库（r2_lora_fs_probe 等 ✗）污染环境 ✓
+- id: system-prompt
+  config:
+    personaSuffix: |
+      Your working directory is {{cwd}}.
+
+      ## 本机环境铁律（每次任务都必须遵守）
+      1. 文件分两侧：WSL 侧（/home/luxy/...、\\wsl.localhost\...）与 Windows 侧（E:\WSL、C:\...）。
+      2. 要读 WSL 里的文件，只能用 read / glob / grep。绝不要用 pwsh 去访问 WSL 路径 ——
+         那会被 ACL 拒绝（Access is denied）并让你反复重试，直到任务超时。
+      3. pwsh 只在确实需要执行命令时使用，它的 cwd 是 E:\WSL。
+      4. 工作台的能力优先用 paper_lora_* 工具，不要翻项目源码、快照目录或 openapi 去找答案。
+      5. 不要创建探测用的知识库、脚本或临时文件来"验证"结论。
+
+      ## 调用预算（硬约束）
+      6. 一个任务最多 12 次工具调用。超过就该给出结论，或者直接说明做不到。
+      7. 工具已经返回结果后，不要为了"再确认一下"而反复调用同一工具。信息不足就直接说明，
+         不要靠翻源码/写探测脚本去补。
+      8. 同一个工具失败两次就换思路；换不了就如实说明缺什么能力，不要硬撞。

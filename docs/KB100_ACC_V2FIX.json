@@ -1,0 +1,2044 @@
+{
+  "generated": "2026-10-21 19:47:40",
+  "questions": 100,
+  "model": "local 7B (Qwen2.5-7B-Instruct-AWQ)",
+  "judge": "keyword match (conservative)",
+  "arms": {
+    "clean": "ab_clean_v2",
+    "raw": "ab_raw_20261021"
+  },
+  "summary": {
+    "clean": {
+      "n": 100,
+      "acc": 0.38,
+      "ci": [
+        0.29,
+        0.48
+      ],
+      "chunks_avg": 3.0,
+      "elapsed_avg": 0.9
+    },
+    "raw": {
+      "n": 100,
+      "acc": 0.34,
+      "ci": [
+        0.25,
+        0.44
+      ],
+      "chunks_avg": 3.0,
+      "elapsed_avg": 0.3
+    },
+    "paired": {
+      "n": 100,
+      "diff_pp": 4.0,
+      "ci": [
+        1.0,
+        8.0
+      ],
+      "p": 0.0322,
+      "significant": true
+    }
+  },
+  "rows": [
+    {
+      "arm": "clean",
+      "qid": "KB2-001",
+      "type": "main_idea",
+      "pdf": "2610.03176v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及该论文具体研究的问题和主要贡献。材料仅提供了作者列表和部分引用信息，未包含论文的研究内容和成果。",
+      "elapsed_s": 6.1
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-001",
+      "type": "main_idea",
+      "pdf": "2610.03176v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及具体论文的研究问题和主要贡献。",
+      "elapsed_s": 0.31
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-002",
+      "type": "detail",
+      "pdf": "2610.03176v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "Absolute accuracy remains low for all models—the task is hard at this scale—but within this ceiling a filtered variant (StudentF) achieves a small, statistically significant accuracy advantage over the teacher (p<0.001), concentrated in better-represented diseases。",
+      "elapsed_s": 1.58
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-002",
+      "type": "detail",
+      "pdf": "2610.03176v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "p<0.001",
+      "elapsed_s": 0.17
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-003",
+      "type": "structure",
+      "pdf": "2610.03176v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "ZebraMap 是一个基于多模态数据构建的罕见疾病知识图谱，包含了1,727种Orphanet疾病和36,131篇PubMed病例报告文章（总共生成了69,146个标准化字段的患者级案例），以及98,038张相关临床图像。案例结构化遵循混合管道：基于规则的部分检测和重新整理。",
+      "elapsed_s": 2.03
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-003",
+      "type": "structure",
+      "pdf": "2610.03176v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "ZebraMap 是一个从 36,131 篇 PubMed 案例报告文章构建的多模态资源，包含 69,146 个患者级叙述和 98,038 张临床图像，覆盖 1,727 种罕见疾病。它提供了一个基于诊断推理的原则性测试床，用于研究不常见条件的诊断推理。",
+      "elapsed_s": 1.73
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-004",
+      "type": "main_idea",
+      "pdf": "2610.03190v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及该论文具体研究的问题和主要贡献。材料仅提供了作者列表和部分引用信息，未包含论文的研究内容和成果。",
+      "elapsed_s": 0.66
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-004",
+      "type": "main_idea",
+      "pdf": "2610.03190v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及具体论文的研究问题和主要贡献。",
+      "elapsed_s": 0.28
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-005",
+      "type": "detail",
+      "pdf": "2610.03190v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "This judgment does not come with capability: an untrained 9B model overstates its evidence in 97% of its answers, and a frontier model that identifies the right cause in 84% of cases still overstates in 91% and closes 17 of the 41 cases whose official finding is “cause undetermined”.",
+      "elapsed_s": 1.73
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-005",
+      "type": "detail",
+      "pdf": "2610.03190v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "97%",
+      "elapsed_s": 0.1
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-006",
+      "type": "detail",
+      "pdf": "2610.03190v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "83.0",
+      "elapsed_s": 0.57
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-006",
+      "type": "detail",
+      "pdf": "2610.03190v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "83.0",
+      "elapsed_s": 0.12
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-007",
+      "type": "structure",
+      "pdf": "2610.03190v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料未提及\"Accident\"的具体内容，仅在片段1中提到了\"small-aircraft takeoff accident\"（小型飞机起飞事故），但并未详细说明其含义或作用。",
+      "elapsed_s": 1.14
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-007",
+      "type": "structure",
+      "pdf": "2610.03190v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料未提及\"Accident\"这个词。",
+      "elapsed_s": 0.21
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-008",
+      "type": "main_idea",
+      "pdf": "2610.03195v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及该论文具体研究的问题和主要贡献。材料仅提供了作者列表和部分引用信息，未包含论文的研究内容和成果。",
+      "elapsed_s": 0.8
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-008",
+      "type": "main_idea",
+      "pdf": "2610.03195v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及具体论文的研究问题和主要贡献。",
+      "elapsed_s": 0.29
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-009",
+      "type": "detail",
+      "pdf": "2610.03195v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "12",
+      "elapsed_s": 0.55
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-009",
+      "type": "detail",
+      "pdf": "2610.03195v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "We study source preference in end-to-end search with 12 agent models across three domains。",
+      "elapsed_s": 0.43
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-010",
+      "type": "structure",
+      "pdf": "2610.03195v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料中提到的 \"Comparing\" 是指对每个要求匹配对在不同位置的表现进行比较。具体来说，对于每个要求匹配对中的两个项目i和j，在每个位置p上记录项目i是否被选择（在将i放置于p的位置的运行中），以及项目j是否被选择（在将j放置于p的位置的运行中）。这些结果形成了一种对比（定义见材料中的“Comparison”部分）。",
+      "elapsed_s": 2.33
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-010",
+      "type": "structure",
+      "pdf": "2610.03195v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料中提到的 \"Comparing\" 指的是比较来自不同来源但满足相同要求的项目，以评估每个来源的偏好，并将其分类为首选或不首选（§3）。具体来说，是在控制条件下比较不同来源的项目，以确定每个模型在各个领域更倾向于哪些来源并避免哪些来源。",
+      "elapsed_s": 1.31
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-011",
+      "type": "main_idea",
+      "pdf": "2610.03198v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及该论文具体研究的问题和主要贡献。材料仅提供了作者列表和部分引用信息，未包含论文的研究内容和成果。",
+      "elapsed_s": 0.71
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-011",
+      "type": "main_idea",
+      "pdf": "2610.03198v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及具体论文的研究问题和主要贡献。",
+      "elapsed_s": 0.25
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-012",
+      "type": "detail",
+      "pdf": "2610.03198v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 1.44
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-012",
+      "type": "detail",
+      "pdf": "2610.03198v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.1
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-013",
+      "type": "structure",
+      "pdf": "2610.03198v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料未提及\"Needle\"的相关信息。",
+      "elapsed_s": 0.68
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-013",
+      "type": "structure",
+      "pdf": "2610.03198v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及。",
+      "elapsed_s": 0.13
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-014",
+      "type": "main_idea",
+      "pdf": "2610.03215v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及该论文具体研究的问题和主要贡献。材料仅提供了作者列表和部分引用信息，未包含论文的研究内容和成果。",
+      "elapsed_s": 0.7
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-014",
+      "type": "main_idea",
+      "pdf": "2610.03215v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及具体论文的研究问题和主要贡献。",
+      "elapsed_s": 0.23
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-015",
+      "type": "detail",
+      "pdf": "2610.03215v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.84
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-015",
+      "type": "detail",
+      "pdf": "2610.03215v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.1
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-016",
+      "type": "structure",
+      "pdf": "2610.03215v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料未提及\"StanceEval\"的相关信息。",
+      "elapsed_s": 0.74
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-016",
+      "type": "structure",
+      "pdf": "2610.03215v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料未提及\"StanceEval\"的相关信息。",
+      "elapsed_s": 0.27
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-017",
+      "type": "main_idea",
+      "pdf": "2610.03223v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及该论文具体研究的问题和主要贡献。材料仅提供了作者列表和部分引用信息，未包含论文的研究内容和成果。",
+      "elapsed_s": 0.96
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-017",
+      "type": "main_idea",
+      "pdf": "2610.03223v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及具体论文的研究问题和主要贡献。",
+      "elapsed_s": 0.29
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-018",
+      "type": "structure",
+      "pdf": "2610.03223v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料未提及 \"AdaStep\"。",
+      "elapsed_s": 0.7
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-018",
+      "type": "structure",
+      "pdf": "2610.03223v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料未提及 \"AdaStep\"。",
+      "elapsed_s": 0.27
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-019",
+      "type": "main_idea",
+      "pdf": "2610.03324v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及该论文具体研究的问题和主要贡献。材料仅提供了作者列表和部分引用信息，未包含论文的研究内容和成果。",
+      "elapsed_s": 0.77
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-019",
+      "type": "main_idea",
+      "pdf": "2610.03324v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及具体论文的研究问题和主要贡献。",
+      "elapsed_s": 0.25
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-020",
+      "type": "detail",
+      "pdf": "2610.03324v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.65
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-020",
+      "type": "detail",
+      "pdf": "2610.03324v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.14
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-021",
+      "type": "detail",
+      "pdf": "2610.03324v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及。",
+      "elapsed_s": 1.13
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-021",
+      "type": "detail",
+      "pdf": "2610.03324v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.12
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-022",
+      "type": "structure",
+      "pdf": "2610.03324v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料中提到的 \"Language\" 指的是自然语言，具体表现为大型语言模型（LLMs）处理和生成文本的能力。这些模型被用于各种任务，如对话系统、文本生成、机器翻译等。材料还讨论了通过强化学习等方式增强这些模型的推理能力，以及它们在辅助生成中的角色。",
+      "elapsed_s": 2.0
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-022",
+      "type": "structure",
+      "pdf": "2610.03324v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料中的 \"Language\" 指的是自然语言，具体涉及自然语言处理（Natural Language Processing, NLP）的相关研究和技术应用。这些研究包括开发能够理解、生成和推理自然语言的大型语言模型，以及评估这些模型在特定任务上的表现。",
+      "elapsed_s": 1.21
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-023",
+      "type": "main_idea",
+      "pdf": "2610.03329v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及该论文具体研究的问题和主要贡献。材料仅提供了作者列表和部分引用信息，未包含论文的研究内容和成果。",
+      "elapsed_s": 0.71
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-023",
+      "type": "main_idea",
+      "pdf": "2610.03329v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及具体论文的研究问题和主要贡献。",
+      "elapsed_s": 0.29
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-024",
+      "type": "detail",
+      "pdf": "2610.03329v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "index_to_span documents are drawn from the same 400–500 word band and are not character-length matched.",
+      "elapsed_s": 1.35
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-024",
+      "type": "detail",
+      "pdf": "2610.03329v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.12
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-025",
+      "type": "detail",
+      "pdf": "2610.03329v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.84
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-025",
+      "type": "detail",
+      "pdf": "2610.03329v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.12
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-026",
+      "type": "structure",
+      "pdf": "2610.03329v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料未提及\"English\"的具体含义或作用。",
+      "elapsed_s": 0.86
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-026",
+      "type": "structure",
+      "pdf": "2610.03329v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料未提及\"English\"的具体内容。",
+      "elapsed_s": 0.28
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-027",
+      "type": "main_idea",
+      "pdf": "2610.03423v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及该论文具体研究的问题和主要贡献。材料仅提供了作者列表和部分引用信息，未包含论文的研究内容和成果。",
+      "elapsed_s": 0.69
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-027",
+      "type": "main_idea",
+      "pdf": "2610.03423v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及具体论文的研究问题和主要贡献。",
+      "elapsed_s": 0.24
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-028",
+      "type": "structure",
+      "pdf": "2610.03423v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料中提到的 \"Reinforcement\" 主要与强化学习有关，具体体现在通过强化学习来激励语言模型进行推理（如DeepSeekMath）和搜索能力（如R1-Searcher）。此外，还提到了通过强化微调来量化和减轻语言模型幻觉的影响（如The hallucination tax of reinforcement finetuning）。因此，\"Reinforcement\" 在这里指的是使用强化学习方法来训练和改进语言模型的能力。",
+      "elapsed_s": 2.41
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-028",
+      "type": "structure",
+      "pdf": "2610.03423v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料未提及 \"Reinforcement\" 的具体含义或作用。",
+      "elapsed_s": 0.33
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-029",
+      "type": "main_idea",
+      "pdf": "2610.03436v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及该论文具体研究的问题和主要贡献。材料仅提供了作者列表和部分引用信息，未包含论文的研究内容和成果。",
+      "elapsed_s": 0.67
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-029",
+      "type": "main_idea",
+      "pdf": "2610.03436v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及具体论文的研究问题和主要贡献。",
+      "elapsed_s": 0.29
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-030",
+      "type": "detail",
+      "pdf": "2610.03436v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "Against frame-rate-matched ground truth, DiffPoseTalk, ARTalk and FaceFormer show clear deficits, equivalent on this measure to removing **60%**–60% of real speech’s fast articulatory component.",
+      "elapsed_s": 1.78
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-030",
+      "type": "detail",
+      "pdf": "2610.03436v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.2
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-031",
+      "type": "detail",
+      "pdf": "2610.03436v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.85
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-031",
+      "type": "detail",
+      "pdf": "2610.03436v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.13
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-032",
+      "type": "structure",
+      "pdf": "2610.03436v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料未提及\"Against\"的具体含义或作用。",
+      "elapsed_s": 0.78
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-032",
+      "type": "structure",
+      "pdf": "2610.03436v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料未提及\"Against\"的具体含义或作用。",
+      "elapsed_s": 0.29
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-033",
+      "type": "main_idea",
+      "pdf": "2610.03441v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及该论文具体研究的问题和主要贡献。材料仅提供了作者列表和部分引用信息，未包含论文的研究内容和成果。",
+      "elapsed_s": 0.79
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-033",
+      "type": "main_idea",
+      "pdf": "2610.03441v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及具体论文的研究问题和主要贡献。",
+      "elapsed_s": 0.25
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-034",
+      "type": "structure",
+      "pdf": "2610.03441v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料未提及 \"ChromaGS\"。",
+      "elapsed_s": 0.73
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-034",
+      "type": "structure",
+      "pdf": "2610.03441v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料未提及 \"ChromaGS\"。",
+      "elapsed_s": 0.27
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-035",
+      "type": "main_idea",
+      "pdf": "2610.03448v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及该论文具体研究的问题和主要贡献。材料仅提供了作者列表和部分引用信息，未包含论文的研究内容和成果。",
+      "elapsed_s": 0.65
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-035",
+      "type": "main_idea",
+      "pdf": "2610.03448v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及具体论文的研究问题和主要贡献。",
+      "elapsed_s": 0.24
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-036",
+      "type": "detail",
+      "pdf": "2610.03448v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.83
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-036",
+      "type": "detail",
+      "pdf": "2610.03448v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.16
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-037",
+      "type": "structure",
+      "pdf": "2610.03448v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料未提及 \"AgentDojo\"。",
+      "elapsed_s": 0.56
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-037",
+      "type": "structure",
+      "pdf": "2610.03448v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料未提及\"AgentDojo\"。",
+      "elapsed_s": 0.23
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-038",
+      "type": "main_idea",
+      "pdf": "2610.03453v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及该论文具体研究的问题和主要贡献。材料仅提供了作者列表和部分引用信息，未包含论文的研究内容和成果。",
+      "elapsed_s": 0.69
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-038",
+      "type": "main_idea",
+      "pdf": "2610.03453v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及具体论文的研究问题和主要贡献。",
+      "elapsed_s": 0.28
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-039",
+      "type": "detail",
+      "pdf": "2610.03453v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.93
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-039",
+      "type": "detail",
+      "pdf": "2610.03453v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.13
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-040",
+      "type": "detail",
+      "pdf": "2610.03453v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.8
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-040",
+      "type": "detail",
+      "pdf": "2610.03453v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.12
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-041",
+      "type": "structure",
+      "pdf": "2610.03453v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料未提及 \"Physics\" 的内容。",
+      "elapsed_s": 0.59
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-041",
+      "type": "structure",
+      "pdf": "2610.03453v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料未提及 \"Physics\" 的含义或作用。",
+      "elapsed_s": 0.3
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-042",
+      "type": "main_idea",
+      "pdf": "2610.03474v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及该论文具体研究的问题和主要贡献。材料仅提供了作者列表和部分引用信息，未包含论文的研究内容和成果。",
+      "elapsed_s": 0.72
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-042",
+      "type": "main_idea",
+      "pdf": "2610.03474v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及具体论文的研究问题和主要贡献。",
+      "elapsed_s": 0.27
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-043",
+      "type": "detail",
+      "pdf": "2610.03474v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.72
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-043",
+      "type": "detail",
+      "pdf": "2610.03474v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.11
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-044",
+      "type": "structure",
+      "pdf": "2610.03474v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料未提及\"federated\"的相关信息。",
+      "elapsed_s": 0.61
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-044",
+      "type": "structure",
+      "pdf": "2610.03474v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料未提及\"federated\"的相关信息。",
+      "elapsed_s": 0.23
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-045",
+      "type": "main_idea",
+      "pdf": "2610.03509v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及该论文具体研究的问题和主要贡献。材料仅提供了作者列表和部分引用信息，未包含论文的研究内容和成果。",
+      "elapsed_s": 0.8
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-045",
+      "type": "main_idea",
+      "pdf": "2610.03509v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及具体论文的研究问题和主要贡献。",
+      "elapsed_s": 0.27
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-046",
+      "type": "structure",
+      "pdf": "2610.03509v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料未提及 \"However\" 的内容。",
+      "elapsed_s": 0.71
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-046",
+      "type": "structure",
+      "pdf": "2610.03509v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料中的 \"However\" 用于转折，表示前后内容形成对比或对立关系。具体来说，在【片段1】中，它用来指出尽管每个来源与其他来源的混合不同，使得直接比较选择率变得困难，但通过使用Bradley-Terry模型可以估算出每个来源的评分，从而克服这一问题。在【片段2】中，它用来指出尽管存在统计聚类，但严格交换性并不成立。这些用法都体现了\"However\"的转折作用。",
+      "elapsed_s": 2.28
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-047",
+      "type": "main_idea",
+      "pdf": "2610.03515v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及该论文具体研究的问题和主要贡献。材料仅提供了作者列表和部分引用信息，未包含论文的研究内容和成果。",
+      "elapsed_s": 0.74
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-047",
+      "type": "main_idea",
+      "pdf": "2610.03515v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及具体论文的研究问题和主要贡献。",
+      "elapsed_s": 0.3
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-048",
+      "type": "structure",
+      "pdf": "2610.03515v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料未提及 \"However\" 的内容。",
+      "elapsed_s": 0.3
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-048",
+      "type": "structure",
+      "pdf": "2610.03515v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料中的 \"However\" 用于转折，表示前后内容形成对比或对立关系。具体来说，在【片段1】中，它用来指出尽管每个来源与其他来源的混合不同，使得直接比较选择率变得困难，但通过使用Bradley-Terry模型可以估算出每个来源的评分，从而克服这一问题。在【片段2】中，它用来指出尽管存在统计聚类，但严格交换性并不成立。这些用法都体现了\"However\"的转折作用。",
+      "elapsed_s": 2.16
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-049",
+      "type": "main_idea",
+      "pdf": "2610.03522v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及该论文具体研究的问题和主要贡献。材料仅提供了作者列表和部分引用信息，未包含论文的研究内容和成果。",
+      "elapsed_s": 0.7
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-049",
+      "type": "main_idea",
+      "pdf": "2610.03522v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及具体论文的研究问题和主要贡献。",
+      "elapsed_s": 0.27
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-050",
+      "type": "structure",
+      "pdf": "2610.03522v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料未提及\"Camera\"的相关信息。",
+      "elapsed_s": 0.58
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-050",
+      "type": "structure",
+      "pdf": "2610.03522v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料未提及\"Camera\"的相关信息。",
+      "elapsed_s": 0.31
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-051",
+      "type": "main_idea",
+      "pdf": "2610.03524v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及该论文具体研究的问题和主要贡献。材料仅提供了作者列表和部分引用信息，未包含论文的研究内容和成果。",
+      "elapsed_s": 0.87
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-051",
+      "type": "main_idea",
+      "pdf": "2610.03524v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及具体论文的研究问题和主要贡献。",
+      "elapsed_s": 0.29
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-052",
+      "type": "detail",
+      "pdf": "2610.03524v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.51
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-052",
+      "type": "detail",
+      "pdf": "2610.03524v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.13
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-053",
+      "type": "detail",
+      "pdf": "2610.03524v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.62
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-053",
+      "type": "detail",
+      "pdf": "2610.03524v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.12
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-054",
+      "type": "structure",
+      "pdf": "2610.03524v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料未提及\"General\"的具体内容。",
+      "elapsed_s": 0.69
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-054",
+      "type": "structure",
+      "pdf": "2610.03524v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料中的 \"General\" 是指一种系统提示指令，其内容为：“The tagged source URL has no relation whatsoever to the product’s price.”（标记的来源URL与产品的价格毫无关系。）这一指令用于控制代理在信息缺失时对来源的假设。",
+      "elapsed_s": 1.21
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-055",
+      "type": "main_idea",
+      "pdf": "2610.03525v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及该论文具体研究的问题和主要贡献。材料仅提供了作者列表和部分引用信息，未包含论文的研究内容和成果。",
+      "elapsed_s": 0.78
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-055",
+      "type": "main_idea",
+      "pdf": "2610.03525v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及具体论文的研究问题和主要贡献。",
+      "elapsed_s": 0.28
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-056",
+      "type": "structure",
+      "pdf": "2610.03525v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料未提及 \"Existing\" 的内容。",
+      "elapsed_s": 0.43
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-056",
+      "type": "structure",
+      "pdf": "2610.03525v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料未提及 \"Existing\" 的内容。",
+      "elapsed_s": 0.27
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-057",
+      "type": "main_idea",
+      "pdf": "2610.03531v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及该论文具体研究的问题和主要贡献。材料仅提供了作者列表和部分引用信息，未包含论文的研究内容和成果。",
+      "elapsed_s": 0.71
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-057",
+      "type": "main_idea",
+      "pdf": "2610.03531v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及具体论文的研究问题和主要贡献。",
+      "elapsed_s": 0.26
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-058",
+      "type": "structure",
+      "pdf": "2610.03531v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料未提及\"Authorship\"的具体定义或作用。根据片段1的内容，作者们对AI建议的假设和方法论选择进行了批判性评估并最终确定，所有由AI生成的代码都由作者审核和测试以确保正确性，所有AI辅助的翻译都由作者审查，所有AI辅助的定性分析和结果解释都与底层数据进行验证。这表明作者们对整个研究过程负责，但并未直接定义“Authorship”。",
+      "elapsed_s": 2.12
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-058",
+      "type": "structure",
+      "pdf": "2610.03531v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料未提及\"Authorship\"的具体定义或作用。",
+      "elapsed_s": 0.26
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-059",
+      "type": "main_idea",
+      "pdf": "2610.03543v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及该论文具体研究的问题和主要贡献。材料仅提供了作者列表和部分引用信息，未包含论文的研究内容和成果。",
+      "elapsed_s": 0.7
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-059",
+      "type": "main_idea",
+      "pdf": "2610.03543v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及具体论文的研究问题和主要贡献。",
+      "elapsed_s": 0.24
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-060",
+      "type": "detail",
+      "pdf": "2610.03543v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及具体数值。",
+      "elapsed_s": 0.88
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-060",
+      "type": "detail",
+      "pdf": "2610.03543v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.1
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-061",
+      "type": "detail",
+      "pdf": "2610.03543v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.69
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-061",
+      "type": "detail",
+      "pdf": "2610.03543v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.13
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-062",
+      "type": "structure",
+      "pdf": "2610.03543v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料未提及\"Streaming\"的相关信息。",
+      "elapsed_s": 0.59
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-062",
+      "type": "structure",
+      "pdf": "2610.03543v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料未提及\"Streaming\"的具体含义或作用。",
+      "elapsed_s": 0.24
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-063",
+      "type": "main_idea",
+      "pdf": "2610.03558v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及该论文具体研究的问题和主要贡献。材料仅提供了作者列表和部分引用信息，未包含论文的研究内容和成果。",
+      "elapsed_s": 0.76
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-063",
+      "type": "main_idea",
+      "pdf": "2610.03558v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及具体论文的研究问题和主要贡献。",
+      "elapsed_s": 0.28
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-064",
+      "type": "detail",
+      "pdf": "2610.03558v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及。",
+      "elapsed_s": 0.6
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-064",
+      "type": "detail",
+      "pdf": "2610.03558v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.13
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-065",
+      "type": "structure",
+      "pdf": "2610.03558v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料未提及\"Cephalonauts\"。",
+      "elapsed_s": 0.66
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-065",
+      "type": "structure",
+      "pdf": "2610.03558v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料未提及\"Cephalonauts\"。",
+      "elapsed_s": 0.26
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-066",
+      "type": "main_idea",
+      "pdf": "2610.03567v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及该论文具体研究的问题和主要贡献。材料仅提供了作者列表和部分引用信息，未包含论文的研究内容和成果。",
+      "elapsed_s": 0.73
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-066",
+      "type": "main_idea",
+      "pdf": "2610.03567v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及具体论文的研究问题和主要贡献。",
+      "elapsed_s": 0.28
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-067",
+      "type": "detail",
+      "pdf": "2610.03567v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.57
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-067",
+      "type": "detail",
+      "pdf": "2610.03567v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.1
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-068",
+      "type": "structure",
+      "pdf": "2610.03567v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料未提及\"Writerslogic\"。",
+      "elapsed_s": 0.79
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-068",
+      "type": "structure",
+      "pdf": "2610.03567v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料未提及\"Writerslogic\"的相关信息。",
+      "elapsed_s": 0.25
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-069",
+      "type": "main_idea",
+      "pdf": "2610.03570v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及该论文具体研究的问题和主要贡献。材料仅提供了作者列表和部分引用信息，未包含论文的研究内容和成果。",
+      "elapsed_s": 0.73
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-069",
+      "type": "main_idea",
+      "pdf": "2610.03570v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及具体论文的研究问题和主要贡献。",
+      "elapsed_s": 0.3
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-070",
+      "type": "detail",
+      "pdf": "2610.03570v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.69
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-070",
+      "type": "detail",
+      "pdf": "2610.03570v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.12
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-071",
+      "type": "detail",
+      "pdf": "2610.03570v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.73
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-071",
+      "type": "detail",
+      "pdf": "2610.03570v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.1
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-072",
+      "type": "structure",
+      "pdf": "2610.03570v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及。",
+      "elapsed_s": 0.47
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-072",
+      "type": "structure",
+      "pdf": "2610.03570v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及。",
+      "elapsed_s": 0.14
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-073",
+      "type": "main_idea",
+      "pdf": "2610.03574v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及该论文具体研究的问题和主要贡献。材料仅提供了作者列表和部分引用信息，未包含论文的研究内容和成果。",
+      "elapsed_s": 0.66
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-073",
+      "type": "main_idea",
+      "pdf": "2610.03574v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及具体论文的研究问题和主要贡献。",
+      "elapsed_s": 0.27
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-074",
+      "type": "detail",
+      "pdf": "2610.03574v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.8
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-074",
+      "type": "detail",
+      "pdf": "2610.03574v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.26
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-075",
+      "type": "structure",
+      "pdf": "2610.03574v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料未提及 \"HYPERBROWSECOMP\"。",
+      "elapsed_s": 0.73
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-075",
+      "type": "structure",
+      "pdf": "2610.03574v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料未提及 \"HYPERBROWSECOMP\"。",
+      "elapsed_s": 0.41
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-076",
+      "type": "main_idea",
+      "pdf": "2610.03591v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及该论文具体研究的问题和主要贡献。材料仅提供了作者列表和部分引用信息，未包含论文的研究内容和成果。",
+      "elapsed_s": 0.67
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-076",
+      "type": "main_idea",
+      "pdf": "2610.03591v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及具体论文的研究问题和主要贡献。",
+      "elapsed_s": 0.25
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-077",
+      "type": "detail",
+      "pdf": "2610.03591v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.64
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-077",
+      "type": "detail",
+      "pdf": "2610.03591v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.3
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-078",
+      "type": "structure",
+      "pdf": "2610.03591v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料未提及\"Understanding\"的具体内容或含义。",
+      "elapsed_s": 0.53
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-078",
+      "type": "structure",
+      "pdf": "2610.03591v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料未提及\"Understanding\"的具体内容或作用。",
+      "elapsed_s": 0.53
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-079",
+      "type": "main_idea",
+      "pdf": "2610.03620v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及该论文具体研究的问题和主要贡献。材料仅提供了作者列表和部分引用信息，未包含论文的研究内容和成果。",
+      "elapsed_s": 0.74
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-079",
+      "type": "main_idea",
+      "pdf": "2610.03620v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及具体论文的研究问题和主要贡献。",
+      "elapsed_s": 0.26
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-080",
+      "type": "detail",
+      "pdf": "2610.03620v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.72
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-080",
+      "type": "detail",
+      "pdf": "2610.03620v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.32
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-081",
+      "type": "structure",
+      "pdf": "2610.03620v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料未提及\"Online\"的具体内容，无法说明其含义或作用。",
+      "elapsed_s": 0.92
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-081",
+      "type": "structure",
+      "pdf": "2610.03620v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料未提及\"Online\"的具体含义或作用。",
+      "elapsed_s": 0.49
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-082",
+      "type": "main_idea",
+      "pdf": "2610.03626v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及该论文具体研究的问题和主要贡献。材料仅提供了作者列表和部分引用信息，未包含论文的研究内容和成果。",
+      "elapsed_s": 0.81
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-082",
+      "type": "main_idea",
+      "pdf": "2610.03626v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及具体论文的研究问题和主要贡献。",
+      "elapsed_s": 0.27
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-083",
+      "type": "detail",
+      "pdf": "2610.03626v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.52
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-083",
+      "type": "detail",
+      "pdf": "2610.03626v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.3
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-084",
+      "type": "structure",
+      "pdf": "2610.03626v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料未提及 \"MeanFlow\"。",
+      "elapsed_s": 0.86
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-084",
+      "type": "structure",
+      "pdf": "2610.03626v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料未提及 \"MeanFlow\" 的内容。",
+      "elapsed_s": 0.41
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-085",
+      "type": "main_idea",
+      "pdf": "2610.03634v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及该论文具体研究的问题和主要贡献。材料仅提供了作者列表和部分引用信息，未包含论文的研究内容和成果。",
+      "elapsed_s": 0.72
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-085",
+      "type": "main_idea",
+      "pdf": "2610.03634v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及具体论文的研究问题和主要贡献。",
+      "elapsed_s": 0.27
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-086",
+      "type": "structure",
+      "pdf": "2610.03634v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料未提及\"Terminal\"的含义或作用。",
+      "elapsed_s": 0.62
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-086",
+      "type": "structure",
+      "pdf": "2610.03634v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及。",
+      "elapsed_s": 0.28
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-087",
+      "type": "main_idea",
+      "pdf": "2610.03662v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及该论文具体研究的问题和主要贡献。材料仅提供了作者列表和部分引用信息，未包含论文的研究内容和成果。",
+      "elapsed_s": 0.68
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-087",
+      "type": "main_idea",
+      "pdf": "2610.03662v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及具体论文的研究问题和主要贡献。",
+      "elapsed_s": 0.25
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-088",
+      "type": "detail",
+      "pdf": "2610.03662v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.74
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-088",
+      "type": "detail",
+      "pdf": "2610.03662v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.38
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-089",
+      "type": "detail",
+      "pdf": "2610.03662v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.79
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-089",
+      "type": "detail",
+      "pdf": "2610.03662v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.28
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-090",
+      "type": "structure",
+      "pdf": "2610.03662v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料未提及\"Deploying\"的相关信息。",
+      "elapsed_s": 0.64
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-090",
+      "type": "structure",
+      "pdf": "2610.03662v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料未提及\"Deploying\"的相关信息。",
+      "elapsed_s": 0.49
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-091",
+      "type": "main_idea",
+      "pdf": "2610.03679v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及该论文具体研究的问题和主要贡献。材料仅提供了作者列表和部分引用信息，未包含论文的研究内容和成果。",
+      "elapsed_s": 0.72
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-091",
+      "type": "main_idea",
+      "pdf": "2610.03679v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及具体论文的研究问题和主要贡献。",
+      "elapsed_s": 0.25
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-092",
+      "type": "detail",
+      "pdf": "2610.03679v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 1.02
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-092",
+      "type": "detail",
+      "pdf": "2610.03679v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.48
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-093",
+      "type": "structure",
+      "pdf": "2610.03679v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料未提及\"Reconstructing\"的相关信息。",
+      "elapsed_s": 1.17
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-093",
+      "type": "structure",
+      "pdf": "2610.03679v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料未提及\"Reconstructing\"的相关信息。",
+      "elapsed_s": 0.44
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-094",
+      "type": "main_idea",
+      "pdf": "2610.03702v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及该论文具体研究的问题和主要贡献。材料仅提供了作者列表和部分引用信息，未包含论文的研究内容和成果。",
+      "elapsed_s": 0.69
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-094",
+      "type": "main_idea",
+      "pdf": "2610.03702v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及具体论文的研究问题和主要贡献。",
+      "elapsed_s": 0.24
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-095",
+      "type": "detail",
+      "pdf": "2610.03702v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "1 Training data Pool Query 2 Feature extraction LESS features Output layer Body layers LESSER features 3 Rank and select Similarity scores 1 2 3 LESSER feature-extraction FLOP reduction 0× 2× 4× 6× 8× 10×1× 1.5× SFT (vs.",
+      "elapsed_s": 2.39
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-095",
+      "type": "detail",
+      "pdf": "2610.03702v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "1× 12× 3.0×",
+      "elapsed_s": 0.6
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-096",
+      "type": "structure",
+      "pdf": "2610.03702v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料未提及 \"Gradient\" 的内容。",
+      "elapsed_s": 0.74
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-096",
+      "type": "structure",
+      "pdf": "2610.03702v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及。",
+      "elapsed_s": 0.36
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-097",
+      "type": "main_idea",
+      "pdf": "2610.03715v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及该论文具体研究的问题和主要贡献。材料仅提供了作者列表和部分引用信息，未包含论文的研究内容和成果。",
+      "elapsed_s": 0.67
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-097",
+      "type": "main_idea",
+      "pdf": "2610.03715v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及具体论文的研究问题和主要贡献。",
+      "elapsed_s": 0.25
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-098",
+      "type": "detail",
+      "pdf": "2610.03715v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "Given an input video, an agent must reconstruct it as an explicit 4D scene by writing graphics code; the scene is rendered back to video and its geometry is inspected over time. Bottom: we benchmark 18 models on 28 real and 100 synthetic scenes.",
+      "elapsed_s": 1.82
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-098",
+      "type": "detail",
+      "pdf": "2610.03715v1",
+      "correct": false,
+      "n_chunks": 3,
+      "answer": "材料未提及",
+      "elapsed_s": 0.39
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-099",
+      "type": "structure",
+      "pdf": "2610.03715v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料未提及\"Bottom\"的相关信息。",
+      "elapsed_s": 0.85
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-099",
+      "type": "structure",
+      "pdf": "2610.03715v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "材料未提及\"Bottom\"的相关信息。",
+      "elapsed_s": 0.44
+    },
+    {
+      "arm": "clean",
+      "qid": "KB2-100",
+      "type": "detail",
+      "pdf": "2610.03176v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "Absolute accuracy remains low for all models—the task is hard at this scale—but within this ceiling a filtered variant (StudentF) achieves a small, statistically significant accuracy advantage over the teacher (p<0.001), concentrated in better-represented diseases。",
+      "elapsed_s": 1.29
+    },
+    {
+      "arm": "raw",
+      "qid": "KB2-100",
+      "type": "detail",
+      "pdf": "2610.03176v1",
+      "correct": true,
+      "n_chunks": 3,
+      "answer": "p<0.001",
+      "elapsed_s": 0.23
+    }
+  ]
+}

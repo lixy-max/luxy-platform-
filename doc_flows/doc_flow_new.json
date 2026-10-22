@@ -1,0 +1,15 @@
+{
+  "name": "新建文档流程",
+  "description": "",
+  "steps": [
+    {
+      "tool": "read_sheet",
+      "args": {
+        "filename": "{{file}}",
+        "rows": 5
+      },
+      "x": 0,
+      "y": 10
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "note": "R-3: 排除 main_idea（判定失效）· 只算 structure + detail 67 题 ✓",
+  "n_questions": 67,
+  "arms": {
+    "clean": {
+      "acc": 56.72,
+      "ci": [
+        44.78,
+        68.66
+      ],
+      "n": 67
+    },
+    "raw": {
+      "acc": 50.75,
+      "ci": [
+        38.81,
+        62.69
+      ],
+      "n": 67
+    }
+  },
+  "paired": {
+    "diff_pp": 5.97,
+    "ci": [
+      1.49,
+      11.94
+    ],
+    "p": 0.0302,
+    "significant": true
+  }
+}

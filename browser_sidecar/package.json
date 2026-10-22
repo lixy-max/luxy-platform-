@@ -1,0 +1,17 @@
+{
+  "name": "ds-browser-sidecar",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "浏览器自动化 sidecar（Node + playwright-core ✓ 运行在 Windows ✓）",
+  "scripts": {
+    "start": "node server.mjs",
+    "selftest": "node server.mjs --selftest"
+  },
+  "dependencies": {
+    "playwright-core": "1.64.1"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

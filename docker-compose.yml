@@ -1,0 +1,48 @@
+# 用法：
+#   docker compose up -d --build
+#   docker compose logs -f
+# 访问 http://127.0.0.1:8080/index3.html
+#
+# GPU（可选）：把 vLLM 放在宿主机或另一个容器，然后把 VLLM_CHAT_API 指过去。
+services:
+  luxy:
+    build: .
+    image: luxy-platform:latest
+    container_name: luxy-platform
+    ports:
+      - "127.0.0.1:8001:8001"   # ★ 只绑本机；平台无鉴权，勿暴露公网
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - ./data:/app/data
+      - ./chroma_db:/app/chroma_db
+      - ./loras:/app/loras
+      - ./training_data:/app/training_data
+      - ./uploads:/app/uploads
+      - ./logs:/app/logs
+      - ./models:/app/models            # 底座模型（可选，体积大）
+      - ./settings.json:/app/settings.json:ro   # 可选：自己的配置
+    environment:
+      - BACKEND_PORT=8001
+      - WEB_PORT=8080
+      - GPU_MODE=auto
+      # 密钥用环境变量注入，不要写进 compose 文件提交到 git
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      # 若 vLLM 跑在宿主机：
+      # - VLLM_CHAT_API=http://host.docker.internal:8000/v1/chat/completions
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8001/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+
+# 需要 GPU 时取消注释（需安装 nvidia-container-toolkit）
+#    deploy:
+#      resources:
+#        reservations:
+#          devices:
+#            - driver: nvidia
+#              count: all
+#              capabilities: [gpu]

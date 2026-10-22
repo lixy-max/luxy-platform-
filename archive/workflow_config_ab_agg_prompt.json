@@ -1,0 +1,167 @@
+{
+  "workflow_name": "AB2-处理A-汇总指令",
+  "nodes": [
+    {
+      "id": "input_paper",
+      "type": "input",
+      "description": "论文输入",
+      "input_from": [],
+      "prompt": "",
+      "position": {
+        "x": 20,
+        "y": 40
+      },
+      "provider": null,
+      "model_override": null
+    },
+    {
+      "id": "kb_context",
+      "type": "retrieval",
+      "description": "知识库检索",
+      "input_from": [],
+      "prompt": "",
+      "position": {
+        "x": 0,
+        "y": 220
+      },
+      "provider": null,
+      "model_override": null,
+      "kb_name": "",
+      "top_k": 3,
+      "query_template": "Transformer 注意力机制的核心创新"
+    },
+    {
+      "id": "extract_method",
+      "type": "extract",
+      "description": "方法抽取（extract 类型契约：逐字抽取·分块并发·可缓存）",
+      "input_from": [
+        "input_paper"
+      ],
+      "lora": "extract_v2",
+      "prompt": "请提取以下论文中的方法部分：\n\n{input_paper}",
+      "position": {
+        "x": 160,
+        "y": -90
+      },
+      "provider": "vllm",
+      "model_override": null
+    },
+    {
+      "id": "extract_dimensions",
+      "type": "process",
+      "description": "维度抽取",
+      "input_from": [
+        "input_paper"
+      ],
+      "lora": "paper_analyzer_v5",
+      "prompt": "请从以下论文全文中抽取【研究问题、理论基础、核心方法、数据集、关键变量、结论、主要贡献】这七个维度，以严格JSON格式输出，字段名分别为 research_question, theory, method, data, variables, conclusion, contribution。每个字段保留原文中的关键句作为引用。\n\n论文全文：\n{input_paper}",
+      "position": {
+        "x": 320,
+        "y": 40
+      },
+      "provider": "openai",
+      "model_override": null
+    },
+    {
+      "id": "analyze_method",
+      "type": "terminal",
+      "description": "方法论深度分析",
+      "input_from": [
+        "extract_method",
+        "extract_dimensions.method",
+        "kb_context"
+      ],
+      "lora": "paper_analyzer_v6",
+      "prompt": "请对以下论文的方法部分进行技术深度分析：识别技术路线、创新点、假设与局限，以JSON格式输出。\n\n方法描述（本地逐字抽取，可直接回查原文）：{extract_method}\n\n【云端维度抽取的方法字段（供交叉参考）】\n{extract_dimensions.method}\n\n【知识库检索结果】\n{kb_context}",
+      "position": {
+        "x": 120,
+        "y": 0
+      },
+      "provider": "vllm",
+      "model_override": null
+    },
+    {
+      "id": "analyze_data",
+      "type": "terminal",
+      "description": "数据集与实验设计评估",
+      "input_from": [
+        "extract_dimensions.data"
+      ],
+      "lora": null,
+      "prompt": "请评估以下数据集和实验设计的严谨性，识别潜在偏差和不足，以JSON格式输出。\n\n数据集描述：{extract_dimensions.data}",
+      "position": {
+        "x": 100,
+        "y": 120
+      },
+      "provider": "vllm",
+      "model_override": null
+    },
+    {
+      "id": "extract_claims",
+      "type": "terminal",
+      "description": "核心声明与证据抽取（云端，输入已改为本地抽取结果）",
+      "input_from": [
+        "extract_method",
+        "extract_dimensions"
+      ],
+      "lora": null,
+      "prompt": "请从以下材料中提取所有核心声明(claims)及其支撑证据(evidence)。\n\n【方法部分（本地逐字抽取，可直接回查原文）】\n{extract_method}\n\n【论文七维度抽取结果（云端从全文抽取）】\n{extract_dimensions}\n\n输出要求：\n- 以严格 JSON 对象输出，形如 {\"claims\": [{\"claim\": \"...\", \"evidence\": [\"...\", \"...\"]}]}\n- 顶层必须是对象，不要输出 JSON 数组，不要加代码块标记\n- 每条 claim 的 evidence 必须是上述材料中的原句；材料里找不到就写「材料未提供」，不要凭常识或记忆补全\n- 不要复述方法细节，重点是「论文声称了什么」以及「凭什么」。",
+      "position": {
+        "x": 500,
+        "y": 60
+      },
+      "provider": "openai",
+      "model_override": null
+    },
+    {
+      "id": "critique_analysis",
+      "type": "terminal",
+      "description": "批判性分析局限",
+      "input_from": [
+        "extract_dimensions.conclusion",
+        "extract_dimensions.contribution"
+      ],
+      "lora": null,
+      "prompt": "请对以下论文的结论和贡献进行批判性分析，识别方法论弱点、过度声明、未验证假设，以JSON格式输出。\n\n结论：{extract_dimensions.conclusion}\n贡献：{extract_dimensions.contribution}",
+      "position": {
+        "x": 360,
+        "y": 40
+      },
+      "provider": "openai",
+      "model_override": null
+    },
+    {
+      "id": "finaloutcome",
+      "type": "aggregate",
+      "description": "整合为文本报告",
+      "input_from": [
+        "analyze_method",
+        "analyze_data",
+        "extract_claims",
+        "critique_analysis"
+      ],
+      "lora": null,
+      "prompt": "请把以下多份分析结果整合成一份通顺的纯文本中文报告。\n\n要求：\n- 直接输出纯文本，不要 JSON\n- 不要 Markdown 代码块\n- 保留重要观点，去掉重复\n- 使用自然段落组织，可用小标题\n\n{输入}\n\n额外要求（务必遵守）：\n① 完整覆盖「方法、数据与实验设计、核心主张与证据、方法论批判」四个部分；\n② 材料中出现的每一个具体数字（数据集规模、准确率、参数量、训练步数、p 值等）都要在报告中保留，不得省略、合并或概括；\n③ 不要因为材料变长就压缩篇幅：报告长度应由需要覆盖的信息量决定，而不是由材料长度决定。",
+      "position": {
+        "x": 580,
+        "y": 40
+      },
+      "provider": "openai",
+      "model_override": null
+    }
+  ],
+  "schema_version": "2.0",
+  "description": "通用论文分析工作流；方法部分由本地 extract_v2 分块逐字抽取后再分析",
+  "author": "",
+  "tags": [
+    "论文分析",
+    "抽取",
+    "本地推理"
+  ],
+  "required_loras": [
+    "extract_v2"
+  ],
+  "required_providers": [
+    "vllm"
+  ]
+}

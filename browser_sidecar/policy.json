@@ -1,0 +1,9 @@
+{
+  "default": "ask",
+  "_comment": "站点策略: allow=直接做 / ask=危险动作要确认 / block=禁止访问。默认 ask（保守 ✓）",
+  "sites": {
+    "example.com": "allow",
+    "localhost": "allow",
+    "127.0.0.1": "allow"
+  }
+}

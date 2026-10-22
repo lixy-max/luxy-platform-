@@ -1,0 +1,17 @@
+{
+  "_comment": "复制为 settings.json 后按需修改。API Key 建议用环境变量注入（DEEPSEEK_API_KEY），不要写进文件。",
+  "base_model_path": "",
+  "lora_dir": "./loras",
+  "vllm_chat_api": "http://localhost:8000/v1/chat/completions",
+  "lora_manager_api": "http://localhost:8001",
+  "browser_sidecar": "http://127.0.0.1:9224",
+  "kb_mounted": [],
+  "collect_mode": false,
+  "embedding_device": "cpu",
+  "gpu_mode": "auto",
+  "providers": {
+    "openai": { "api_base": "https://api.deepseek.com/v1", "model": "deepseek-chat", "api_key": "" },
+    "ollama": { "api_base": "", "model": "" },
+    "vllm":   { "api_base": "http://localhost:8000/v1", "model": "" }
+  }
+}

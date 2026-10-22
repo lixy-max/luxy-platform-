@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>P-74 决定性发现 · 清洗损害检索</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+       background:linear-gradient(160deg,#060912,#0d1a33 45%,#1a1030);color:#fff;padding:26px 30px}
+  h1{font-size:25px;font-weight:800}
+  .sub{color:#8ba3cc;font-size:12.5px;margin:5px 0 18px}
+  .row{display:flex;gap:14px;margin-bottom:14px;flex-wrap:wrap}
+  .card{flex:1;min-width:200px;border-radius:13px;padding:16px;
+        border:1px solid rgba(120,160,255,.18);background:rgba(255,255,255,.04)}
+  .card h2{font-size:13px;color:#8ba3cc;font-weight:600;margin-bottom:12px}
+  .big{font-size:32px;font-weight:900;line-height:1}
+  .lbl{font-size:11px;color:#8ba3cc;margin-top:6px}
+  .g{color:#52c41a}.r{color:#ff4d4f}.a{color:#faad14}.b{color:#5b8cff}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+  .chart{position:relative;height:230px}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th{text-align:left;color:#8ba3cc;padding:7px 9px;border-bottom:1px solid rgba(120,160,255,.2);font-weight:600}
+  td{padding:7px 9px;border-bottom:1px solid rgba(255,255,255,.05)}
+  .bdg{display:inline-block;padding:2px 8px;border-radius:999px;font-size:10.5px;font-weight:700}
+  .ok{background:rgba(82,196,26,.15);color:#52c41a}
+  .no{background:rgba(255,77,79,.15);color:#ff4d4f}
+  .w{background:rgba(250,173,20,.15);color:#faad14}
+  .hero{padding:16px 20px;border-radius:12px;margin-bottom:14px;
+        background:linear-gradient(90deg,rgba(255,77,79,.18),rgba(250,173,20,.10));
+        border:1px solid rgba(255,77,79,.5)}
+  code{font-family:ui-monospace,monospace;font-size:11px;color:#a9c4ff}
+</style>
+</head>
+<body>
+  <h1>P-74 决定性发现 · 清洗损害检索</h1>
+  <div class="sub">2026-10-21 · 铁证：ZebraMap 在 clean KB 里有 14 次，但 top10 检索命中 0 次 ✗</div>
+
+  <div class="hero">
+    <div style="font-size:15px;font-weight:800;color:#ff8a8a">🔴 真因：清洗把块切太碎（736 块 vs 560 块）⇒ 每块上下文变少 ⇒ embedding 语义变弱 ⇒ 检索召回变差 ✗✗</div>
+    <div style="font-size:11.5px;color:#ffd666;margin-top:6px">
+      这是今天第 <strong>4 次</strong>结论翻转，也是<strong>第一次找到因果机制</strong> ✓
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="card"><div class="big r">0 vs 3</div><div class="lbl">ZebraMap 检索命中<br>clean vs raw ✗</div></div>
+    <div class="card"><div class="big a">736 vs 560</div><div class="lbl">块数<br>clean 更碎 ✗</div></div>
+    <div class="card"><div class="big r">67</div><div class="lbl">"材料未提及"答案<br>（检索失败 ✗）</div></div>
+    <div class="card"><div class="big g">+5</div><div class="lbl">今天第 5 个真因<br>（因果机制 ✓）</div></div>
+  </div>
+
+  <div class="cols">
+    <div class="card">
+      <h2>★ 铁证：内容都在，但检索不到</h2>
+      <div class="chart"><canvas id="c1"></canvas></div>
+    </div>
+    <div class="card">
+      <h2>块数对比（碎块 ⇒ 上下文少）</h2>
+      <div class="chart"><canvas id="c2"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:14px">
+    <h2>完整因果链</h2>
+    <table>
+      <tr><th>环节</th><th>clean KB</th><th>raw KB</th><th>判定</th></tr>
+      <tr><td>块数</td><td><strong class="r">736 块</strong>（碎 ✗）</td><td>560 块（完整 ✓）</td><td>✗ 更碎</td></tr>
+      <tr><td>ZebraMap 内容</td><td>14 次 ✓</td><td>13 次 ✓</td><td>内容都在 ✓</td></tr>
+      <tr><td><strong>ZebraMap top10 检索命中</strong></td><td><strong class="r">0 次</strong> ✗</td>
+          <td><strong class="g">3 次</strong> ✓</td><td><strong class="r">✗ 召回失效</strong></td></tr>
+      <tr><td>structure 题 LLM 判定</td><td><strong class="r">0.0%</strong> ✗</td><td><strong>9.1%</strong></td><td>✗ clean 更差</td></tr>
+      <tr><td>答案说"材料未提及"</td><td colspan="2"><strong class="r">67/200 = 33.5%</strong> ✗ 主要出现在 clean</td><td>✗ 检索失败</td></tr>
+    </table>
+  </div>
+
+  <div class="card" style="margin-bottom:14px">
+    <h2>今天 4 次结论翻转（完整记录）</h2>
+    <table>
+      <tr><th>#</th><th>之前的结论</th><th>真相</th></tr>
+      <tr><td>1</td><td>LoRA 提升不显著 ✗</td><td><strong class="g">n=30 后显著 p=0.028</strong> ✓</td></tr>
+      <tr><td>2</td><td>共形保证不满足 ✗</td><td><strong class="g">low 档 7.8% 满足</strong> ✓</td></tr>
+      <tr><td>3</td><td>清洗提升答题 +8.0pp ✗</td><td><strong class="r">规范题 0.0pp / LLM 判 -1.0pp</strong> ✗</td></tr>
+      <tr><td>4</td><td>清洗提升检索质量 ✗</td>
+          <td><strong class="r">清洗损害检索召回</strong>（ZebraMap 0 vs 3）✗✗</td></tr>
+    </table>
+    <div style="margin-top:11px;padding:11px 14px;border-radius:9px;background:rgba(255,77,79,.08);border:1px solid rgba(255,77,79,.35);font-size:12px">
+      <strong class="r">★ 正确答案</strong>：清洗<strong>降低了文本噪声</strong> ✓（98.4%），
+      但<strong>切块变碎</strong> ✗（736 vs 560 块）⇒ <strong>检索召回变差</strong> ✗
+      ⇒ 净效果为<strong>负</strong> ✗ ⇒ <strong>当前清洗策略不能用于生产</strong> ✗✗
+    </div>
+  </div>
+
+  <div class="card" style="border-color:rgba(91,140,255,.35);background:rgba(91,140,255,.06)">
+    <h2 style="color:#a9c4ff">🔧 修复方向（下一轮）</h2>
+    <div style="font-size:12.5px;line-height:1.9;color:#e8eef9;padding:4px 0">
+      <strong class="g">① 增大块尺寸</strong>：当前块太小 ⇒ 提高到 1000-1500 字 ✓（保持上下文 ✓）<br>
+      <strong class="g">② 保留重叠</strong>：overlap 从 50 提到 200 ✓（跨块连续 ✓）<br>
+      <strong class="g">③ chunk 时保留"父块摘要"</strong>：每个块带上所属章节标题 ✓（增强语义 ✓）<br>
+      <strong class="g">④ 只在「行级」清洗，不重排段落</strong> ✓（保留原文结构 ✓）<br>
+      <br>
+      <span style="color:#8ba3cc;font-size:11.5px">
+        验证方法：修完后再跑 ZebraMap 检索测试 ✓ 目标 clean ≥ raw ✓ 然后重跑 100 题 ✓
+      </span>
+    </div>
+  </div>
+
+<script>
+Chart.defaults.color='#8ba3cc'; Chart.defaults.borderColor='rgba(120,160,255,.12)';
+Chart.defaults.font.family='"PingFang SC","Microsoft YaHei",system-ui,sans-serif';
+
+new Chart(document.getElementById('c1'),{
+  type:'bar',
+  data:{
+    labels:['ZebraMap','hindsight','StudentF','rare disease'],
+    datasets:[
+      {label:'clean 内容次数',data:[14,19,71,16],backgroundColor:'rgba(91,140,255,.35)',borderRadius:6},
+      {label:'clean 检索命中',data:[0,3,9,5],backgroundColor:'rgba(255,77,79,.85)',borderRadius:6},
+      {label:'raw 检索命中',data:[3,4,10,5],backgroundColor:'rgba(82,196,26,.85)',borderRadius:6}
+    ]
+  },
+  options:{responsive:true,maintainAspectRatio:false,
+    scales:{y:{beginAtZero:true,grid:{color:'rgba(120,160,255,.1)'}},x:{grid:{display:false}}},
+    plugins:{legend:{labels:{boxWidth:11,font:{size:10}}}}}
+});
+
+new Chart(document.getElementById('c2'),{
+  type:'bar',
+  data:{
+    labels:['块数'],
+    datasets:[
+      {label:'clean（碎 ✗）',data:[736],backgroundColor:'rgba(255,77,79,.85)',borderRadius:7},
+      {label:'raw（完整 ✓）',data:[560],backgroundColor:'rgba(82,196,26,.85)',borderRadius:7}
+    ]
+  },
+  options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',
+    scales:{x:{beginAtZero:true,grid:{color:'rgba(120,160,255,.1)'}},y:{grid:{display:false}}},
+    plugins:{legend:{labels:{boxWidth:12,font:{size:11}}}}}
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,80 @@
+{
+  "name": "doc_flow_standard_edit.json",
+  "title": "标准文档编辑流程",
+  "description": "导入 -> 格式规范化 -> 分段标题 -> 校对 -> 润色 -> 精简摘要 -> 逻辑核查 -> 术语统一 -> 翻译 -> 导出 Word",
+  "steps": [
+    {
+      "id": "s1",
+      "tool": "read_docx",
+      "args": {
+        "filename": "{{file}}"
+      }
+    },
+    {
+      "id": "s2",
+      "tool": "format_fix",
+      "args": {
+        "text": "{{steps.0.text}}"
+      }
+    },
+    {
+      "id": "s3",
+      "tool": "structure_fix",
+      "args": {
+        "text": "{{steps.1.text}}"
+      }
+    },
+    {
+      "id": "s4",
+      "tool": "proofread",
+      "args": {
+        "text": "{{steps.2.text}}"
+      }
+    },
+    {
+      "id": "s5",
+      "tool": "polish",
+      "args": {
+        "text": "{{steps.3.text}}"
+      }
+    },
+    {
+      "id": "s6",
+      "tool": "condense",
+      "args": {
+        "text": "{{steps.4.text}}"
+      }
+    },
+    {
+      "id": "s7",
+      "tool": "logic_check",
+      "args": {
+        "text": "{{steps.5.text}}"
+      }
+    },
+    {
+      "id": "s8",
+      "tool": "terminology",
+      "args": {
+        "text": "{{steps.6.text}}"
+      }
+    },
+    {
+      "id": "s9",
+      "tool": "translate",
+      "args": {
+        "text": "{{steps.7.text}}",
+        "target": "英文"
+      }
+    },
+    {
+      "id": "s10",
+      "tool": "write_docx",
+      "args": {
+        "name": "编辑结果",
+        "title": "编辑后文档",
+        "paragraphs": "{{steps.8.text}}"
+      }
+    }
+  ]
+}

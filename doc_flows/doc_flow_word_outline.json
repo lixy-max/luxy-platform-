@@ -1,0 +1,21 @@
+{
+  "title": "Word 转存新 Word",
+  "description": "读 Word 正文 -> 另存为一份新的 Word（不改动原件）",
+  "steps": [
+    {
+      "tool": "read_docx",
+      "args": {
+        "filename": "{{file}}"
+      }
+    },
+    {
+      "tool": "write_docx",
+      "args": {
+        "name": "新文档",
+        "title": "转存文档",
+        "paragraphs": "{{steps.0.text}}"
+      }
+    }
+  ],
+  "name": "doc_flow_word_outline.json"
+}
