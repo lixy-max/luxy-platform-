@@ -12,7 +12,29 @@
 set -u
 cd "$(dirname "${BASH_SOURCE[0]}")/.." || exit 1
 LOG="${KEEPER_LOG:-/tmp/workbench_keeper.log}"
-PY_BIN="${PYBIN:-/home/luxy/.venv/bin/python}"
+# 自动探测 Python：显式 PYBIN > 项目 .venv > 家目录 .venv > PATH
+if [ -n "${PYBIN:-}" ]; then
+  PY_BIN="$PYBIN"
+elif [ -x ".venv/bin/python" ]; then
+  PY_BIN="$PWD/.venv/bin/python"
+elif [ -x "$HOME/.venv/bin/python" ]; then
+  PY_BIN="$HOME/.venv/bin/python"
+else
+  PY_BIN="$(command -v python3 || command -v python)"
+fi
+
+# ★ 单实例保护：启动台重复双击不应产生多个 keeper
+#   用一个 pid 文件 + pgrep 双重判断；发现已有实例就退出
+_LOCK="${KEEPER_LOCK:-/tmp/workbench_keeper.pid}"
+if [ -f "$_LOCK" ]; then
+  _OLD=$(cat "$_LOCK" 2>/dev/null || echo "")
+  if [ -n "$_OLD" ] && kill -0 "$_OLD" 2>/dev/null; then
+    echo "[keeper] 已在运行（pid $_OLD），本进程退出"
+    exit 0
+  fi
+fi
+echo $$ > "$_LOCK"
+trap 'rm -f "$_LOCK"' EXIT INT TERM
 
 log() { echo "[$(date '+%F %T')] $*" | tee -a "$LOG" >/dev/null; }
 
