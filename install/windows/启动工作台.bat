@@ -3,6 +3,10 @@ chcp 65001 >nul 2>nul
 setlocal enabledelayedexpansion
 title Luxy Workbench - Start
 
+rem ---- optional: pass "nobrowser" as 1st arg to skip opening browser
+set "NOBROWSER=0"
+if /i "%~1"=="nobrowser" set "NOBROWSER=1"
+
 echo ==================================================
 echo   Luxy Workbench - Start
 echo ==================================================
@@ -47,7 +51,7 @@ echo   vLLM loads asynchronously, ready in 1-3 min. No need to wait.
 echo.
 
 echo [start] bash scripts/start.sh ...
-wsl.exe -d !DISTRO! --cd "!PROJDIR!" -- bash -lc "bash scripts/start.sh"
+wsl.exe -d !DISTRO! --cd "!PROJDIR!" -- bash -lc "bash scripts/start.sh --no-browser"
 set "RC=!errorlevel!"
 
 echo.
@@ -59,6 +63,20 @@ if "!RC!"=="0" (
   echo ==================================================
   echo   [ERR] start.sh exit code !RC!
   echo ==================================================
+)
+
+rem ---- open browser on Windows side
+rem   Why here: WSL interop is broken on this machine, so start.sh inside WSL
+rem   cannot launch a Windows browser. The .bat runs on Windows, so it can.
+if "!RC!"=="0" (
+  if "!NOBROWSER!"=="0" (
+    echo.
+    echo [browser] opening http://127.0.0.1:8080/index3.html
+    start "" "http://127.0.0.1:8080/index3.html"
+  ) else (
+    echo.
+    echo [browser] skipped  ^(nobrowser^)
+  )
 )
 
 echo.
