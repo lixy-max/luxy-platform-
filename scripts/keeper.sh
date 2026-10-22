@@ -36,7 +36,6 @@ fi
 echo $$ > "${KEEPER_PIDFILE:-/tmp/workbench_keeper.pid}"
 # TERM/INT 必须 exit：否则 kill 只清 pid 文件、进程继续常驻（历史 bug）
 trap 'rm -f "${KEEPER_PIDFILE:-/tmp/workbench_keeper.pid}"; exit 0' EXIT INT TERM
-trap 'rm -f "$_LOCK"; exit 0' EXIT INT TERM
 
 log() { echo "[$(date '+%F %T')] $*" | tee -a "$LOG" >/dev/null; }
 
