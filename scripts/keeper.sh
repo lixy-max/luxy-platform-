@@ -23,17 +23,24 @@ else
   PY_BIN="$(command -v python3 || command -v python)"
 fi
 
-# ★ 单实例保护：启动台重复双击不应产生多个 keeper
-#   用一个 pid 文件 + pgrep 双重判断；发现已有实例就退出
+# ★ 单实例保护（双重）：pid 文件 + pgrep 扫描，防止启动台重复双击产生多份
 _LOCK="${KEEPER_LOCK:-/tmp/workbench_keeper.pid}"
+_ME=$$
+# ① pgrep 扫描：除自己外还有 keeper 在跑 ⇒ 退出（最可靠，pid 文件可能残留）
+_OTHERS=$(pgrep -f 'scripts/keeper\.sh|scripts/dev/keeper\.sh' 2>/dev/null | grep -v "^${_ME}$" || true)
+if [ -n "$_OTHERS" ]; then
+  echo "[keeper] 已在运行（pid $(echo $_OTHERS | tr '\n' ' ')），本进程退出"
+  exit 0
+fi
+# ② pid 文件兜底
 if [ -f "$_LOCK" ]; then
   _OLD=$(cat "$_LOCK" 2>/dev/null || echo "")
-  if [ -n "$_OLD" ] && kill -0 "$_OLD" 2>/dev/null; then
+  if [ -n "$_OLD" ] && [ "$_OLD" != "$_ME" ] && kill -0 "$_OLD" 2>/dev/null; then
     echo "[keeper] 已在运行（pid $_OLD），本进程退出"
     exit 0
   fi
 fi
-echo $$ > "$_LOCK"
+echo "$$" > "$_LOCK"
 trap 'rm -f "$_LOCK"' EXIT INT TERM
 
 log() { echo "[$(date '+%F %T')] $*" | tee -a "$LOG" >/dev/null; }
