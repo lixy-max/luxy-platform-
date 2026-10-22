@@ -41,7 +41,9 @@ if [ -f "$_LOCK" ]; then
   fi
 fi
 echo "$$" > "$_LOCK"
-trap 'rm -f "$_LOCK"' EXIT INT TERM
+# ★ 注意：TERM/INT 必须 exit —— 否则 kill 只是删锁文件、进程继续跑
+#   （历史 bug: 旧 trap 只 rm 不 exit ⇒ stop 杀不死 keeper，多次循环累积多份）
+trap 'rm -f "$_LOCK"; exit 0' EXIT INT TERM
 
 log() { echo "[$(date '+%F %T')] $*" | tee -a "$LOG" >/dev/null; }
 
