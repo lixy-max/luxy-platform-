@@ -5215,12 +5215,14 @@ class BrowserCallRequest(BaseModel):
 
 
 def _sidecar_token_path():
-    """统一 sidecar token 路径解析（2026-10-22 修脆弱点）
+    """统一 sidecar token 路径解析（不写死任何机器路径 ✓）
 
-    原来两处各硬编码 /mnt/e/WSL/_check/browser_sidecar/.sidecar_token
-    而 sidecar 实际在 E:\\WSL\\browser_sidecar\
-    ⇒ sidecar 重启换 token 后永远对不上 ✗（要人工同步）
-    修法: 按优先级找第一个存在的；env BROWSER_SIDECAR_TOKEN 可覆盖
+    历史: 2026-10-22 硬编码审计已删除全部本机路径（原 /mnt/e/... 等）
+    2026-10-23: sidecar 改为把 token 写标准位置 ~/.luxy/sidecar_token
+                （见 browser_sidecar/server.mjs）—— 这里是消费侧 ✓
+
+    优先级: env BROWSER_SIDECAR_TOKEN > ~/.luxy/sidecar_token
+            > ~/browser_sidecar/.sidecar_token
     """
     import os as _os
     import pathlib as _pl
@@ -5233,22 +5235,17 @@ def _sidecar_token_path():
     #     ① 环境变量 BROWSER_SIDECAR_TOKEN（已在上方）
     #     ② ~/.luxy/sidecar_token        ← 推荐位置（安装脚本会写这里）
     #     ③ ~/browser_sidecar/.sidecar_token
-    #     ④ 与 BROWSER_SIDECAR 基地址同目录（若设了环境变量）
     _home = _pl.Path.home()
+      # ★ 2026-10-23: sidecar 跑在 Windows、平台跑在 WSL，两个 home 不是同一位置
+      #   ⇒ 用【项目目录】下的 token（两边都能访问同一个文件 ✓）作为首选
+    _proj = _pl.Path(__file__).resolve().parent
+    cands.append(_proj / "browser_sidecar" / ".sidecar_token")
     cands += [
         _home / '.luxy' / 'sidecar_token',
         _home / 'browser_sidecar' / '.sidecar_token',
     ]
-    _base = (_os.environ.get('BROWSER_SIDECAR') or '').strip().rstrip('/')
-    if _base:
-        try:
-            from urllib.parse import urlparse as _up
-            _u = _up(_base)
-            # 基地址只给 host，token 仍在本机标准位置；这里额外试 WSL 挂载常见位
-            if _u.hostname and _u.hostname not in ('127.0.0.1', 'localhost'):
-                cands.append(_home / 'browser_sidecar' / '.sidecar_token')
-        except Exception:
-            pass
+    # 说明: 原来这里还会重复 append ~/browser_sidecar/.sidecar_token
+    #       （上方 cands 已含该路径）⇒ 死代码，2026-10-23 删除 ✓
     for p in cands:
         try:
             if p.exists() and p.read_text(encoding='utf-8').strip():

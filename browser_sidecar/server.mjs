@@ -32,16 +32,25 @@ const MAX_REFS = Number(process.env.MAX_REFS || 80);
 //   ⇒ 用户 Edge 打开任意恶意网页就能 POST 本机 9223 用真实登录态操作浏览器 ✗✗
 //   修: ① 共享 token（文件 .sidecar_token ✓ 后端转发给页面 ✓）② Origin 白名单 ✓
 const ORIGIN_WHITELIST = new Set(['http://127.0.0.1:8080', 'http://localhost:8080']);
-const TOKEN_FILE = path.join(HERE, '.sidecar_token');
-let SIDECAR_TOKEN = '';
-try {
-  SIDECAR_TOKEN = fs.readFileSync(TOKEN_FILE, 'utf8').trim();
-} catch (e) {}
-if (!SIDECAR_TOKEN) {
-  SIDECAR_TOKEN = crypto.randomBytes(24).toString('hex');
-  try { fs.writeFileSync(TOKEN_FILE, SIDECAR_TOKEN, { mode: 0o600 }); } catch (e) {}
-  console.log('[sidecar] 已生成访问 token →', TOKEN_FILE);
-}
+  // ★ 2026-10-23 实测修（token 路径跨 OS 不一致）:
+  //   第一次修把 token 写到 os.homedir()/.luxy —— 但 sidecar 跑在 Windows
+  //   （C:\Users\<user>），平台跑在 WSL（/home/<user>）⇒ 两个 home 不是同一个地方 ✗
+  //   正确做法: token 放【项目目录】browser_sidecar/.sidecar_token
+  //     · Windows 侧 node 经 \\wsl.localhost\... 写
+  //     · WSL 侧平台经 /home/... 读 → 同一个文件 ✓
+  //   TOKEN_FILE 环境变量仍可覆盖（特殊部署）✓
+  const LEGACY_TOKEN_FILE = path.join(HERE, '.sidecar_token');
+  const TOKEN_FILE = process.env.TOKEN_FILE || LEGACY_TOKEN_FILE;
+  let SIDECAR_TOKEN = '';
+  try { SIDECAR_TOKEN = fs.readFileSync(TOKEN_FILE, 'utf8').trim(); } catch (e) {}
+  if (!SIDECAR_TOKEN) SIDECAR_TOKEN = crypto.randomBytes(24).toString('hex');
+  try {
+    fs.mkdirSync(path.dirname(TOKEN_FILE), { recursive: true });
+    fs.writeFileSync(TOKEN_FILE, SIDECAR_TOKEN, { mode: 0o600 });
+    console.log('[sidecar] 访问 token →', TOKEN_FILE);
+  } catch (e) {
+    console.log('[sidecar] 写 token 失败:', String((e && e.message) || e));
+  }
 function corsOrigin(req) {
   // ★ 修（2026-10-22 v4.2 测试）: 原来只白名单 127.0.0.1:8080
   //   ⇒ 其他端口（如隔离实例 :8082/:8083）拿到 ACAO:'null' 一律被浏览器拦 ✗
@@ -550,4 +559,18 @@ if (process.argv.includes('--selftest')) {
     console.log(`[sidecar] 浏览器自动化 sidecar 已启动: http://${HOST}:${PORT}`);
     console.log(`[sidecar] 连接目标: ${CDP}（失败则拉起 msedge ✓）· 截图: ${SHOT_DIR}`);
   });
+
+// ★ 2026-10-23 实测修：端口被占用时必须退出，否则会留下"僵尸实例" ✗
+//   现象: 计划任务重复启动 → 第二个实例写了自己的 token 后端口绑定失败，
+//         但进程不退出 ⇒ 文件里的 token 与实际服务的 token 不一致，
+//         平台调用全部 401（实测踩到）
+server.on('error', (e) => {
+  if (e && e.code === 'EADDRINUSE') {
+    console.error('[sidecar] ✗ 端口 ' + PORT + ' 已被占用 ⇒ 本进程退出（避免 token 不一致）');
+  } else {
+    console.error('[sidecar] ✗ 服务错误:', String((e && e.message) || e));
+  }
+  process.exit(1);
+});
+
 }

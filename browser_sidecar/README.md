@@ -32,6 +32,26 @@ POST /act/<name>   {args}   → {ok, ...}   永远 200 ✓ 失败带 error ✓ �
 - **密码字段只标 `[password]` 不取值** ✓
 - 动作串行执行 ✓（同一页面并发点会乱 ✓）
 
+## 访问 token（安全机制）
+
+sidecar 启动时会生成一个 48 位访问 token，**平台每次调用都要带上**（防 CSRF）。
+
+**token 文件位置（2026-10-23 统一）**：
+```
+<项目>/browser_sidecar/.sidecar_token      ← 默认（Windows 与 WSL 看到同一个文件 ✓）
+```
+- `TOKEN_FILE` 环境变量可覆盖（特殊部署）
+- **为什么不放 `~/.luxy/`**：sidecar 跑在 Windows（`C:\Users\<user>`），平台跑在 WSL
+  （`/home/<user>`）—— 两个 home 不是同一个地方。放项目目录两边都能访问同一个文件 ✓
+
+平台侧读取顺序（`lora_manager._sidecar_token_path`）：
+```
+① 环境变量 BROWSER_SIDECAR_TOKEN
+② <项目>/browser_sidecar/.sidecar_token     ← 首选（由 __file__ 推导，不写死路径）
+③ ~/.luxy/sidecar_token
+④ ~/browser_sidecar/.sidecar_token
+```
+
 ## 环境变量
 ```
 PORT=9223  CDP_ENDPOINT=http://127.0.0.1:9222
