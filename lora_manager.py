@@ -5221,7 +5221,9 @@ def _sidecar_token_path():
     2026-10-23: sidecar 改为把 token 写标准位置 ~/.luxy/sidecar_token
                 （见 browser_sidecar/server.mjs）—— 这里是消费侧 ✓
 
-    优先级: env BROWSER_SIDECAR_TOKEN > ~/.luxy/sidecar_token
+    优先级: env BROWSER_SIDECAR_TOKEN
+            > <项目>/browser_sidecar/.sidecar_token（首选，__file__ 推导）
+            > ~/.luxy/sidecar_token
             > ~/browser_sidecar/.sidecar_token
     """
     import os as _os
