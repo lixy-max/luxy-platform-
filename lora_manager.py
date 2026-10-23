@@ -5218,8 +5218,8 @@ def _sidecar_token_path():
     """统一 sidecar token 路径解析（不写死任何机器路径 ✓）
 
     历史: 2026-10-22 硬编码审计已删除全部本机路径（原 /mnt/e/... 等）
-    2026-10-23: sidecar 改为把 token 写标准位置 ~/.luxy/sidecar_token
-                （见 browser_sidecar/server.mjs）—— 这里是消费侧 ✓
+    2026-10-23: sidecar 把 token 写到 <项目>/browser_sidecar/.sidecar_token
+                （跨 Windows/WSL 共享同一文件；见 browser_sidecar/server.mjs）
 
     优先级: env BROWSER_SIDECAR_TOKEN
             > <项目>/browser_sidecar/.sidecar_token（首选，__file__ 推导）
