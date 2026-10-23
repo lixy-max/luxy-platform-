@@ -146,6 +146,7 @@ docker compose up -d --build
 |---|---|
 | [docs/INSTALL.md](docs/INSTALL.md) | 安装、启动、常见问题、版本核对 |
 | [docs/USER_GUIDE.md](docs/USER_GUIDE.md) | **使用说明书**：环境要求 · 依赖清单 · 安装 · DSH 接入 · 配置 · 运维 · 故障排查 |
+| [docs/USER_GUIDE_EN.md](docs/USER_GUIDE_EN.md) | **User Guide (English)**: environment · dependencies · install · DSH integration · configuration · operations · troubleshooting |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | 模块划分与数据流 |
 | [docs/LORA_DATA_AND_EVAL_GUIDE.md](docs/LORA_DATA_AND_EVAL_GUIDE.md) | 训练数据格式、质量规范、评测方法 |
 | [docs/DATA_QUALITY_SPEC.md](docs/DATA_QUALITY_SPEC.md) | F1-F8 + Q1-Q8 规则明细 |
