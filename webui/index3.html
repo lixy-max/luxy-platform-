@@ -10,10 +10,17 @@
 <title>模型垂直开发平台</title>
 <style>
 :root{
-  /* ★ 2026-10-22 补：这三个变量被引用但未定义 ⇒ 样式静默失效 */
-  --c-surface-2:rgba(255,255,255,0.055);
-  --c-text-2:rgba(255,255,255,0.62);
-  --c-text-3:rgba(255,255,255,0.40);
+  /* ★ 2026-10-22 补：这三个变量被引用但未定义 ⇒ 样式静默失效
+     ★ 2026-10-23 修（UI bug：知识库评测白字看不清）：
+        原值全是白色半透明（暗色主题专用）却写在 :root ⇒ 浅色模式下
+        白字落在浅蓝底 #e7f1ff / 白底上完全不可见 ✗
+        修法：:root 给浅色主题正确值，暗色值移入 --c-dark-* 调色板并在
+        [data-theme="dark"] 里重映射 ✓（对比度见下）
+         · #5a6478 on #e7f1ff = 5.2:1 ✓（WCAG AA 正文要求 4.5）
+         · #646a75 on #e7f1ff = 4.8:1 ✓ */
+  --c-surface-2:#f1f3f5;
+  --c-text-2:#5a6478;
+  --c-text-3:#646a75;
   color-scheme:light;/* 原生控件/光标/滚动条跟随主题 */
   --c-bg-hover:#f1f3f5;
   --c-bg-light:#f8f9fa;
@@ -70,6 +77,11 @@
   --c-dark-text-muted:#9aa1ab;
   --c-dark-text-dim:#848b95;
   --c-dark-text-faint:#767d87;
+  /* ★ 2026-10-23 补：--c-text-2/--c-text-3/--c-surface-2 的暗色值
+     （原来直接写在 :root，导致浅色模式白字不可见 ✗） */
+  --c-dark-text-2:rgba(255,255,255,0.62);
+  --c-dark-text-3:rgba(255,255,255,0.40);
+  --c-dark-surface-2:rgba(255,255,255,0.055);
   --c-dark-primary:#4d9bff;
   --c-dark-primary-dark:#3d86e0;
   --c-dark-warning-bg:#3a2f12;
@@ -189,6 +201,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;m
   --c-text:var(--c-dark-text); --c-text-soft:var(--c-dark-text-soft);
   --c-text-muted:var(--c-dark-text-muted); --c-text-dim:var(--c-dark-text-dim);
   --c-text-faint:var(--c-dark-text-faint);
+  --c-text-2:var(--c-dark-text-2); --c-text-3:var(--c-dark-text-3);
+  --c-surface-2:var(--c-dark-surface-2);
   --c-primary:var(--c-dark-primary); --c-primary-dark:var(--c-dark-primary-dark);
   --c-warning-bg:var(--c-dark-warning-bg); --c-warning-text:var(--c-dark-warning-text);
   --c-success-bg:var(--c-dark-success-bg); --c-success-text:var(--c-dark-success-text);
