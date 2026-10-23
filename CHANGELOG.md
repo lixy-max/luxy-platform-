@@ -16,6 +16,19 @@
     ⇒ 一次性全部修复，浅色模式对比度 1.05:1 → **4.77:1**（达 WCAG AA 4.5:1）
   - 回归测试：新增 `tests/test_ui_contrast.py`（6 项：解析 CSS 变量 + 计算 WCAG 对比度 +
     暗色重映射断言 + 暗色块禁裸 hex），已做负向验证（改回旧值必失败）
+- **前端测试脚手架（`tests/frontend/run.js`）修复：会话用例 TDZ 崩溃 + 3 个过时用例**
+  - 崩溃：主脚本 `const API_BASE = window.__LUX_API__ || new URLSearchParams(location.search)...`，
+    但脚手架没有 `location` / `__LUX_API__` 桩 ⇒ 主脚本开头抛错、`API_BASE` 永久留在 TDZ
+    ⇒ `ensureSession` 报 `Cannot access 'API_BASE' before initialization`、
+    harness 在会话断言处崩（`message_count` of undefined）
+    → 补浏览器桩：`location` / `__LUX_API__` / `localStorage` / `MutationObserver` 等
+  - 引导卡改为 `emptyStateHTML()` 动态渲染后，静态计数用例误报"只有 1 张"
+    → 改为调用真实渲染函数计数（同时保留模板计数兜底）
+  - T-3c（2026-10-21）起 KB 预注入默认关闭 + 相关性门控 ⇒ t41 用例没开开关、hits 无 score 必挂
+    → 补"默认关闭"断言；显式开启 `ds_kb_inject` 并给 hits 带 `score`；注入标记同步为
+    `[参考资料 · 来自知识库「…」]` 新模板
+  - 脚手架主脚本/Agent 模块加载失败时打印真实 stack（原来静默，排障困难）
+  - 结果：前端 `378/378 passed`（修复前：会话断言处崩溃，测试跑不完）
 
 ## v4.9.7（2026-10-22）· 首个开源封装版
 

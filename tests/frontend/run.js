@@ -222,6 +222,20 @@ function makeRes(status, body) {
 }
 
 function installStubs() {
+  // ★ 修（2026-10-23）：主脚本第 4 行现在是
+  //   const API_BASE = (window.__LUX_API__ || new URLSearchParams(location.search).get('api') || ...)
+  //   原来 harness 没有 location / __LUX_API__ 桩 ⇒ 主脚本一开头就抛
+  //   "location is not defined" ⇒ 整块脚本中止，`const API_BASE` 永久留在 TDZ ✗
+  //   后续任何调用（ensureSession 等）都报 "Cannot access 'API_BASE' before initialization"
+  //   ⇒ 会话测试全挂（实测 2026-10-23）
+  //   修法：补浏览器桩（location + __LUX_API__），让主脚本能完整跑完 ✓
+  global.location = {
+    search: '', hash: '', pathname: '/index3.html',
+    href: 'http://127.0.0.1:8080/index3.html',
+    origin: 'http://127.0.0.1:8080', protocol: 'http:',
+    reload() {}, assign() {}, replace() {},
+  };
+  global.__LUX_API__ = 'http://test';   // 主脚本优先读它（等价于真实页面的 window.__LUX_API__）
   global.API_BASE = 'http://test';
   global.chatModels = [];
   global.fetch = async (url, opt) => {
@@ -277,6 +291,25 @@ function installStubs() {
     createElement() { return makeEl(); },
     body: makeEl('body'),
     addEventListener() {},
+  };
+  // ★ 修（2026-10-23）：editflow 页面监听用了 MutationObserver，
+  //   harness 没有该桩 ⇒ 打印 "[editflow] 启动失败 ReferenceError"（噪声）
+  //   补 3 个无操作 Observer（测试不需要真实监听）
+  class NoopObserver {
+    observe() {} unobserve() {} disconnect() {} takeRecords() { return []; }
+  }
+  global.MutationObserver = NoopObserver;
+  global.IntersectionObserver = NoopObserver;
+  global.ResizeObserver = NoopObserver;
+  // ★ 修（2026-10-23）：补 localStorage 桩
+  //   页面多处用 localStorage 做开关（如 KB 预注入 ds_kb_inject / 相关性门控 ds_kb_gate）
+  //   原来没有桩 ⇒ 测试无法开启这些功能，t41 用例必挂 ✗
+  global.localStorage = {
+    _data: {},
+    getItem(k) { return Object.prototype.hasOwnProperty.call(this._data, k) ? this._data[k] : null; },
+    setItem(k, v) { this._data[k] = String(v); },
+    removeItem(k) { delete this._data[k]; },
+    clear() { this._data = {}; },
   };
   global.setInterval = () => 0;
   global.clearInterval = () => {};
@@ -370,6 +403,9 @@ async function main() {
       vm.runInThisContext(mainBlock.code, { filename: 'main-script.js' });
       check('main-script-loads', true);
     } catch (e) {
+      // ★ 修（2026-10-23）：原来静默失败 ⇒ 后续报 TDZ 难排查；
+      //   直接把加载错误打到 stderr（真实根因一眼可见）
+      console.error('[harness] 主脚本加载失败:', (e && e.stack) || e);
       check('main-script-loads', false, e && e.message);
     }
 
@@ -787,8 +823,17 @@ async function main() {
   // ============ M3b：空态引导卡 + 响应式 ============
   check('m3b-empty-cards-present', /class="empty-cards"/.test(html), '缺少空态引导卡容器');
   {
-    const cards = html.match(/class="empty-card"/g) || [];
-    check('m3b-three-guide-cards', cards.length >= 3, '引导卡应 ≥3 张，实际 ' + cards.length);
+    // ★ 修（2026-10-23）：引导卡已从静态 HTML 改成 emptyStateHTML(isAgent) 动态渲染
+    //   （源码里只有 1 处 'empty-card' 模板串）⇒ 静态计数误报"只有 1 张"✗
+    //   改为调用真实渲染函数、数它生成的卡片数（这才是用户实际看到的）
+    let rendered = 0;
+    try {
+      const out = String(global.emptyStateHTML ? global.emptyStateHTML(true) : '');
+      rendered = (out.match(/class="empty-card"/g) || []).length;
+    } catch (e) { rendered = -1; }
+    const tpl = (html.match(/class="empty-card"/g) || []).length;
+    check('m3b-three-guide-cards', rendered >= 3 || tpl >= 3,
+          '引导卡应 ≥3 张（渲染 ' + rendered + ' / 模板 ' + tpl + '）');
     check('m3b-cards-call-agent',
           /empty-card"\s+onclick="agentQuick\(/.test(html), '引导卡应点击即走自然语言（agentQuick）');
   }
@@ -1061,19 +1106,36 @@ async function main() {
     check('t41-no-kb-no-request', n0 && n0.count === 0 && calls.length === 0,
           'n=' + JSON.stringify(n0) + ' calls=' + JSON.stringify(calls));
 
-    // ② 挂了 KB → 检索并注入片段
+    // ①-b ★ 修（2026-10-23）：T-3c（2026-10-21）起 KB 预注入**默认关闭**
+    //   （localStorage.ds_kb_inject 必须显式 = 'on'）⇒ 先断言默认关闭行为 ✓
     sel.value = 'papers_kb';
     global.agentHistory = [];
     calls.length = 0;
-    stub([['/kb/papers_kb/query', { results: [{ source: 'a.pdf', text: '数据集是 WMT 2014' },
-                                             { source: 'b.pdf', text: '共 450 万句对' }] }]]);
+    try { global.localStorage.removeItem('ds_kb_inject'); } catch (e) {}
+    stub([]);
+    let nOff = null;
+    try { nOff = await global.injectAgentKbContext('数据集是什么'); } catch (e) { nOff = 'threw'; }
+    check('t41-default-off', nOff && nOff.count === 0 && nOff.disabled === true,
+          '默认关闭时不应注入 · n=' + JSON.stringify(nOff));
+
+    // ② 挂了 KB（显式开启预注入）→ 检索并注入片段
+    //   注意（2026-10-21 T-3c）：开启后还有相关性门控，hits 必须带 score 且 ≥ 阈值
+    try { global.localStorage.setItem('ds_kb_inject', 'on'); } catch (e) {}
+    sel.value = 'papers_kb';
+    global.agentHistory = [];
+    calls.length = 0;
+    stub([['/kb/papers_kb/query', { results: [
+      { source: 'a.pdf', text: '数据集是 WMT 2014', score: 0.9 },
+      { source: 'b.pdf', text: '共 450 万句对', score: 0.8 }] }]]);
     let n1 = null;
     try { n1 = await global.injectAgentKbContext('数据集是什么'); } catch (e) { n1 = 'threw:' + e; }
     const blob = String((n1 && n1.text) || '');
     check('t41-queries-kb-when-mounted', n1 && n1.count === 2 && calls.some((c) => c.indexOf('/kb/papers_kb/query') >= 0),
           'n=' + JSON.stringify(n1) + ' calls=' + JSON.stringify(calls));
     check('t41-injected-content-present',
-          blob.indexOf('[知识库片段]') >= 0 && blob.indexOf('WMT 2014') >= 0 &&
+          // ★ 修（2026-10-23）：注入模板已从 [知识库片段] 改为
+          //   [参考资料 · 来自知识库「…」]（避免模型当成指令），标记同步更新 ✓
+          blob.indexOf('[参考资料') >= 0 && blob.indexOf('WMT 2014') >= 0 &&
           blob.indexOf('a.pdf') >= 0, blob.slice(0, 160));
 
     // ③ KB 查询失败 → 不抛异常、不注入、返回 0
@@ -1086,6 +1148,7 @@ async function main() {
 
     global.fetch = realFetch;
     global.agentHistory = realHist;
+    try { global.localStorage.removeItem('ds_kb_inject'); } catch (e) {}
   }
 
   // ============ 回归：二级导航「返回对话」不能把界面留成空白 ============
