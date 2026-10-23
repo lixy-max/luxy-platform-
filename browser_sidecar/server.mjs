@@ -95,11 +95,27 @@ async function ensureBrowser() {
     console.log('[sidecar] CDP 连不上 ⇒ 自己拉起 Edge（兜底 ✓）:', String(e.message).slice(0, 80));
   }
   // ② 兜底: 自己拉起 Edge
-  state.browser = await chromium.launch({ channel: 'msedge', headless: false, args: ['--start-maximized'] });
+  const _launchArgs = ['--start-maximized'];
+  if (process.env.IGNORE_HTTPS !== '0') _launchArgs.push('--ignore-certificate-errors');
+  state.browser = await chromium.launch({ channel: 'msedge', headless: false, args: _launchArgs });
   state.mode = 'launch';
   attachBrowserWatch();
-  state.context = await state.browser.newContext({ viewport: { width: 1440, height: 900 } });
+  state.context = await state.browser.newContext({
+    viewport: { width: 1440, height: 900 },
+    // ★ 修（实测 2026-10-23）：学校等站点证书过期时 page.goto 直接失败
+    //   默认关闭校验由 IGNORE_HTTPS=1 控制（本机个人自动化工具 ✓ 默认开启）
+    ignoreHTTPSErrors: process.env.IGNORE_HTTPS !== '0',
+  });
   console.log('[sidecar] ✓ 已拉起 msedge');
+}
+
+// ---- 超时保护（防止 Edge 关闭时挂死整个请求）----
+function withTimeout(promise, ms, label) {
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`${label || 'operation'} 超时 ${ms}ms`)), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
 }
 
 async function ensurePage() {
@@ -393,10 +409,22 @@ const ACT = {
     throw new Error('未知 action');
   },
   async close() {
-    if (state.page && !state.page.isClosed()) await state.page.close().catch(() => {});
-    if (state.mode === 'launch' && state.browser) await state.browser.close().catch(() => {});
+    // ★ 修（实测 2026-10-23）：原实现直接 await browser.close()，
+    //   Edge 有 beforeunload/恢复提示时可能挂死 ⇒ 平台侧 90s 超时 ✗
+    //   现在每步都带超时，超时也强制清空状态并返回 ok ✓
+    const notes = [];
+    if (state.page && !state.page.isClosed()) {
+      try { await withTimeout(state.page.close(), 5000, 'page.close'); }
+      catch (e) { notes.push('page.close: ' + String(e.message).slice(0, 60)); }
+    }
+    if (state.mode === 'launch' && state.browser) {
+      try { await withTimeout(state.browser.close(), 8000, 'browser.close'); }
+      catch (e) { notes.push('browser.close: ' + String(e.message).slice(0, 60)); }
+    }
+    // CDP 模式不动用户的浏览器 ✓
+    const b = state.browser;
     state.page = null; state.browser = null; state.context = null; state.mode = null;
-    return { ok: true };
+    return { ok: true, forced: notes.length > 0, notes };
   },
 };
 

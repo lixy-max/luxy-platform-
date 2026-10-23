@@ -5544,9 +5544,16 @@ def browser_call(req: BrowserCallRequest, x_sidecar_token: str = Header(default=
         # ★ 修（2026-10-22 C组实测）：幂等/固定参数工具被去重误杀 ✗
         #   close / tabs / snapshot / screenshot / read / status / wait
         #   天然会被重复调用（第二轮必被拦，实测 5 次）⇒ 这类跳过去重 ✓
+        # ★ 再修（2026-10-23 实测）：白名单写的是短名，实际工具名带 browser_ 前缀
+        #   ⇒ 白名单从未命中，导致连续两次 browser_snapshot / browser_read /
+        #   browser_screenshot 被 90 秒去重守卫拦截（"等待后重新快照"流程不可用）
+        #   修法：先归一化工具名（去掉 browser_ 前缀）再比对 ✓
+        _tool_norm = str(req.tool)
+        if _tool_norm.startswith("browser_"):
+            _tool_norm = _tool_norm[len("browser_"):]
         _IDEMPOTENT_TOOLS = {"close", "tabs", "snapshot", "screenshot",
                              "read", "status", "wait"}
-        _prev2 = None if str(req.tool) in _IDEMPOTENT_TOOLS else _BROWSER_DUP_GUARD.get(_key2)
+        _prev2 = None if _tool_norm in _IDEMPOTENT_TOOLS else _BROWSER_DUP_GUARD.get(_key2)
         if _prev2 and (_now2 - _prev2) < 90:
             _left2 = int(90 - (_now2 - _prev2))
             print("[browser] 拦截重复调用: %s (还需 %ss)" % (req.tool, _left2), flush=True)
