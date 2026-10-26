@@ -6047,6 +6047,60 @@ def route_auto(payload: dict = None):
             "candidates": hits[:3], "table": out.get("table"), "executed": out.get("executed")}
 
 
+# ══════════════════════════════════════════════════════════
+# S6（2026-10-26）奇美拉 V2：允许依赖直装 + 适配器 + 能力登记
+# ══════════════════════════════════════════════════════════
+@app.post("/chimera/install_v2")
+def chimera_install_v2(payload: dict = None):
+    """V2 直装：pip 安装（允许依赖）→ 注入适配器 → smoke → 登记能力
+
+    body: {package, extra_packages?, wrappers?, label?, approve, timeout?,
+           caps?: [{cap_id, name, module, function, args_schema, license, repo}]}
+    """
+    import chimera_v2 as _cv2
+    p = payload or {}
+    package = str(p.get("package") or "").strip()
+    if not package:
+        raise HTTPException(400, "package 必填")
+    if not p.get("approve"):
+        raise HTTPException(400, "V2 直装需要显式 approve=true")
+    try:
+        r = _cv2.install_with_deps(
+            package, extra_packages=p.get("extra_packages") or [],
+            wrappers=p.get("wrappers") or [], label=p.get("label"),
+            approve=True, timeout=int(p.get("timeout") or 900))
+    except Exception as e:
+        raise HTTPException(500, "%s: %s" % (type(e).__name__, str(e)[:400]))
+    registered = []
+    for cap in (p.get("caps") or []):
+        try:
+            e = _cv2.register_deps_capability(
+                label=p.get("label") or package,
+                cap_id=str(cap.get("cap_id") or ""),
+                name=str(cap.get("name") or cap.get("cap_id") or ""),
+                module=str(cap.get("module") or ""),
+                function=str(cap.get("function") or ""),
+                args_schema=cap.get("args_schema"),
+                packages=r.get("resolved_packages"),
+                license_=str(cap.get("license") or ""),
+                repo=str(cap.get("repo") or ""),
+                description=str(cap.get("description") or ""))
+            registered.append(e.get("cap_id"))
+        except Exception as e2:
+            registered.append({"error": str(e2)[:200]})
+    return {"ok": True, "install": {k: r.get(k) for k in
+                                    ("label", "package_count", "size_mb", "install_seconds",
+                                     "wrappers", "smoke", "target_dir")},
+            "packages": r.get("resolved_packages"), "capabilities": registered}
+
+
+@app.get("/chimera/deps_installed")
+def chimera_deps_installed(limit: int = 50):
+    import chimera_v2 as _cv2
+    rows = _cv2.list_deps_installs(limit=limit)
+    return {"ok": True, "installs": rows, "count": len(rows)}
+
+
 @app.post("/orchestrate")
 def orchestrate_ep(req: OrchestrateRequest):
     """★ DSH 调这个 ⇒ 拿执行计划 ✓
