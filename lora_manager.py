@@ -5941,6 +5941,78 @@ def distill_score_endpoint(payload: dict = None):
     return {"ok": True, "results": _ds.score_batch(recs)}
 
 
+# ══════════════════════════════════════════════════════════
+# S4（2026-10-26）轨迹拆步 → 工作流沉淀 → 复用检索 + Bug 台账
+# ══════════════════════════════════════════════════════════
+@app.get("/distill/stats")
+def distill_traj_stats(limit_per_file: int = 400, max_total: int = 1600):
+    """轨迹拆步实测统计（能拆多少步/成功率/工具分布/评分分布）"""
+    import trajectory_distill as _td
+    return {"ok": True, **_td.stats(limit_per_file=limit_per_file, max_total=max_total)}
+
+
+@app.post("/distill/build")
+def distill_build(payload: dict = None):
+    """选轨迹 → 评分 → 生成工作流配置 + 单步 LoRA 数据集（train/eval）"""
+    import trajectory_distill as _td
+    p = payload or {}
+    try:
+        r = _td.build(record_index=p.get("record_index"))
+        return {"ok": True, **r}
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+    except Exception as e:
+        raise HTTPException(500, "%s: %s" % (type(e).__name__, str(e)[:200]))
+
+
+@app.get("/distill/workflows")
+def distill_workflows(limit: int = 30):
+    import trajectory_distill as _td
+    rows = _td.list_workflows(limit=limit)
+    return {"ok": True, "workflows": rows, "count": len(rows)}
+
+
+@app.get("/distill/workflows/search")
+def distill_workflows_search(q: str = "", limit: int = 5):
+    """相似任务 → 已沉淀工作流（复用路径）"""
+    import trajectory_distill as _td
+    if not str(q or "").strip():
+        raise HTTPException(400, "q 必填")
+    return {"ok": True, "results": _td.search_workflows(q, limit=limit)}
+
+
+@app.get("/bugs")
+def bugs_list(status: str = "", severity: str = ""):
+    import bug_ledger as _bl
+    rows = _bl.list_bugs(status=status or None, severity=severity or None)
+    return {"ok": True, "bugs": rows, "count": len(rows), **_bl.stats()}
+
+
+@app.post("/bugs")
+def bugs_add(payload: dict = None):
+    import bug_ledger as _bl
+    p = payload or {}
+    if not str(p.get("title") or "").strip():
+        raise HTTPException(400, "title 必填")
+    rec = _bl.add(p.get("title"), area=p.get("area") or "general",
+                 detail=p.get("detail") or "", severity=p.get("severity") or "P2",
+                 status=p.get("status") or "parked", found_in=p.get("found_in") or "")
+    _bl.render_doc()
+    return {"ok": True, "bug": rec}
+
+
+@app.post("/bugs/{bug_id}/status")
+def bugs_status(bug_id: str, payload: dict = None):
+    import bug_ledger as _bl
+    p = payload or {}
+    try:
+        rec = _bl.update(bug_id, status=p.get("status") or "fixed", note=p.get("note") or "")
+    except ValueError as e:
+        raise HTTPException(404, str(e))
+    _bl.render_doc()
+    return {"ok": True, "bug": rec}
+
+
 @app.post("/orchestrate")
 def orchestrate_ep(req: OrchestrateRequest):
     """★ DSH 调这个 ⇒ 拿执行计划 ✓
