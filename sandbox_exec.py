@@ -98,6 +98,16 @@ def execute_capability(cap, args=None, kwargs=None, timeout=None):
     ok, why = executable_cap(cap)
     if not ok:
         return {"ok": False, "error": why, "meta": {"cap_id": (cap or {}).get("cap_id")}}
+    # ★ P5 治理：KILL 开关 / 日预算 / 每分钟频率
+    try:
+        import governance as _gov
+        _allowed, _why = _gov.check_exec_allowed()
+        if not _allowed:
+            _gov.audit("exec_blocked", cap_id=(cap or {}).get("cap_id"), reason=_why)
+            return {"ok": False, "error": "治理层拒绝: %s" % _why,
+                    "meta": {"cap_id": (cap or {}).get("cap_id"), "blocked": True}}
+    except Exception:
+        pass
     f = _cap_fields(cap)
     timeout = int(timeout or DEFAULT_TIMEOUT)
     _args = list(args or [])
@@ -137,6 +147,11 @@ def execute_capability(cap, args=None, kwargs=None, timeout=None):
         dur = round(time.time() - t0, 2)
         _audit({"action": "exec_timeout", "cap_id": f["cap_id"], "timeout": timeout})
         _record_use(f["cap_id"], success=False)
+        try:
+            import governance as _gov3
+            _gov3.record_exec(f["cap_id"], ok=False)
+        except Exception:
+            pass
         return {"ok": False, "error": "执行超时（%ss）" % timeout,
                 "meta": {"cap_id": f["cap_id"], "duration": dur}}
     except Exception as e:
@@ -161,6 +176,11 @@ def execute_capability(cap, args=None, kwargs=None, timeout=None):
             "function": f["function"], "ok": okk, "duration": dur,
             "error": (data.get("error") or "")[:300]})
     _record_use(f["cap_id"], success=okk)
+    try:
+        import governance as _gov2
+        _gov2.record_exec(f["cap_id"], ok=okk)
+    except Exception:
+        pass
     res = {"ok": okk, "meta": {"cap_id": f["cap_id"], "duration": dur,
                                "module": f["module"], "function": f["function"]}}
     if okk:

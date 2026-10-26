@@ -431,6 +431,14 @@ def orchestrate(task):
     task = str(task or "").strip()
     if not task:
         return {"ok": False, "content": "", "route": "none", "meta": {"error": "空任务"}}
+    # ★ P5 治理：KILL 开关
+    try:
+        import governance as _gov
+        if _gov.is_frozen():
+            return {"ok": False, "content": "系统已冻结（KILL 开关）：%s" % (_gov.status().get("frozen_reason") or ""),
+                    "route": "frozen", "meta": {"error": "frozen"}}
+    except Exception:
+        pass
     dec, _ = decide(task)
     if not dec:
         ans = main_answer(task)

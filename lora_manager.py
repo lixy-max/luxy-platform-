@@ -5454,6 +5454,47 @@ def sandbox_executables():
     return {"ok": True, "executables": rows, "count": len(rows)}
 
 
+# ══════════════════════════════════════════════════════════
+# P5 治理层（2026-10-26）：审计 / 预算 / KILL 开关 / 影子期晋级
+# ══════════════════════════════════════════════════════════
+@app.get("/governance/status")
+def governance_status():
+    import governance as _gov
+    return {"ok": True, **_gov.status()}
+
+
+@app.post("/governance/freeze")
+def governance_freeze(payload: dict = None):
+    """KILL 开关：冻结后编排/外部执行全部拒绝"""
+    import governance as _gov
+    reason = str((payload or {}).get("reason") or "手动冻结")
+    rec = _gov.freeze(reason=reason, by="api")
+    return {"ok": True, "frozen": True, "reason": reason, "audit": rec}
+
+
+@app.post("/governance/unfreeze")
+def governance_unfreeze():
+    import governance as _gov
+    rec = _gov.unfreeze(by="api")
+    return {"ok": True, "frozen": False, "audit": rec}
+
+
+@app.post("/governance/promote")
+def governance_promote(payload: dict = None):
+    """影子期晋级：默认 10 次 & 成功率 ≥0.9；可传 min_uses/min_rate 覆盖"""
+    import governance as _gov
+    p = payload or {}
+    promoted = _gov.promote_ready(min_uses=p.get("min_uses"), min_rate=p.get("min_rate"))
+    return {"ok": True, "promoted": promoted, "count": len(promoted)}
+
+
+@app.get("/governance/audit")
+def governance_audit(limit: int = 100):
+    import governance as _gov
+    rows = _gov.read_audit(limit=limit)
+    return {"ok": True, "audit": rows, "count": len(rows)}
+
+
 @app.get("/capabilities")
 def capabilities_list(status: str = ""):
     """列出能力（可按 status 过滤：active|shadow|disabled）"""

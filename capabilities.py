@@ -358,6 +358,12 @@ def record_use(cap_id, success=True):
     c["success_rate"] = round(new_sr, 4)
     c["last_used"] = _now()
     _save(reg)
+    # P5：影子期达标自动晋级（默认 10 次且成功率 ≥0.9；可用 env 调整）
+    try:
+        import governance as _gov
+        _gov.maybe_promote(cap_id)
+    except Exception:
+        pass
     return c
 
 
