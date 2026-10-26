@@ -195,6 +195,38 @@ def _check_governance():
         return "missing", {"error": str(e)[:200]}
 
 
+
+def _check_conversation_isolation():
+    """任务表按对话隔离：conversation_id 列存在、可过滤、存在多对话数据（S14）"""
+    try:
+        import sqlite3
+        from route_table import DB_PATH as RT_DB
+        if not Path(RT_DB).exists():
+            return "missing", {"error": "任务表库不存在"}
+        c = sqlite3.connect(str(RT_DB))
+        c.row_factory = sqlite3.Row
+        cols = {r["name"] for r in c.execute("PRAGMA table_info(tables)")}
+        if "conversation_id" not in cols:
+            c.close()
+            return "missing", {"error": "缺少 conversation_id 列"}
+        convs = [dict(r) for r in c.execute(
+            "SELECT conversation_id, COUNT(*) n FROM tables GROUP BY conversation_id "
+            "ORDER BY n DESC LIMIT 10")]
+        total = c.execute("SELECT COUNT(*) n FROM tables").fetchone()["n"]
+        c.close()
+        named = [x for x in convs if x["conversation_id"]]
+        ev = {"tables": total, "conversations": len(convs),
+              "named_conversations": len(named),
+              "sample": [{"conv": (x["conversation_id"] or "")[:16], "tables": x["n"]}
+                         for x in convs[:4]]}
+        if named:
+            return "pass", ev
+        ev["gap"] = "尚无具名对话数据（老表都在默认对话 ''）"
+        return "partial", ev
+    except Exception as e:
+        return "missing", {"error": str(e)[:200]}
+
+
 CHECKS = [
     ("brain", "主脑路由（14B 可用）", _check_brain),
     ("route_table", "级联路由任务表（本地/云端/移植）", _check_route_table),
@@ -205,6 +237,7 @@ CHECKS = [
     ("kb", "本地知识库（KB/表格）", _check_kb),
     ("metrics", "进化指标", _check_metrics),
     ("governance", "治理与台账", _check_governance),
+    ("conversation", "任务表对话隔离", _check_conversation_isolation),
 ]
 
 
