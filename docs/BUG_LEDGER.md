@@ -6,6 +6,7 @@
 
 | ID | 严重度 | 状态 | 区域 | 标题 | 发现于 |
 |---|---|---|---|---|---|
+| B027 | P1 | fixed | repo | 事故：git sparse-checkout 误作用于主仓库，导致 tests/ 等跟踪文件被移除（已恢复） | S8 |
 | B002 | P2 | parked | kb/table | 表格结构化存储只取第一个 sheet；多 sheet/多表关联未做 | S3 |
 | B003 | P2 | parked | kb/qa | LLM 兜底路径非数字实体仍可能误差（校验只覆盖数字） | S3 |
 | B004 | P2 | parked | worker | LoRA 工蜂能力可能返回 <tool_call> 文本而非执行结果 | S2 |
@@ -18,6 +19,7 @@
 | B014 | P2 | parked | distill | 蒸馏工作流 v1 把工具步骤近似为 LLM 模拟（未真实调用工具） | S4 |
 | B021 | P2 | parked | chimera | Docling 全量依赖过大（torch 2.14 + CUDA13 全家桶），本机直装不可行 | S6 |
 | B024 | P2 | parked | model | 模型导入只下载原格式，未做量化转换（评估建议 int4/int8 但未落地） | S7 |
+| B029 | P2 | parked | chimera | 代码重建 v1：适配器用模板/可选14B生成，未做真实源码级移植与自动测试集 | S8 |
 | B001 | P3 | parked | frontend | 前端任务表无自动轮询，执行后需手动刷新 | S2 |
 | B008 | P3 | parked | security | vLLM 未启用 api-key（仅绑定回环） | P0 |
 | B009 | P3 | parked | infra | /vllm/start 冷启动 26–28s（未优化） | P7 |
@@ -32,8 +34,14 @@
 | B023 | P3 | parked | chimera | V2 适配器为手写（pdfplumber/docx），新库需人工写 wrapper 才能成为可执行能力 | S6 |
 | B025 | P3 | parked | model | 模型部署需停机：主脑14B/工蜂7B 占满两张卡，导入后无法立即起服务 | S7 |
 | B026 | P3 | parked | model | 模型下载无断点续传/进度上报 API（长下载只能等，UI 不可见） | S7 |
+| B028 | P3 | parked | chimera | GitHub raw 抓取不稳定（60s 超时）：已加 jsDelivr/GitHub API 镜像回退 | S8 |
 
 ## 详细说明
+
+### B027 · 事故：git sparse-checkout 误作用于主仓库，导致 tests/ 等跟踪文件被移除（已恢复）
+- 区域：repo ｜ 严重度：P1 ｜ 状态：fixed
+- 发现于：S8 ｜ 登记：2026-10-26T21:57:43
+- 详情：S8 探测 RAGFlow 克隆时，克隆失败后在 data/chimera/repos 子目录执行 git sparse-checkout set rag LICENSE NOTICE，因该目录在主仓库工作区内，sparse-checkout 被应用到主仓库，tests/ 等 6 个路径被移除。已通过 git sparse-checkout disable 恢复（494 跟踪文件 0 缺失），未提交改动备份后回填。教训：在仓库子目录做 git 操作前先确认 GIT_DIR；脚本需 set -e 并在 cd 失败时中止。
 
 ### B002 · 表格结构化存储只取第一个 sheet；多 sheet/多表关联未做
 - 区域：kb/table ｜ 严重度：P2 ｜ 状态：parked
@@ -94,6 +102,11 @@
 - 区域：model ｜ 严重度：P2 ｜ 状态：parked
 - 发现于：S7 ｜ 登记：2026-10-26T21:36:36
 - 详情：model_import 评估会给出 fp16/int8/int4 选型建议，但 import_model 只下载原始 safetensors；若 fp16 放不下需先 AWQ/GPTQ 量化（或选现成量化版仓库），否则无法按评估结论部署。
+
+### B029 · 代码重建 v1：适配器用模板/可选14B生成，未做真实源码级移植与自动测试集
+- 区域：chimera ｜ 严重度：P2 ｜ 状态：parked
+- 发现于：S8 ｜ 登记：2026-10-26T21:57:43
+- 详情：当前只借逻辑、本地独立重写最小实现（模板）；LLM 生成适配器为可选且未强制验证；无自动测试生成/回归。
 
 ### B001 · 前端任务表无自动轮询，执行后需手动刷新
 - 区域：frontend ｜ 严重度：P3 ｜ 状态：parked
@@ -164,3 +177,8 @@
 - 区域：model ｜ 严重度：P3 ｜ 状态：parked
 - 发现于：S7 ｜ 登记：2026-10-26T21:36:36
 - 详情：ModelScope snapshot_download 自带重试但进度只在进程输出；大模型（14GB+）下载不可视、不可取消。
+
+### B028 · GitHub raw 抓取不稳定（60s 超时）：已加 jsDelivr/GitHub API 镜像回退
+- 区域：chimera ｜ 严重度：P3 ｜ 状态：parked
+- 发现于：S8 ｜ 登记：2026-10-26T21:57:43
+- 详情：S8 实测 raw.githubusercontent 单文件 60s 超时；重建管线已改为 raw→jsDelivr→GitHub API 三级回退（jsDelivr 实测 0.9s）。仍建议加本地缓存/离线包，避免每次重建依赖网络。

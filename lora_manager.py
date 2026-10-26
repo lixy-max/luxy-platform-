@@ -6149,6 +6149,55 @@ def chimera_model_imports(limit: int = 30):
     return {"ok": True, "imports": rows, "count": len(rows)}
 
 
+# ══════════════════════════════════════════════════════════
+# S8（2026-10-26）奇美拉 V2 第二档：代码借鉴 / 本地重建
+# ══════════════════════════════════════════════════════════
+@app.post("/chimera/rebuild_plan")
+def chimera_rebuild_plan(payload: dict = None):
+    """只做抓取+分析+计划（不生成代码、不登记）"""
+    import code_rebuild as _crb
+    p = payload or {}
+    repo = str(p.get("repo") or "").strip()
+    files = p.get("files") if isinstance(p.get("files"), list) else []
+    if not repo or not files:
+        raise HTTPException(400, "repo 与 files 必填")
+    try:
+        meta = _crb.fetch_files(repo, files)
+        analysis = _crb.analyze(meta["root"])
+        plan = _crb.plan_rebuild(meta, analysis, goal=str(p.get("goal") or ""))
+        return {"ok": True, "meta": meta, "analysis": analysis, "plan": plan}
+    except Exception as e:
+        raise HTTPException(500, "%s: %s" % (type(e).__name__, str(e)[:300]))
+
+
+@app.post("/chimera/rebuild")
+def chimera_rebuild(payload: dict = None):
+    """代码借鉴重建：抓取→分析→计划→适配器→自测→登记能力（需 approve）"""
+    import code_rebuild as _crb
+    p = payload or {}
+    repo = str(p.get("repo") or "").strip()
+    files = p.get("files") if isinstance(p.get("files"), list) else []
+    if not repo or not files:
+        raise HTTPException(400, "repo 与 files 必填")
+    if not p.get("approve"):
+        raise HTTPException(400, "代码重建需要显式 approve=true")
+    try:
+        r = _crb.rebuild(repo, files, goal=str(p.get("goal") or ""),
+                         name=p.get("name"), entry=str(p.get("entry") or "chunk"),
+                         cap_id=p.get("cap_id"), args_schema=p.get("args_schema"),
+                         approve=True, use_llm=bool(p.get("use_llm")))
+        return {"ok": bool(r.get("ok")), **r}
+    except Exception as e:
+        raise HTTPException(500, "%s: %s" % (type(e).__name__, str(e)[:300]))
+
+
+@app.get("/chimera/rebuilds")
+def chimera_rebuilds(limit: int = 30):
+    import code_rebuild as _crb
+    rows = _crb.list_rebuilds(limit=limit)
+    return {"ok": True, "rebuilds": rows, "count": len(rows)}
+
+
 @app.post("/orchestrate")
 def orchestrate_ep(req: OrchestrateRequest):
     """★ DSH 调这个 ⇒ 拿执行计划 ✓
