@@ -255,6 +255,20 @@ def generate_items(request, max_items=MAX_ITEMS, context=None):
                 "depends_on": []})
     except Exception:
         pass
+    # ★ S13：请求里带本地图片路径 → 透传到视觉项内容（执行时可真调视觉模型）
+    try:
+        import re as _re3
+        from pathlib import Path as _P3
+        _paths = _re3.findall(r'(/[^\s"\'（）()【】\[\]，,；;：: ]+\.(?:png|jpe?g|webp|bmp|gif))',
+                              str(request) + " " + str(context or ""))
+        _imgs = [x for x in _paths if _P3(x).exists()]
+        if _imgs:
+            for _it in items:
+                if "vision" in str(_it.get("target") or ""):
+                    if not any(x in _it["content"] for x in _imgs):
+                        _it["content"] = (_it["content"] + "（图片：%s）" % _imgs[0])[:300]
+    except Exception:
+        pass
     return items
 
 
@@ -470,10 +484,16 @@ def _local_execute(item, ctx):
             cap = None
         if cap and cap.get("kind") == "external":
             schema = cap.get("args_schema") or {}
-            if isinstance(schema, dict) and (schema.get("positional") or []) == ["data"]:
-                lines = [ln.strip() for ln in str(ctx).splitlines() if ln.strip()][:20]
-                dec["capability_input"] = {"data": [[ln[:120]] for ln in lines] or [["（无输入）"]],
-                                           "headers": ["内容"]}
+            if isinstance(schema, dict):
+                _pos = schema.get("positional") or []
+                if _pos == ["data"]:
+                    lines = [ln.strip() for ln in str(ctx).splitlines() if ln.strip()][:20]
+                    dec["capability_input"] = {"data": [[ln[:120]] for ln in lines] or [["（无输入）"]],
+                                               "headers": ["内容"]}
+                elif "text" in _pos:
+                    # ★ S13：文本类外部能力（chunker 等）需要 text 参数
+                    _txt = content + ("\n\n前序结果：\n" + ctx[:1500] if ctx else "")
+                    dec["capability_input"] = {"text": _txt[:4000]}
         r = swarm.execute(dec, (content + ("\n\n前序结果：\n" + ctx if ctx else "")))
         return bool(r.get("ok")), str(r.get("content") or r.get("meta", {}).get("error") or ""), "local"
     if target.startswith("kb:"):
@@ -578,11 +598,36 @@ def execute_table(table_id, run_cloud=False, run_transplant=False,
                             progress = True
                             continue
                         _prefix = "（架构路由：本任务涉及%s，按云端能力处理）\n" % "/".join(_kinds)
-                    import swarm
-                    r = swarm.execute({"route": "cloud"},
-                                      _prefix + it["content"] + ("\n\n前序结果：\n" + ctx[:1500] if ctx else ""))
-                    ok, result = bool(r.get("ok")), str(r.get("content") or "")
-                    attempts.append({"try": "cloud", "ok": ok, "at": _now()})
+                    # ★ S13：视觉项特殊执行（有本地图片路径 → GLM 视觉模型；无图 → 明确 skipped 指引）
+                    _vision_done = False
+                    if "vision" in _kinds:
+                        import re as _re2
+                        from pathlib import Path as _P2
+                        _m2 = _re2.search(r'(/[^\s"\'（）()【】\[\]，,；;：: ]+\.(?:png|jpe?g|webp|bmp|gif))', it["content"])
+                        if _m2 and _P2(_m2.group(1)).exists():
+                            try:
+                                import cloud_bridge as _cb
+                                _ans = _cb.ask_vision(it["content"], image_path=_m2.group(1))
+                                ok, result = True, _ans
+                                attempts.append({"try": "cloud_vision", "ok": True, "at": _now()})
+                            except Exception as e:
+                                ok, result = False, "视觉调用失败: %s" % str(e)[:200]
+                                attempts.append({"try": "cloud_vision", "ok": False, "at": _now()})
+                            _vision_done = True
+                        else:
+                            with _conn() as c:
+                                _set_item(c, table_id, seq, status="skipped", updated_at=_now(),
+                                          result="已路由视觉云端（provider 已配置）；需要图片输入：请在任务内容给出本地图片路径，或调用 /cloud/vision 传图")
+                            items[seq]["status"] = "skipped"
+                            executed.append({"seq": seq, "ok": False, "skipped": "need_image"})
+                            progress = True
+                            continue
+                    if not _vision_done:
+                        import swarm
+                        r = swarm.execute({"route": "cloud"},
+                                          _prefix + it["content"] + ("\n\n前序结果：\n" + ctx[:1500] if ctx else ""))
+                        ok, result = bool(r.get("ok")), str(r.get("content") or "")
+                        attempts.append({"try": "cloud", "ok": ok, "at": _now()})
                 else:  # transplant
                     if not run_transplant:
                         with _conn() as c:

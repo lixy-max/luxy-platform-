@@ -6335,6 +6335,25 @@ def architecture_summary():
     return {"ok": True, "text": _as.summary_text()}
 
 
+@app.post("/cloud/vision")
+def cloud_vision(payload: dict = None):
+    """视觉模型调用（GLM glm-4v-flash 等）：传本地图片路径 / 图片 URL / base64"""
+    import cloud_bridge as _cb
+    p = payload or {}
+    prompt = str(p.get("prompt") or "描述这张图片，并列出可见的文字")
+    try:
+        ans = _cb.ask_vision(prompt, image_path=p.get("image_path"),
+                             image_url=p.get("image_url"), image_b64=p.get("image_b64"),
+                             model=p.get("model"))
+    except Exception as e:
+        raise HTTPException(500, "%s: %s" % (type(e).__name__, str(e)[:300]))
+    import modality_router as _mr
+    sel = _mr.select_provider(["vision"])
+    return {"ok": True, "answer": ans,
+            "provider": (sel.get("provider") or {}).get("name"),
+            "model": (sel.get("provider") or {}).get("vision_model")}
+
+
 @app.post("/orchestrate")
 def orchestrate_ep(req: OrchestrateRequest):
     """★ DSH 调这个 ⇒ 拿执行计划 ✓

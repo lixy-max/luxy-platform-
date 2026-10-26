@@ -55,8 +55,15 @@ def list_providers():
         mods = cfg.get("modalities") or DEFAULT_MODALITIES
         if isinstance(mods, str):
             mods = [m.strip() for m in mods.split(",") if m.strip()]
+        models = {"text": str(cfg.get("model") or "deepseek-chat")}
+        for m in ("vision", "audio", "video"):
+            mv = cfg.get(m + "_model")
+            if mv:
+                models[m] = str(mv)
         out.append({"name": name, "api_base": base.rstrip("/"),
-                    "model": str(cfg.get("model") or "deepseek-chat"),
+                    "model": models.get("text"),
+                    "vision_model": models.get("vision"),
+                    "models": models,
                     "modalities": mods or DEFAULT_MODALITIES,
                     "key_masked": "****" + key[-4:] if len(key) > 4 else "****"})
     return out
@@ -106,8 +113,15 @@ def select_provider(kinds):
         score = len(required & set(p["modalities"]))
         if best is None or score > best[0]:
             best = (score, p)
-    return {"ok": True, "provider": best[1], "missing": [],
-            "required": sorted(required)}
+    prov = best[1]
+    models = prov.get("models") or {}
+    model_for = {}
+    for m in required:
+        model_for[m] = models.get(m) or prov.get("model")
+    return {"ok": True, "provider": prov, "missing": [],
+            "required": sorted(required), "model_for": model_for,
+            "model": (model_for.get("vision") if "vision" in required
+                      else model_for.get("text") or prov.get("model"))}
 
 
 def route(text):
@@ -121,6 +135,7 @@ def route(text):
                 "missing": sel["missing"], **d}
     target = "cloud:" + "+".join(d["kinds"])
     return {"route": "cloud", "target": target, "provider": sel["provider"]["name"],
+            "model": sel.get("model"),
             "reason": "检测到%s需求 → 云端（provider=%s）" % (
                 "、".join(MODALITY_LABELS.get(k, k) for k in d["kinds"]), sel["provider"]["name"]),
             **d}
@@ -135,6 +150,49 @@ def blocked_reason(kinds):
     if sel["ok"]:
         return None
     return "%s（%s）" % (sel["reason"], sel.get("advice") or "")
+
+
+
+def provider_config(kind="text"):
+    """内部使用：返回**完整** provider 配置（含 api_key，绝不经 API 暴露）。
+
+    用于 ask_vision 等真实调用；对外展示请用 list_providers（key 打码）。
+    """
+    kind = kind or "text"
+    env_base = os.environ.get("CLOUD_API_BASE") or ""
+    env_key = os.environ.get("CLOUD_API_KEY") or ""
+    env_mods = [m.strip() for m in (os.environ.get("CLOUD_MODALITIES") or "text").split(",") if m.strip()]
+    if env_base and env_key and kind in env_mods:
+        return {"name": "env", "api_base": env_base, "api_key": env_key,
+                "model": os.environ.get("CLOUD_MODEL") or "deepseek-chat",
+                "vision_model": os.environ.get("CLOUD_VISION_MODEL") or None,
+                "models": {"text": os.environ.get("CLOUD_MODEL") or "deepseek-chat",
+                           "vision": os.environ.get("CLOUD_VISION_MODEL")},
+                "modalities": env_mods}
+    st = _load_settings()
+    first_text = None
+    for name, cfg in (st.get("providers") or {}).items():
+        if not isinstance(cfg, dict):
+            continue
+        key = str(cfg.get("api_key") or "").strip()
+        base = str(cfg.get("api_base") or "").strip()
+        if not key or not base or "127.0.0.1" in base or "localhost" in base:
+            continue
+        mods = cfg.get("modalities") or DEFAULT_MODALITIES
+        if isinstance(mods, str):
+            mods = [m.strip() for m in mods.split(",") if m.strip()]
+        models = {"text": str(cfg.get("model") or "deepseek-chat")}
+        for m in ("vision", "audio", "video"):
+            if cfg.get(m + "_model"):
+                models[m] = str(cfg.get(m + "_model"))
+        full = {"name": name, "api_base": base.rstrip("/"), "api_key": key,
+                "model": models.get("text"), "vision_model": models.get("vision"),
+                "models": models, "modalities": mods or DEFAULT_MODALITIES}
+        if kind in full["modalities"]:
+            return full
+        if first_text is None and "text" in full["modalities"]:
+            first_text = full
+    return first_text or {}
 
 
 def summary():

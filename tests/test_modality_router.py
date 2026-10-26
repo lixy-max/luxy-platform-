@@ -140,3 +140,44 @@ class TestArchitectureStatus(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+
+
+class TestVisionProviderConfig(unittest.TestCase):
+    def test_glm_like_provider_has_vision_model(self):
+        provs = [{"name": "glm", "api_base": "https://x", "model": "glm-4-flash",
+                  "vision_model": "glm-4v-flash",
+                  "models": {"text": "glm-4-flash", "vision": "glm-4v-flash"},
+                  "modalities": ["text", "vision"], "key_masked": "****"}]
+        with mock.patch.object(mr, "list_providers", return_value=provs):
+            sel = mr.select_provider(["vision"])
+            r = mr.route("识别这张图片里的文字")
+        self.assertTrue(sel["ok"])
+        self.assertEqual(sel["model_for"].get("vision"), "glm-4v-flash")
+        self.assertEqual(r["route"], "cloud")
+        self.assertEqual(r.get("model"), "glm-4v-flash")
+
+
+class TestAskVision(unittest.TestCase):
+    def test_ask_vision_requires_image(self):
+        import cloud_bridge as cb
+        with mock.patch.object(cb, "_provider_for", return_value={
+                "api_base": "https://x", "api_key": "k", "model": "glm-4v-flash",
+                "models": {"vision": "glm-4v-flash"}}):
+            with self.assertRaises(RuntimeError):
+                cb.ask_vision("描述图片")
+
+    def test_ask_vision_b64_mocked(self):
+        import cloud_bridge as cb
+        fake = mock.Mock()
+        fake.status_code = 200
+        fake.json.return_value = {"choices": [{"message": {"content": "图里是看板"}}]}
+        fake.raise_for_status.return_value = None
+        with mock.patch.object(cb, "_provider_for", return_value={
+                "api_base": "https://x", "api_key": "k", "model": "glm-4v-flash",
+                "models": {"vision": "glm-4v-flash"}}), \
+             mock.patch("requests.post", return_value=fake) as m:
+            out = cb.ask_vision("描述图片", image_b64="aGVsbG8=")
+        self.assertEqual(out, "图里是看板")
+        body = m.call_args.kwargs["json"]
+        self.assertEqual(body["model"], "glm-4v-flash")
+        self.assertIn("image_url", body["messages"][0]["content"][0])

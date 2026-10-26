@@ -60,6 +60,85 @@ def _log_usage(cfg, ok, duration, error=""):
         pass
 
 
+
+def _provider_for(modality="text"):
+    """按模态挑 provider（返回**完整**配置，含 api_key；内部使用）"""
+    try:
+        import modality_router as _mr
+        cfg = _mr.provider_config(modality)
+        if cfg:
+            if modality != "text" and modality not in (cfg.get("modalities") or []):
+                return _provider()
+            return cfg
+    except Exception:
+        pass
+    return _provider()
+
+
+def ask_vision(prompt, image_path=None, image_url=None, image_b64=None,
+               model=None, timeout=120, retries=2):
+    """GLM 等视觉模型调用（OpenAI 兼容 image_url 格式）。
+
+    image_path：本地图片路径（读成 base64）；image_url：远程 URL；image_b64：已编码字符串
+    返回模型文本答案。未配置视觉 provider 会抛 RuntimeError。
+    """
+    import base64 as _b64
+    import mimetypes as _mt
+    import time as _time
+
+    cfg = _provider_for("vision")
+    if not cfg:
+        raise RuntimeError("未配置视觉 provider（settings.providers.<name>.modalities 需含 vision）")
+    models = cfg.get("models") or {}
+    vmodel = model or models.get("vision") or cfg.get("vision_model") or cfg.get("model")
+    if not vmodel:
+        raise RuntimeError("视觉 provider 未配置 vision_model")
+    url = image_url
+    if not url:
+        raw = b""
+        if image_b64:
+            raw = _b64.b64decode(image_b64)
+        elif image_path:
+            p = Path(str(image_path))
+            if not p.exists():
+                raise RuntimeError("图片不存在: %s" % image_path)
+            raw = p.read_bytes()
+        if not raw:
+            raise RuntimeError("需要 image_path / image_url / image_b64 之一")
+        mt = _mt.guess_type(str(image_path or "a.png"))[0] or "image/png"
+        url = "data:%s;base64,%s" % (mt, _b64.b64encode(raw).decode())
+
+    body = {"model": vmodel,
+            "messages": [{"role": "user", "content": [
+                {"type": "image_url", "image_url": {"url": url}},
+                {"type": "text", "text": str(prompt or "描述这张图片")}]}],
+            "max_tokens": 800, "temperature": 0.2}
+    t0 = _time.time()
+    last = None
+    for _ in range(int(retries) + 1):
+        try:
+            resp = __import__("requests").post(
+                cfg["api_base"].rstrip("/") + "/chat/completions",
+                headers={"Authorization": "Bearer " + cfg["api_key"],
+                         "Content-Type": "application/json"},
+                json=body, timeout=timeout)
+            if resp.status_code == 429:
+                last = "429"
+                _time.sleep(3)
+                continue
+            resp.raise_for_status()
+            d = resp.json()
+            msg = ((d.get("choices") or [{}])[0].get("message") or {})
+            content = str(msg.get("content") or "").strip()
+            _log_usage({"api_base": cfg["api_base"], "model": vmodel}, True, _time.time() - t0)
+            return content
+        except Exception as e:
+            last = "%s: %s" % (type(e).__name__, str(e)[:160])
+            _time.sleep(2)
+    _log_usage({"api_base": cfg.get("api_base", ""), "model": vmodel}, False, _time.time() - t0, last)
+    raise RuntimeError("视觉模型调用失败: %s" % last)
+
+
 def ask(prompt, system=None, max_tokens=2000, temperature=None, timeout=180, retries=4):
     """调用云端模型；未配置时抛 RuntimeError（调用方需降级）
 
