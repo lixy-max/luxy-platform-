@@ -392,13 +392,29 @@ def _start_vllm_impl(model_path, port=8000, extra_args=None, venv_python=None):
     if not os.path.exists(venv_python):
         return False, f"Python 不存在: {venv_python}"
 
+    # ★ P1（2026-10-26）：LoRA 参数改为可开关 + 绑定回环地址
+    #   背景：14B 主脑（GPU0, 16G）带平台默认 LoRA 参数（max-loras=2/rank=128/
+    #   max-num-seqs=16）实测额外占 2.5GiB ⇒ KV 只剩 2.14GiB（20480 上下文需 3.75GiB
+    #   → 启动失败，估算上限仅 11648）。主脑不需要 LoRA（LoRA 在工蜂 7B 上），
+    #   用 VLLM_ENABLE_LORA=0 起主脑：KV 4.67GiB、20480 上下文、25.5K tokens 容量 ✓
+    #   · VLLM_ENABLE_LORA（默认 "1" 保持原行为 ✓）
+    #   · VLLM_HOST（默认 127.0.0.1：原来不传 --host，vLLM 默认可能是 0.0.0.0，
+    #     同机其他 distro/进程可直连 ⇒ 安全隐患；显式绑回环 ✓）
+    _enable_lora = os.environ.get("VLLM_ENABLE_LORA", "1") != "0"
+    _vllm_host = os.environ.get("VLLM_HOST", "127.0.0.1")
     cmd = [
         venv_python, "-m", "vllm.entrypoints.openai.api_server",
         "--model", model_path,
-        "--enable-lora",
-        "--max-loras", str(args["max_loras"]),
-        "--max-lora-rank", str(args["max_lora_rank"]),
-        "--max-cpu-loras", str(args["max_cpu_loras"]),
+        "--host", _vllm_host,
+    ]
+    if _enable_lora:
+        cmd += [
+            "--enable-lora",
+            "--max-loras", str(args["max_loras"]),
+            "--max-lora-rank", str(args["max_lora_rank"]),
+            "--max-cpu-loras", str(args["max_cpu_loras"]),
+        ]
+    cmd += [
         "--max-model-len", str(args["max_model_len"]),
         "--gpu-memory-utilization", str(args["gpu_memory_utilization"]),
         "--enable-prefix-caching",
@@ -443,7 +459,7 @@ def _start_vllm_impl(model_path, port=8000, extra_args=None, venv_python=None):
     except Exception as _ge:
         print(f"[vllm] GPU 配置读取失败（用默认 ✓）: {_ge}", flush=True)
     env["VLLM_USE_FLASHINFER_SAMPLER"] = "0"
-    env["VLLM_ALLOW_RUNTIME_LORA_UPDATING"] = "True"
+    env["VLLM_ALLOW_RUNTIME_LORA_UPDATING"] = "True" if _enable_lora else "False"
     env["PYTHONIOENCODING"] = "utf-8"
 
     log(f"启动 vLLM: {model_path}")

@@ -4,7 +4,8 @@ import json
 import shutil
 import hashlib
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timedelta
+import re
 
 # 语言判定只用于"为什么没命中"的诊断。度量模块不可用时退化为"不判断"，
 # 绝不能因为诊断功能把检索本身搞崩。
@@ -42,6 +43,14 @@ EMBED_MODEL_NAME = DEFAULT_EMBED_MODEL      # 兼容旧名；请用 embed_model_
 # 实测中文 query 打英文语料时 bge-small-zh 给的是**负分**（-0.028），会被整个丢掉，
 # 旧实现只回一个空列表，在日志里看着像"这个库是空的" —— 完全误导。
 DEFAULT_MIN_SCORE = 0.1
+
+# ── P2.1/P2.2（2026-10-26）：动态知识库 + 隔离 + 配额 + 审计 ──
+#   动态库：会话/任务级临时库，带 TTL、owner_session、expires_at
+#   隔离：动态库只对创建它的会话可见可写（静态库不限制）
+#   配额：单库 chunk 上限（env KB_MAX_CHUNKS，默认 5 万）
+KB_DYNAMIC_TIER = "dynamic"
+KB_DEFAULT_TTL_HOURS = int(os.environ.get("KB_DEFAULT_TTL_HOURS", "24") or 24)
+KB_MAX_CHUNKS = int(os.environ.get("KB_MAX_CHUNKS", "50000") or 50000)
 
 def embed_model_name():
     """当前配置的 embedding 模型（环境变量 KB_EMBED_MODEL 优先）。"""
@@ -546,7 +555,12 @@ def _save_kb_meta(name, meta):
         json.dump(meta, f, ensure_ascii=False, indent=2)
 
 
-def create_kb(name, description="", tier=None):
+def create_kb(name, description="", tier=None, dynamic=False, owner_session=None, ttl_hours=None):
+    """建库。P2 扩展：dynamic/owner_session/ttl_hours（全部向后兼容 ✓）
+
+    · dynamic=True  → tier="dynamic"，写 owner_session / ttl_hours / expires_at
+    · 静态库行为与原来完全一致（不写任何新字段）
+    """
     if get_kb(name):
         raise ValueError(f"知识库 '{name}' 已存在")
     meta = {
@@ -557,6 +571,15 @@ def create_kb(name, description="", tier=None):
         "created_at": datetime.now().isoformat(),
         "updated_at": datetime.now().isoformat(),
     }
+    if dynamic:
+        _ttl = int(ttl_hours if ttl_hours is not None else KB_DEFAULT_TTL_HOURS)
+        _ttl = max(1, min(_ttl, 24 * 30))          # 1 小时 ~ 30 天
+        meta.update({
+            "tier": KB_DYNAMIC_TIER,
+            "owner_session": str(owner_session or ""),
+            "ttl_hours": _ttl,
+            "expires_at": (datetime.now() + timedelta(hours=_ttl)).isoformat(),
+        })
     _save_kb_meta(name, meta)
     return meta
 
@@ -644,6 +667,101 @@ def delete_kb(name):
     except Exception:
         pass
     shutil.rmtree(KB_DIR / name, ignore_errors=True)
+
+
+
+# ── P2.1/P2.2（2026-10-26）：动态库 helper（隔离 / TTL / 审计 / 配额）──
+def _append_audit(kb_name, action, **fields):
+    """写审计记录到 data/kbs/<name>/audit.jsonl（写入/清理/生命周期事件）"""
+    try:
+        d = KB_DIR / kb_name
+        d.mkdir(parents=True, exist_ok=True)
+        rec = {"at": datetime.now().isoformat(), "action": str(action)}
+        rec.update({k: v for k, v in fields.items() if v is not None})
+        with open(d / "audit.jsonl", "a", encoding="utf-8") as f:
+            f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+    except Exception:
+        pass
+
+
+def is_dynamic(meta):
+    """是否动态库（会话/任务级临时库）"""
+    return bool(meta) and str(meta.get("tier") or "") == KB_DYNAMIC_TIER
+
+
+def is_expired(meta, now=None):
+    """动态库是否已过期（静态库永不过期）"""
+    if not is_dynamic(meta):
+        return False
+    exp = meta.get("expires_at")
+    if not exp:
+        return False
+    try:
+        return datetime.fromisoformat(str(exp)) <= (now or datetime.now())
+    except Exception:
+        return False
+
+
+def check_session(meta, session_id):
+    """动态库只对创建它的会话可见/可写；静态库不限制。"""
+    if not is_dynamic(meta):
+        return True
+    owner = str(meta.get("owner_session") or "")
+    if not owner:
+        return True
+    return str(session_id or "") == owner
+
+
+def cleanup_expired_dynamic(dry_run=False):
+    """清理过期动态库；返回被清理（或将被清理）的库名列表"""
+    removed = []
+    for meta in list_kbs():
+        if is_expired(meta):
+            nm = str(meta.get("name") or "")
+            if not nm:
+                continue
+            removed.append(nm)
+            if not dry_run:
+                try:
+                    delete_kb(nm)
+                except Exception:
+                    pass
+    return removed
+
+
+def append_text_dynamic(kb_name, text, source="task", session_id=None):
+    """向动态库追加一段文本（作为会话上下文）。
+
+    隔离：非动态库拒绝；owner_session 不匹配拒绝；过期拒绝。
+    配额：超过 KB_MAX_CHUNKS 拒绝。
+    审计：audit.jsonl 记录 append 事件。
+    """
+    meta = get_kb(kb_name)
+    if not meta:
+        raise ValueError("知识库 '%s' 不存在" % kb_name)
+    if not is_dynamic(meta):
+        raise ValueError("'%s' 不是动态知识库（拒绝写入）" % kb_name)
+    if is_expired(meta):
+        raise ValueError("动态知识库 '%s' 已过期" % kb_name)
+    if not check_session(meta, session_id):
+        raise ValueError("会话无权写入动态知识库 '%s'" % kb_name)
+    text = (text or "").strip()
+    if len(text) < 10:
+        return {"added_chunks": 0, "reason": "内容过短"}
+    _proj = len(split_text(text))
+    if int(meta.get("total_chunks") or 0) + _proj > KB_MAX_CHUNKS:
+        raise ValueError("动态知识库超出配额: 上限 %d chunks（当前 %d，本次 %d）"
+                         % (KB_MAX_CHUNKS, int(meta.get("total_chunks") or 0), _proj))
+    docs_dir = KB_DIR / kb_name / "docs"
+    docs_dir.mkdir(parents=True, exist_ok=True)
+    safe = re.sub(r"[^0-9A-Za-z_\u4e00-\u9fff]+", "_", str(source))[:30] or "task"
+    fname = "dyn_%s_%s.txt" % (datetime.now().strftime("%Y%m%d_%H%M%S_%f"), safe)
+    fp = docs_dir / fname
+    fp.write_text(text, encoding="utf-8")
+    res = add_documents_to_kb(kb_name, [str(fp)])
+    _append_audit(kb_name, "append", source=source, session=session_id,
+                  added_chunks=res.get("added_chunks") if isinstance(res, dict) else None)
+    return res
 
 
 # ============ 文件抽取 ============
@@ -845,6 +963,11 @@ def add_documents_to_kb(kb_name, file_paths, progress_callback=None):
             if not chunks:
                 skipped.append({"file": Path(fp).name, "reason": "分块后为空"})
                 continue
+            # ★ P2.1: 配额强校验（防单库无限膨胀 ✓）
+            _used = int(meta.get("total_chunks") or 0) + added_chunks
+            if _used + len(chunks) > KB_MAX_CHUNKS:
+                raise ValueError("知识库超出配额: 上限 %d chunks（当前 %d，本次 %d）"
+                                 % (KB_MAX_CHUNKS, _used, len(chunks)))
             doc_name = Path(fp).name
             # ★ P-56（2026-10-19）: 保存正文到 data/kbs/<name>/docs/ ✓
             #   目的: chroma 坏了/丢了也能重建 ✓（原来只有 meta.json ✗ 无正文 ✗）
@@ -886,6 +1009,9 @@ def add_documents_to_kb(kb_name, file_paths, progress_callback=None):
                 "added_at": datetime.now().isoformat(),
             })
         except Exception as e:
+            # ★ P2.1: 配额错误必须向上抛（不能吞进 skipped —— 否则无限膨胀静默通过 ✗）
+            if "超出配额" in str(e):
+                raise
             skipped.append({"file": Path(fp).name, "reason": str(e)})
 
     if progress_callback:

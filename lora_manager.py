@@ -179,6 +179,21 @@ def save_settings(data):
     return merged
 
 
+def _kb_session_mounts(st, session_id=None):
+    """P2.1（2026-10-26）: 会话级 KB 挂载优先，退回全局默认。
+
+    settings.kb_mounts = {"<session_id>": ["kb_a", ...]}  ← 会话隔离
+    settings.kb_mounted = [...]                            ← 全局默认（旧行为，兼容）
+    """
+    st = st or {}
+    sid = str(session_id or "").strip()
+    if sid:
+        _m = (st.get("kb_mounts") or {}).get(sid)
+        if isinstance(_m, list) and _m:
+            return [str(x) for x in _m if str(x).strip()]
+    return [str(x) for x in (st.get("kb_mounted") or []) if str(x).strip()]
+
+
 def get_lora_dir():
     return Path(load_settings()["lora_dir"])
 
@@ -268,6 +283,7 @@ class ChatRequest(BaseModel):
     temperature: float = 0.7
     max_tokens: int = 2048
     kb: dict | None = None
+    session_id: str | None = None   # P2.1: 会话级 KB 挂载隔离（不传=旧行为）
     # 学习增强（阶段2）: 不传 = 行为与以前完全一致 ✓
     #   {enabled, timeout_sec, escalate_model, escalate_provider, distill_model}
     learn: dict | None = None
@@ -7107,7 +7123,7 @@ def chat_tools(req: ToolChatRequest):
         if not _names:
             try:
                 _st0 = load_settings() or {}
-                _names = [str(x) for x in (_st0.get("kb_mounted") or []) if str(x).strip()]
+                _names = _kb_session_mounts(_st0, getattr(req, "session_id", None))
             except Exception:
                 _names = []
         _last_user = ""
@@ -7464,7 +7480,7 @@ def chat_tools(req: ToolChatRequest):
             if _kq.strip():
                 import kb as _kb
                 _st2 = load_settings() or {}
-                _mounted = [str(x) for x in (_st2.get("kb_mounted") or []) if str(x).strip()]
+                _mounted = _kb_session_mounts(_st2, getattr(req, "session_id", None))
                 _chunks = []
                 for _nm in _mounted[:4]:
                     try:
@@ -7907,7 +7923,7 @@ def chat_completions_stream(req: ChatRequest):
     if not (req.kb and req.kb.get("name")):
         try:
             _st_auto = load_settings() or {}
-            _auto_kb_names = [str(x) for x in (_st_auto.get("kb_mounted") or []) if str(x).strip()]
+            _auto_kb_names = _kb_session_mounts(_st_auto, getattr(req, "session_id", None))
             if _auto_kb_names:
                 req.kb = {"name": _auto_kb_names[0], "top_k": 3}
                 print("[stream] KB 自动挂载: %s" % _auto_kb_names[:3], flush=True)
@@ -8319,6 +8335,10 @@ def chat_completions(req: ChatRequest):
 class KBCreateRequest(BaseModel):
     name: str
     description: str = ""
+    # P2.2: 动态知识库（会话级临时库）
+    dynamic: bool = False
+    owner_session: str | None = None
+    ttl_hours: int | None = None
 
 
 class KBQueryRequest(BaseModel):
@@ -8350,6 +8370,7 @@ def kb_mounted_list():
 
 class KBMountRequest(BaseModel):
     kb_names: list[str]
+    session_id: str | None = None   # P2.1: 不传=全局默认（旧行为）
 
 
 @app.get("/kb/{kb_name}")
@@ -8374,7 +8395,16 @@ def kb_create(req: KBCreateRequest):
     if not req.name.replace("-", "").replace("_", "").isalnum():
         raise HTTPException(400, "知识库名称只能包含字母、数字、下划线、中划线")
     try:
-        meta = kb.create_kb(req.name, req.description)
+        meta = kb.create_kb(req.name, req.description,
+                           dynamic=bool(getattr(req, "dynamic", False)),
+                           owner_session=getattr(req, "owner_session", None),
+                           ttl_hours=getattr(req, "ttl_hours", None))
+        try:
+            kb._append_audit(req.name, "create",
+                             dynamic=bool(getattr(req, "dynamic", False)),
+                             session=getattr(req, "owner_session", None))
+        except Exception:
+            pass
         return {"status": "success", "knowledge_base": meta}
     except ValueError as e:
         raise HTTPException(400, str(e))
@@ -9143,11 +9173,99 @@ def kb_mount(req: KBMountRequest):
             invalid.append(nm)
 
     st = load_settings()
-    st["kb_mounted"] = valid
+    _sid = str(getattr(req, "session_id", "") or "").strip()
+    if _sid:
+        _mounts = dict(st.get("kb_mounts") or {})
+        _mounts[_sid] = valid
+        st["kb_mounts"] = _mounts
+        # ★ 修（2026-10-26 实测）：会话挂载**不得**改全局默认 ✗
+        #   原来同时写 st["kb_mounted"]=valid ⇒ 会话 A 挂库，会话 B 也看到了（隔离被击穿 ✗）
+        _note = "已保存为会话级挂载 settings.kb_mounts[%s] ✓（全局默认不变，其他会话不受影响 ✓）" % _sid
+    else:
+        st["kb_mounted"] = valid
+        _note = "挂载已持久化到 settings.kb_mounted ✓ 多库同时可用 ✓"
     save_settings(st)
     return {"ok": True, "mounted": valid, "invalid": invalid,
-            "count": len(valid),
-            "note": "挂载已持久化到 settings.kb_mounted ✓ 多库同时可用 ✓"}
+            "count": len(valid), "session_id": _sid or None,
+            "note": _note}
+
+
+@app.get("/kb/mounted")
+def kb_mounted_list(session_id: str = ""):
+    """P2.1: 查看挂载（传 session_id 看会话级，否则看全局默认）"""
+    st = load_settings() or {}
+    _sid = str(session_id or "").strip()
+    if _sid:
+        names = (st.get("kb_mounts") or {}).get(_sid) or []
+    else:
+        names = st.get("kb_mounted") or []
+    return {"status": "success", "kb_mounted": [str(x) for x in names],
+            "session_id": _sid or None}
+
+
+@app.post("/kb/dynamic/create")
+def kb_dynamic_create(payload: dict = None):
+    """P2.2: 创建会话级动态知识库（TTL 默认 24h，owner_session 隔离）"""
+    p = payload or {}
+    sid = str(p.get("session_id") or "").strip()
+    if not sid:
+        raise HTTPException(400, "session_id 必填（动态库必须归属一个会话）")
+    name = "_dyn__%s__%s" % (re.sub(r"[^0-9A-Za-z_-]", "", sid)[:16] or "s",
+                             datetime.now().strftime("%H%M%S%f"))
+    try:
+        meta = kb.create_kb(name, description=str(p.get("description") or ""),
+                            dynamic=True, owner_session=sid,
+                            ttl_hours=p.get("ttl_hours"))
+        kb._append_audit(name, "create", dynamic=True, session=sid)
+        return {"status": "success", "knowledge_base": meta}
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+
+
+@app.post("/kb/dynamic/{kb_name}/append")
+def kb_dynamic_append(kb_name: str, payload: dict = None):
+    """P2.2: 向动态库追加会话上下文（工具结果/任务文本/中间产物）"""
+    p = payload or {}
+    sid = str(p.get("session_id") or "").strip()
+    if not sid:
+        raise HTTPException(400, "session_id 必填")
+    meta = kb.get_kb(kb_name)
+    if not meta:
+        raise HTTPException(404, "知识库 '%s' 不存在" % kb_name)
+    if not kb.is_dynamic(meta):
+        raise HTTPException(400, "'%s' 不是动态知识库（拒绝写入）" % kb_name)
+    if not kb.check_session(meta, sid):
+        raise HTTPException(403, "会话无权写入该动态知识库")
+    try:
+        res = kb.append_text_dynamic(kb_name, str(p.get("text") or ""),
+                                     source=str(p.get("source") or "task"),
+                                     session_id=sid)
+        return {"status": "success", **(res if isinstance(res, dict) else {}),
+                "kb": kb_name, "session_id": sid}
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+
+
+@app.get("/kb/dynamic/list")
+def kb_dynamic_list(session_id: str = ""):
+    """P2.2: 列出动态库（传 session_id 只看本会话）"""
+    sid = str(session_id or "").strip()
+    out = []
+    for meta in kb.list_kbs():
+        if not kb.is_dynamic(meta):
+            continue
+        if sid and not kb.check_session(meta, sid):
+            continue
+        out.append(meta)
+    return {"status": "success", "dynamic_kbs": out, "count": len(out)}
+
+
+@app.post("/kb/dynamic/cleanup")
+def kb_dynamic_cleanup(payload: dict = None):
+    """P2.2: 清理过期动态库（默认真删；dry_run=true 仅预览）"""
+    dry = bool((payload or {}).get("dry_run"))
+    removed = kb.cleanup_expired_dynamic(dry_run=dry)
+    return {"status": "success", "removed": removed, "count": len(removed), "dry_run": dry}
 
 
 @app.post("/kb/{kb_name}/query")
