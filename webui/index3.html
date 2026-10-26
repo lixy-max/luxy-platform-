@@ -10483,5 +10483,20 @@ async function loadModels() {
 window.loadModels = loadModels;
 </script>
 
+
+<!-- S8 修复 B015：级联路由任务表入口 -->
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  try{
+    var a=document.createElement('a');
+    a.href='/luxy-routes.html'; a.textContent='🧭 路由任务表';
+    a.title='级联路由任务表（本地/云端/移植 + 勾选执行）';
+    a.style.cssText='position:fixed;right:18px;bottom:18px;z-index:9999;background:#D97757;color:#fff;'+
+      'padding:9px 14px;border-radius:20px;font-size:13px;text-decoration:none;'+
+      'box-shadow:0 3px 10px rgba(0,0,0,.25);font-family:"Microsoft YaHei",sans-serif';
+    document.body.appendChild(a);
+  }catch(e){}
+});
+</script>
 </body>
 </html>

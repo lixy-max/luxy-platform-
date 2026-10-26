@@ -19,6 +19,7 @@ import kb
 
 import requests
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Header, Request
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -6196,6 +6197,76 @@ def chimera_rebuilds(limit: int = 30):
     import code_rebuild as _crb
     rows = _crb.list_rebuilds(limit=limit)
     return {"ok": True, "rebuilds": rows, "count": len(rows)}
+
+
+# ══════════════════════════════════════════════════════════
+# Bug 修复批次（2026-10-26）：任务表产物导出 docx/xlsx（B005）
+# ══════════════════════════════════════════════════════════
+@app.get("/route/table/{table_id}/artifact/export")
+def route_table_artifact_export(table_id: str, format: str = "docx"):
+    """导出任务表产物：docx（招标文件）/ xlsx（采购清单）"""
+    import route_table as _rt
+    t = _rt.get_table(table_id)
+    if not t:
+        raise HTTPException(404, "任务表不存在")
+    out_dir = PROJECT_DIR / "outputs" / "route_tables"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    fmt = str(format or "docx").lower()
+    try:
+        if fmt == "docx":
+            try:
+                from docx import Document
+            except Exception:
+                raise HTTPException(500, "python-docx 未安装（可先 /chimera/install_v2 安装）")
+            doc = Document()
+            doc.add_heading(str(t.get("request") or "任务表产物")[:120], level=0)
+            doc.add_paragraph("表 ID：%s ｜ 生成时间：%s ｜ 状态：%s" % (
+                t["id"], t.get("created_at"), t.get("status")))
+            for it in t.get("items") or []:
+                doc.add_heading("第 %d 项 [%s] %s" % (it["seq"], it["category"], str(it["target"])), level=1)
+                doc.add_paragraph("任务：%s" % it["content"])
+                if it.get("depends_on"):
+                    doc.add_paragraph("依赖：%s" % it["depends_on"])
+                doc.add_paragraph("状态：%s" % it.get("status"))
+                doc.add_paragraph("结果：%s" % str(it.get("result") or "")[:3000])
+            path = out_dir / ("%s.docx" % table_id)
+            doc.save(str(path))
+        elif fmt == "xlsx":
+            try:
+                from openpyxl import Workbook
+            except Exception:
+                raise HTTPException(500, "openpyxl 未安装")
+            wb = Workbook()
+            ws = wb.active
+            ws.title = "任务表"
+            ws.append(["序号", "类型", "执行体", "状态", "任务", "结果", "依赖"])
+            for it in t.get("items") or []:
+                ws.append([it["seq"], it["category"], it["target"], it["status"],
+                           it["content"], str(it.get("result") or "")[:2000],
+                           ",".join(str(x) for x in it.get("depends_on") or [])])
+            path = out_dir / ("%s.xlsx" % table_id)
+            wb.save(str(path))
+        else:
+            raise HTTPException(400, "format 只支持 docx/xlsx")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(500, "%s: %s" % (type(e).__name__, str(e)[:200]))
+    return {"ok": True, "format": fmt, "path": str(path), "bytes": path.stat().st_size}
+
+
+@app.get("/route/table/{table_id}/artifact/file")
+def route_table_artifact_file(table_id: str, format: str = "docx"):
+    """下载任务表产物文件（由 export 生成）"""
+    import route_table as _rt
+    t = _rt.get_table(table_id)
+    if not t:
+        raise HTTPException(404, "任务表不存在")
+    fmt = str(format or "docx").lower()
+    path = PROJECT_DIR / "outputs" / "route_tables" / ("%s.%s" % (table_id, fmt))
+    if not path.exists():
+        raise HTTPException(404, "产物文件不存在，请先调用 export")
+    return FileResponse(str(path), filename=path.name)
 
 
 @app.post("/orchestrate")

@@ -108,6 +108,8 @@
           <label class="pill"><input type="checkbox" id="escCloud"> 失败升级云端</label>
           <label class="pill"><input type="checkbox" id="escTrans"> 升级移植</label>
           <button class="ghost" id="btnArtifact">查看产物</button>
+          <button class="ghost" id="btnWord">导出 Word</button>
+          <button class="ghost" id="btnExcel">导出 Excel</button>
           <button class="ghost" id="btnClone">复用此表</button>
           <button class="ghost" id="btnRefresh">刷新</button>
           <span class="pill" id="dCount"></span>
@@ -196,6 +198,10 @@ async function openTable(id){
     });
     await loadTables();
     refreshStats();
+    if (timer) { clearTimeout(timer); timer = null; }
+    if (['pending','running'].includes(t.status)) {
+      timer = setTimeout(()=>openTable(id), 3000);
+    }
   }catch(e){ alert('打开失败：'+e.message); }
 }
 
@@ -243,6 +249,20 @@ document.getElementById('btnSearch').onclick = async ()=>{
 };
 document.getElementById('btnExec').onclick = ()=>execTable(false);
 document.getElementById('btnExecCloud').onclick = ()=>execTable(true);
+document.getElementById('btnWord').onclick = async ()=>{
+  if(!currentId) return;
+  try{
+    await api('/route/table/'+currentId+'/artifact/export?format=docx');
+    window.open(API+'/route/table/'+currentId+'/artifact/file?format=docx','_blank');
+  }catch(e){ alert('导出 Word 失败：'+e.message); }
+};
+document.getElementById('btnExcel').onclick = async ()=>{
+  if(!currentId) return;
+  try{
+    await api('/route/table/'+currentId+'/artifact/export?format=xlsx');
+    window.open(API+'/route/table/'+currentId+'/artifact/file?format=xlsx','_blank');
+  }catch(e){ alert('导出 Excel 失败：'+e.message); }
+};
 document.getElementById('btnRefresh').onclick = ()=>{ if(currentId) openTable(currentId); else loadTables(); };
 document.getElementById('btnArtifact').onclick = async ()=>{
   if(!currentId) return;

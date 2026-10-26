@@ -351,11 +351,42 @@ def deactivate_lora(cap_id):
         return {}
 
 
+_TOOL_CALL_RE = re.compile(r"<tool_call>\s*(.*?)\s*</tool_call>", re.S)
+
+
+def _format_tool_calls(content):
+    """修 B004：把 7B 工蜂输出的 <tool_call> 文本转成可读格式（不假装执行）"""
+    txt = str(content or "")
+    calls = []
+
+    def _repl(m):
+        try:
+            d = json.loads(m.group(1))
+        except Exception:
+            return ""
+        name = d.get("name") or d.get("tool") or "?"
+        args = d.get("arguments") or d.get("input") or {}
+        calls.append((name, args))
+        return ""
+
+    has_tag = bool(_TOOL_CALL_RE.search(txt))
+    rest = _TOOL_CALL_RE.sub(_repl, txt).strip()
+    if not calls:
+        # 有标签但 JSON 非法：剥掉标签保留其余文本
+        return rest if has_tag else txt
+    lines = ["（模型请求了工具调用，平台未自动执行：）"]
+    for name, args in calls:
+        lines.append("· %s(%s)" % (name, json.dumps(args, ensure_ascii=False)[:200]))
+    lines.append("")
+    lines.append(rest or "（模型未给出文字内容）")
+    return "\n".join(lines)
+
+
 def worker_chat(model, messages, max_tokens=512):
     d = _post(WORKER_BASE + "/v1/chat/completions",
               {"model": model, "messages": messages, "max_tokens": max_tokens, "temperature": 0.3},
               timeout=300)
-    return (d.get("choices") or [{}])[0].get("message", {}).get("content", "") or ""
+    return _format_tool_calls((d.get("choices") or [{}])[0].get("message", {}).get("content", "") or "")
 
 
 def kb_query(kb_name, query, top_k=3):
@@ -433,7 +464,11 @@ def execute(dec, task, kb_entries=None):
             for kbn in table_kbs:
                 _chk = _tqa3.check_numbers(ans, kbn)
                 if not _chk.get("ok"):
-                    warn = "\n\n⚠ 数字校验：以下数字未在表格中找到 %s，请人工核对。" % _chk.get("missing")
+                    warn += "\n\n⚠ 数字校验：以下数字未在表格中找到 %s，请人工核对。" % _chk.get("missing")
+                _ent = _tqa3.check_entities(ans, kbn)
+                if not _ent.get("ok"):
+                    warn += "\n⚠ 实体校验：以下编号/实体未在表格中找到 %s，请人工核对。" % _ent.get("missing")
+                if warn:
                     break
         except Exception:
             pass

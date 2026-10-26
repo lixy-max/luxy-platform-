@@ -145,10 +145,26 @@ def _tool_quality(record):
     return "A" if errs == 0 else ("B" if errs == 1 else ("C" if errs <= 3 else "D"))
 
 
+DEV_TOOLS = {"pwsh", "read", "write", "edit", "grep", "glob", "bash", "web_search",
+             "web_fetch", "todo_write", "task", "subagent", "apply_patch", "list_dir"}
+
+
+def _tool_origin(tools):
+    if not tools:
+        return "none"
+    dev = sum(1 for t in tools if str(t) in DEV_TOOLS)
+    return "dev" if dev / len(tools) >= 0.5 else "platform"
+
+
 def score_record(record, steps, occurrence_map, doc_tools):
     import distill_score as ds
     tools = list(record.get("tools_used") or [])
-    covered = bool(tools) and all(t in doc_tools for t in tools)
+    origin = _tool_origin(tools)
+    if origin == "dev":
+        # 开发工具轨迹不是平台能力候选：novelty 按"已覆盖"算（B017 修复）
+        covered = True
+    else:
+        covered = bool(tools) and all(t in doc_tools for t in tools)
     rec = {
         "success": (record.get("reason") == "completed" and not record.get("error")
                     and bool(record.get("final"))),
@@ -159,6 +175,8 @@ def score_record(record, steps, occurrence_map, doc_tools):
         "has_tool_calls": bool(tools),
     }
     s = ds.score(rec)
+    rec["tool_origin"] = origin
+    rec["dev_trajectory"] = (origin == "dev")
     return s, rec
 
 
@@ -384,9 +402,19 @@ def search_workflows(task, limit=5):
                 return {x[i:i + 2] for i in range(max(0, len(x) - 1))}
             qg, tg = _grams(task), _grams(r.get("task") or t)
             score = (len(qg & tg) / max(1, len(qg))) * 0.6 if qg and tg else 0.0
+        _created = str(r.get("created_at") or "")
+        _age = None
+        try:
+            import datetime as _dt
+            _age = round((_dt.datetime.now() - _dt.datetime.fromisoformat(_created)).total_seconds() / 86400, 1)
+        except Exception:
+            pass
+        _stale_days = float(os.environ.get("WORKFLOW_STALE_DAYS", "7"))
         out.append({"wf_id": r.get("wf_id"), "task": r.get("task"), "path": r.get("path"),
                     "workflow_name": r.get("workflow_name"), "score": round(score, 4),
-                    "steps": r.get("steps"), "encode_error": _err or None})
+                    "steps": r.get("steps"), "created_at": _created,
+                    "age_days": _age, "stale": bool(_age is not None and _age > _stale_days),
+                    "encode_error": _err or None})
     out.sort(key=lambda x: -x["score"])
     return out[:int(limit)]
 
@@ -436,6 +464,16 @@ def get_workflow(wf_id):
     return None
 
 
+
+
+def _record_wf_exec(wf_id, ok):
+    """工作流执行计入治理预算（B020）"""
+    try:
+        import governance as _gov
+        _gov.record_exec("workflow:%s" % wf_id, ok=bool(ok))
+    except Exception:
+        pass
+
 def run_workflow(wf_id, input_text="", timeout=None):
     """执行已沉淀工作流：输入文本 → workflow_engine.run_workflow → 解析结果
 
@@ -447,6 +485,18 @@ def run_workflow(wf_id, input_text="", timeout=None):
     wf = get_workflow(wf_id)
     if not wf or not Path(str(wf.get("path") or "")).exists():
         raise ValueError("工作流不存在或文件缺失: %s" % wf_id)
+    # 修 B020：工作流执行纳入治理（冻结/预算）
+    try:
+        import governance as _gov
+        if _gov.is_frozen():
+            return {"ok": False, "content": "", "wf_id": wf_id,
+                    "error": "系统已冻结（KILL 开关）", "duration": 0}
+        _ok, _why = _gov.check_exec_allowed()
+        if not _ok:
+            return {"ok": False, "content": "", "wf_id": wf_id,
+                    "error": "治理层拒绝: %s" % _why, "duration": 0}
+    except Exception:
+        pass
     WF_RUN_DIR.mkdir(parents=True, exist_ok=True)
     inp = WF_RUN_DIR / ("input_%s_%s.txt" % (wf_id, time.strftime("%Y%m%d_%H%M%S")))
     inp.write_text(str(input_text or "")[:6000] or "（无输入）", encoding="utf-8")
@@ -489,9 +539,11 @@ def run_workflow(wf_id, input_text="", timeout=None):
             nodes = d.get("nodes") or {}
             content = str(list(nodes.values())[-1] if nodes else "")[:4000]
         usage = (d.get("_meta") or {}).get("usage") or {}
+        _record_wf_exec(wf_id, status == "success")
         return {"ok": status == "success", "content": content[:6000], "path": out_path,
                 "duration": duration, "status": status, "usage": usage,
                 "wf_id": wf_id, "workflow_name": wf.get("workflow_name")}
     except Exception as e:
+        _record_wf_exec(wf_id, False)
         return {"ok": False, "content": "", "duration": duration, "wf_id": wf_id,
                 "error": "结果解析失败: %s" % str(e)[:200], "path": out_path}

@@ -148,7 +148,20 @@ def install_with_deps(package, extra_packages=None, wrappers=None, label=None,
     smoke = {"ok": True, "note": "无适配器，跳过 smoke"}
     if copied:
         smoke = _smoke(target, "_luxy_wrappers." + copied[0])
+    # 修 B022：导出可复现 requirements.lock（版本 + sha256）
+    lock_path = DEPS_DIR / (label + ".requirements.lock")
+    try:
+        lines = []
+        for p in packages:
+            if p.get("sha256"):
+                lines.append("%s==%s --hash=sha256:%s" % (p["name"], p["version"], p["sha256"]))
+            else:
+                lines.append("%s==%s" % (p["name"], p["version"]))
+        lock_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    except Exception:
+        lock_path = None
     rec = {"kind": "deps", "label": label, "packages": pkgs,
+           "requirements_lock": str(lock_path) if lock_path else None,
            "resolved_packages": packages, "package_count": len(packages),
            "target_dir": str(target), "size_mb": size_mb, "install_seconds": dur,
            "wrappers": copied, "smoke": smoke, "report_path": str(report),
@@ -157,7 +170,7 @@ def install_with_deps(package, extra_packages=None, wrappers=None, label=None,
         f.write(json.dumps(dict(rec, at=_now()), ensure_ascii=False) + "\n")
     _audit({"action": "install_ok", "label": label, "packages": pkgs,
             "package_count": len(packages), "size_mb": size_mb, "python": sys.version.split()[0]})
-    return {"ok": True, **rec}
+    return {"ok": True, "requirements_lock": str(lock_path) if lock_path else None, **rec}
 
 
 def register_deps_capability(label, cap_id, name, module, function, args_schema,
