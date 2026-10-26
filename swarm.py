@@ -134,7 +134,9 @@ def build_prompt(caps, kb_entries):
         '- route 必须是 direct/kb/capability/kb+capability/cloud/chimera/multi 之一；**能力 id 只能填 capability_id，不能填 route**；\n'
         '- quality_mode 模型占双卡，不能与工蜂同时用；unavailable 模型不得选择；\n'
         '- 若所需能力不在能力清单 → route=chimera（让奇美拉找开源/外部能力）；\n'
-        '- 若选中的是【外部工具】能力，请按参数说明填 capability_input（JSON 对象），执行器会据此调用。\n'
+        '- 若用户要求“做一个/实现/集成/接入”某工具或功能，而能力清单没有对应项 → route=chimera（不要只给教程代码）；\n'
+        '- 若选中的是【外部工具】能力，请按参数说明填 capability_input（JSON 对象），执行器会据此调用；\n'
+        '- multi 的每个外部工具 step 也应填 capability_input（缺省时执行器会用前序结果兜底）；\n'
         '\n输出 JSON 字段：route, kb_names, capability_id, capability_input, need_worker, load_lora, reason。'
     )
     return (system.replace("__MODELS__", _models_text())
@@ -220,8 +222,10 @@ def validate_decision(dec, caps, kb_entries):
             out.update({"route": "chimera", "reason": ("能力未匹配(%s)，转缺口流程；" % raw) + out["reason"]})
             return out
         out["capability_id"] = cap_id
-        out["need_worker"] = True
-        out["load_lora"] = True
+        _cap = cap_ids.get(cap_id) or {}
+        _is_ext = (_cap.get("kind") == "external")
+        out["need_worker"] = (not _is_ext)
+        out["load_lora"] = (not _is_ext)
         _ci = dec.get("capability_input")
         if isinstance(_ci, dict):
             out["capability_input"] = {str(k)[:64]: _ci[k] for k in list(_ci)[:20]}
@@ -392,7 +396,31 @@ def execute(dec, task, kb_entries=None):
             sub_task = st.get("instruction") or task
             if ctx_parts:
                 sub_task = "%s\n\n前序结果：\n%s" % (sub_task, "\n---\n".join(ctx_parts)[-2000:])
-            r = execute(st, sub_task, kb_entries=kb_entries)
+            # ★ P5.1 修复（许愿测试）：多步里的外部工具步骤若没给输入，
+            #   用前序结果自动构造（单列表格），否则 tabulate 等会缺参数失败
+            _st = dict(st)
+            try:
+                import capabilities as _caps2
+                _c2 = _caps2.get_capability(_st.get("capability_id"))
+            except Exception:
+                _c2 = None
+            if _c2 and _c2.get("kind") == "external":
+                _schema = (_c2.get("args_schema") or {})
+                _need_data = (isinstance(_schema, dict)
+                              and (_schema.get("positional") or []) == ["data"])
+                _ci = _st.get("capability_input") or {}
+                _has_data = isinstance(_ci, dict) and bool(_ci.get("data"))
+                # 缺输入 或 主脑给了空 data（实测会出现 {"data": []}）都要兜底
+                if _need_data and not _has_data:
+                    _prev = ctx_parts[-1] if ctx_parts else ""
+                    _lines = [x.strip() for x in str(_prev).splitlines() if x.strip()][:20]
+                    _st["capability_input"] = {
+                        "data": [[ln[:120]] for ln in _lines] or [["（无内容）"]],
+                        "headers": ["内容"],
+                    }
+                elif not isinstance(_ci, dict):
+                    _st["capability_input"] = {}
+            r = execute(_st, sub_task, kb_entries=kb_entries)
             step_meta.append({"step": i, "route": st.get("route"), "ok": bool(r.get("ok")),
                               "capability_id": st.get("capability_id")})
             if not r.get("ok"):
