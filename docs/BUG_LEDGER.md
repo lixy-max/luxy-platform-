@@ -35,6 +35,10 @@
 | B043 | P2 | fixed | route_table | 任务表 direct 子任务执行时缺原始任务上下文（返回'请提供输入'） | S15 |
 | B044 | P2 | fixed | route_table | 主脑规划器把 Excel 生成任务派给 python-docx 能力（无 xlsx 路由能力，产出 docx） | S15 |
 | B045 | P2 | fixed | cloud_build | 云端搭建工作流引用了不存在的本地知识库（procurement_rules），本地执行时 kb_query 节点失败 | S16 |
+| B046 | P2 | fixed | training | 训练脚本 device_map 用物理 GPU1 但 CUDA_VISIBLE_DEVICES=1 → 'invalid device ordinal' 崩溃 | S17 |
+| B047 | P2 | fixed | training | PEFT + gradient_checkpointing 冲突：'tensor does not require grad'，训练首步崩溃 | S17 |
+| B048 | P2 | fixed | training | 工作流作者训练/推理 prompt 不同构：v1 基座与 LoRA 输出的 workflow JSON 均过不了 lint（0%） | S17 |
+| B049 | P2 | fixed | training | DeepSeek 生成作者数据时多数 JSON 解析失败（初始 prompt 过松/输出含解释） | S17 |
 | B001 | P3 | fixed | frontend | 前端任务表无自动轮询，执行后需手动刷新 | S2 |
 | B008 | P3 | parked | security | vLLM 未启用 api-key（仅绑定回环） | P0 |
 | B009 | P3 | wontfix | infra | /vllm/start 冷启动 26–28s（未优化） | P7 |
@@ -198,6 +202,26 @@
 - 区域：cloud_build ｜ 严重度：P2 ｜ 状态：fixed
 - 发现于：S16 ｜ 登记：2026-10-27T00:24:29
 - 详情：DeepSeek 设计的工作流含 paper_lora_kb_query(kb_name=procurement_rules)，该库本地不存在。已修：① prompt 注入'本地已有知识库列表'；② 构建后校验 kb_query 引用必须存在，否则作为错误让云端修复（最多 2 轮）。实测 DeepSeek 重建后只剩 write_sheet，不再引用幽灵 KB。
+
+### B046 · 训练脚本 device_map 用物理 GPU1 但 CUDA_VISIBLE_DEVICES=1 → 'invalid device ordinal' 崩溃
+- 区域：training ｜ 严重度：P2 ｜ 状态：fixed
+- 发现于：S17 ｜ 登记：2026-10-27T00:54:47
+- 详情：train_workflow_author_lora.py 设 CUDA_VISIBLE_DEVICES=1 后进程内 GPU 索引应为 0，但 device_map={"": 1} 越界；已修 device_map={"": 0}。
+
+### B047 · PEFT + gradient_checkpointing 冲突：'tensor does not require grad'，训练首步崩溃
+- 区域：training ｜ 严重度：P2 ｜ 状态：fixed
+- 发现于：S17 ｜ 登记：2026-10-27T00:54:47
+- 详情：get_peft_model 后开 gradient_checkpointing=True 导致输入无 requires_grad；已修：关闭 checkpointing（1.5B 在 12GB 足够）+ enable_input_require_grads()。
+
+### B048 · 工作流作者训练/推理 prompt 不同构：v1 基座与 LoRA 输出的 workflow JSON 均过不了 lint（0%）
+- 区域：training ｜ 严重度：P2 ｜ 状态：fixed
+- 发现于：S17 ｜ 登记：2026-10-27T00:54:47
+- 详情：v1 训练用'任务+请设计'长提示，评估用任意短任务 ⇒ LoRA 学会输出 JSON 但 schema 不符。已修：v2 数据 = system 约束 + 短任务（与推理同构）+ 14 epochs；评估 schema 合法率 0%→75%（4 任务）。
+
+### B049 · DeepSeek 生成作者数据时多数 JSON 解析失败（初始 prompt 过松/输出含解释）
+- 区域：training ｜ 严重度：P2 ｜ 状态：fixed
+- 发现于：S17 ｜ 登记：2026-10-27T00:54:47
+- 详情：初次 12 任务仅 2 条解析成功；已修：prompt 加严格 JSON 格式示例 + max_tokens 4096 + 失败重试；复跑 12/12 成功。
 
 ### B001 · 前端任务表无自动轮询，执行后需手动刷新
 - 区域：frontend ｜ 严重度：P3 ｜ 状态：fixed
