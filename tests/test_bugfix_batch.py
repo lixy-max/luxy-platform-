@@ -100,7 +100,13 @@ class TestWorkflowGovernance(unittest.TestCase):
         self.assertIn("冻结", r["error"])
 
     def test_stale_flag(self):
-        rows = [{"wf_id": "wf1", "task": "旧任务", "path": "/tmp/x", "workflow_name": "x",
+        import tempfile
+        import pathlib as _pl
+        _tmp = _pl.Path(tempfile.mkdtemp())
+        _f = _tmp / "wf_stale.json"
+        _f.write_text("{}", encoding="utf-8")
+        self.addCleanup(lambda: __import__("shutil").rmtree(_tmp, True))
+        rows = [{"wf_id": "wf1", "task": "旧任务", "path": str(_f), "workflow_name": "x",
                  "created_at": "2020-01-01T00:00:00", "steps": 3}]
         with mock.patch.object(td, "list_workflows", return_value=rows), \
              mock.patch("kb._encode", return_value=[[1.0, 0.0]]):

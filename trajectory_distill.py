@@ -546,7 +546,11 @@ def search_workflows(task, limit=5):
                 x = re.sub(r"[\s，,。？?！!：:；;]+", "", str(x or "").lower())
                 return {x[i:i + 2] for i in range(max(0, len(x) - 1))}
             qg, tg = _grams(task), _grams(r.get("task") or t)
-            score = (len(qg & tg) / max(1, len(qg))) * 0.6 if qg and tg else 0.0
+            score = (len(qg & tg) / max(1, len(qg))) if qg and tg else 0.0
+        # ★ 防幽灵工作流：索引里路径已不存在的条目直接跳过（不参与命中）
+        _wp = str(r.get("path") or "")
+        if _wp and not Path(_wp).exists():
+            continue
         _created = str(r.get("created_at") or "")
         _age = None
         try:
@@ -559,7 +563,8 @@ def search_workflows(task, limit=5):
                     "workflow_name": r.get("workflow_name"), "score": round(score, 4),
                     "steps": r.get("steps"), "created_at": _created,
                     "age_days": _age, "stale": bool(_age is not None and _age > _stale_days),
-                    "encode_error": _err or None})
+                    "match": "embedding" if qv is not None else "keyword",
+                      "encode_error": _err or None})
     out.sort(key=lambda x: -x["score"])
     return out[:int(limit)]
 

@@ -227,6 +227,43 @@ def _check_conversation_isolation():
         return "missing", {"error": str(e)[:200]}
 
 
+
+def _check_cloud_build_distill():
+    """缺失工作流 → 云端搭建 → 本地沉淀（S15）：构建记录 + cloud_built 索引 + 本地产物"""
+    try:
+        ev = {}
+        log = PROJECT_DIR / "data" / "cloud" / "workflow_builds.jsonl"
+        builds = 0
+        if log.exists():
+            builds = len([1 for ln in log.read_text(encoding="utf-8").splitlines() if ln.strip()])
+        ev["cloud_builds"] = builds
+        idx = PROJECT_DIR / "data" / "distilled" / "workflows.jsonl"
+        cloud_wfs, golden = [], 0
+        if idx.exists():
+            for ln in idx.read_text(encoding="utf-8").splitlines():
+                ln = ln.strip()
+                if not ln:
+                    continue
+                try:
+                    r = json.loads(ln)
+                except Exception:
+                    continue
+                if r.get("source") == "cloud_built":
+                    cloud_wfs.append(r)
+                    if r.get("golden_path") and (PROJECT_DIR / r["golden_path"]).exists()                             if not str(r.get("golden_path")).startswith("/") else True:
+                        golden += 1
+        ev["cloud_built_workflows"] = len(cloud_wfs)
+        ev["with_golden"] = golden
+        xlsx = list((PROJECT_DIR / "uploads").glob("*.xlsx")) if (PROJECT_DIR / "uploads").exists() else []
+        ev["local_xlsx_outputs"] = len(xlsx)
+        if cloud_wfs and builds:
+            return "pass", ev
+        ev["gap"] = "尚无云端搭建记录/沉淀工作流（或 golden 缺失）"
+        return "partial", ev
+    except Exception as e:
+        return "missing", {"error": str(e)[:200]}
+
+
 CHECKS = [
     ("brain", "主脑路由（14B 可用）", _check_brain),
     ("route_table", "级联路由任务表（本地/云端/移植）", _check_route_table),
@@ -238,6 +275,7 @@ CHECKS = [
     ("metrics", "进化指标", _check_metrics),
     ("governance", "治理与台账", _check_governance),
     ("conversation", "任务表对话隔离", _check_conversation_isolation),
+    ("cloud_build", "缺失工作流→云端搭建→本地沉淀", _check_cloud_build_distill),
 ]
 
 

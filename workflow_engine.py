@@ -872,6 +872,12 @@ TOOL_NODE_SUPPORTED = {
     "paper_lora_kb_info": {"method": "GET", "path": "/kb/list"},
     "paper_lora_kb_query": {"method": "POST", "path": "/kb/{kb_name}/query",
                             "body": {"query": "{query}", "top_k": "{top_k}"}},
+    # ★ S15：文档能力工具节点（云端建工作流时用于产出 Excel/读 Excel）
+    "write_sheet": {"method": "POST", "path": "/docs/write_sheet",
+                    "body": {"rows": "{rows}", "header": "{header}", "name": "{name}",
+                             "sheet": "{sheet}"}},
+    "read_sheet": {"method": "POST", "path": "/docs/read_sheet",
+                   "body": {"filename": "{filename}", "sheet": "{sheet}", "rows": "{rows}"}},
 }
 
 

@@ -22,6 +22,18 @@
 | B029 | P2 | parked | chimera | 代码重建 v1：适配器用模板/可选14B生成，未做真实源码级移植与自动测试集 | S8 |
 | B030 | P2 | fixed | cloud | 视觉/音频/视频云端 provider 未配置（路由接口已留，检测到多模态会明确 blocked） | S12 |
 | B031 | P2 | fixed | route_table | 任务表执行外部文本能力未透传 text 参数（chunker 报 missing 'text'） | S13 |
+| B033 | P2 | fixed | cloud_build | 工作流命中检索：embedding 冷启动/失败时关键词兜底 ×0.6 封顶 → 低于 0.65 阈值误判'无本地工作流'，导致重复云端构建 | S15 |
+| B034 | P2 | fixed | route_table | 命中工作流评估 NameError：lora_manager 用 json_lib 别名导入，评估代码用 json.loads | S15 |
+| B035 | P2 | fixed | cloud_build | 本地复现评估取错 xlsx：_find_latest_xlsx 从 outputs/ 递归取到旧产物（route_tables/*.xlsx） | S15 |
+| B036 | P2 | fixed | test | 测试污染生产工作流索引：单测把 /tmp 路径写入 data/distilled/workflows.jsonl → 幽灵工作流命中失败 | S15 |
+| B037 | P2 | fixed | route_table | route/auto 丢失 conversation_id（任务表落到默认对话） | S15 |
+| B038 | P2 | parked | orchestrator | /orchestrate 只出计划不执行：向主脑发送任务无法直接创建/运行工作流 | S15 |
+| B039 | P2 | parked | orchestrator | 主脑编排工具选择截断：建工作流/Excel 工具（create_workflow_config/add_workflow_node/write_sheet/read_sheet）被截断丢弃，只留无关 list_* 工具 | S15 |
+| B040 | P2 | parked | orchestrator | 路由未识别网页/云端需求：京东/淘宝/阿里巴巴/deepseek 等外部来源仍被路由为 local_7b | S15 |
+| B041 | P2 | parked | cloud_build | 目标模型 deepseek4.1flash1017 未配置（无 provider key）：云端搭建暂由 GLM glm-4-flash 代替 | S15 |
+| B042 | P2 | parked | cloud_build | 采购清单来源未真实接入：京东/淘宝/阿里巴巴无浏览器/API 采集，本地 Excel 未读取（当前用云端生成的目标样例行） | S15 |
+| B043 | P2 | parked | route_table | 任务表 direct 子任务执行时缺原始任务上下文（返回'请提供输入'） | S15 |
+| B044 | P2 | parked | route_table | 主脑规划器把 Excel 生成任务派给 python-docx 能力（无 xlsx 路由能力，产出 docx） | S15 |
 | B001 | P3 | fixed | frontend | 前端任务表无自动轮询，执行后需手动刷新 | S2 |
 | B008 | P3 | parked | security | vLLM 未启用 api-key（仅绑定回环） | P0 |
 | B009 | P3 | wontfix | infra | /vllm/start 冷启动 26–28s（未优化） | P7 |
@@ -120,6 +132,66 @@
 - 区域：route_table ｜ 严重度：P2 ｜ 状态：fixed
 - 发现于：S13 ｜ 登记：2026-10-26T23:27:07
 - 详情：cloud:vision 项真实执行成功后发现下游 capability:ext:rebuild:lightrag-chunker 执行失败：chunk() missing 1 required positional argument: 'text'；原因是 _local_execute 只给 positional==['data'] 的外部能力传参。已修复：positional 含 text 时传 capability_input['text']；实测重置该项后重跑 done。
+
+### B033 · 工作流命中检索：embedding 冷启动/失败时关键词兜底 ×0.6 封顶 → 低于 0.65 阈值误判'无本地工作流'，导致重复云端构建
+- 区域：cloud_build ｜ 严重度：P2 ｜ 状态：fixed
+- 发现于：S15 ｜ 登记：2026-10-27T00:08:33
+- 详情：search_workflows 关键词兜底原为 gram 相似度×0.6（<0.65 阈值），embedding 不可用时必然 miss → 每次冷启动都重建云端工作流。已修：去掉封顶、标注 match=embedding/keyword；实测冷启动首调命中 1.0。
+
+### B034 · 命中工作流评估 NameError：lora_manager 用 json_lib 别名导入，评估代码用 json.loads
+- 区域：route_table ｜ 严重度：P2 ｜ 状态：fixed
+- 发现于：S15 ｜ 登记：2026-10-27T00:08:33
+- 详情：route/auto 命中分支评估 xlsx 时报 NameError: name 'json' is not defined（被静默捕获 → evaluation=null）。已修：改用 json_lib.loads。
+
+### B035 · 本地复现评估取错 xlsx：_find_latest_xlsx 从 outputs/ 递归取到旧产物（route_tables/*.xlsx）
+- 区域：cloud_build ｜ 严重度：P2 ｜ 状态：fixed
+- 发现于：S15 ｜ 登记：2026-10-27T00:08:33
+- 详情：评估逻辑未限定本次运行产物，拿到历史 xlsx（cell_match 0.125 无意义）。已修：优先 uploads/（write_sheet 产物目录）+ 按运行开始时间过滤。
+
+### B036 · 测试污染生产工作流索引：单测把 /tmp 路径写入 data/distilled/workflows.jsonl → 幽灵工作流命中失败
+- 区域：test ｜ 严重度：P2 ｜ 状态：fixed
+- 发现于：S15 ｜ 登记：2026-10-27T00:08:33
+- 详情：S15 单测构建的工作流曾写入真实索引（已清理），route/auto 命中不存在路径 → '工作流文件缺失'。已修：builder 索引写入跟随模块常量（测试隔离）+ search_workflows 跳过路径不存在条目。
+
+### B037 · route/auto 丢失 conversation_id（任务表落到默认对话）
+- 区域：route_table ｜ 严重度：P2 ｜ 状态：fixed
+- 发现于：S15 ｜ 登记：2026-10-27T00:08:33
+- 详情：S14 后 /route/auto 的 create_table 未透传 conversation_id；S15 已补（命中/云端/生成三处）。
+
+### B038 · /orchestrate 只出计划不执行：向主脑发送任务无法直接创建/运行工作流
+- 区域：orchestrator ｜ 严重度：P2 ｜ 状态：parked
+- 发现于：S15 ｜ 登记：2026-10-27T00:08:33
+- 详情：POST /orchestrate 是 v1 编排（只出 plan + 工具候选），不执行、不建工作流；本次 '本地工作流' 任务走 route/auto 才能落地。需要把主脑编排接到 route/auto/工作流执行。
+
+### B039 · 主脑编排工具选择截断：建工作流/Excel 工具（create_workflow_config/add_workflow_node/write_sheet/read_sheet）被截断丢弃，只留无关 list_* 工具
+- 区域：orchestrator ｜ 严重度：P2 ｜ 状态：parked
+- 发现于：S15 ｜ 登记：2026-10-27T00:08:33
+- 详情：test 任务时 /orchestrate 选中 get_settings/get_vllm_status/list_loras 等 15 个工具，truncated_names 里恰好是被需要的 create_workflow_config/add_workflow_node/write_sheet/read_sheet。需按意图域优先排序，且不截断任务必需工具。
+
+### B040 · 路由未识别网页/云端需求：京东/淘宝/阿里巴巴/deepseek 等外部来源仍被路由为 local_7b
+- 区域：orchestrator ｜ 严重度：P2 ｜ 状态：parked
+- 发现于：S15 ｜ 登记：2026-10-27T00:08:33
+- 详情：向 /orchestrate 发送采购清单任务时 route=local_7b（'无明显特征⇒默认本地'），没有 browser/cloud 信号；外部平台采集/云端目标模型需求未被识别。
+
+### B041 · 目标模型 deepseek4.1flash1017 未配置（无 provider key）：云端搭建暂由 GLM glm-4-flash 代替
+- 区域：cloud_build ｜ 严重度：P2 ｜ 状态：parked
+- 发现于：S15 ｜ 登记：2026-10-27T00:08:33
+- 详情：settings.providers.openai（deepseek-chat）无 api_key；S15 builder 记录 target_model_requested=deepseek4.1flash1017，实际用可用云端（glm/kimi）搭建。要严格对齐目标模型需补 DeepSeek key/接口。
+
+### B042 · 采购清单来源未真实接入：京东/淘宝/阿里巴巴无浏览器/API 采集，本地 Excel 未读取（当前用云端生成的目标样例行）
+- 区域：cloud_build ｜ 严重度：P2 ｜ 状态：parked
+- 发现于：S15 ｜ 登记：2026-10-27T00:08:33
+- 详情：S15 打通了'缺失工作流→云端搭建→本地沉淀→本地生成 Excel'的架构闭环；但云端设计的 workflow 只写 write_sheet（用云端给的目标清单行），没有 read_sheet 读本地 Excel，也没有京东/淘宝/阿里巴巴的采集节点（需浏览器工具/开放平台 API/账号，反爬与登录限制）。下一步：加 read_sheet 节点 + 采集适配层（浏览器工具或开放 API），把真实来源接入。
+
+### B043 · 任务表 direct 子任务执行时缺原始任务上下文（返回'请提供输入'）
+- 区域：route_table ｜ 严重度：P2 ｜ 状态：parked
+- 发现于：S15 ｜ 登记：2026-10-27T00:08:33
+- 详情：route/auto 生成任务表后各 direct 项只拿到自己的子任务描述+前序结果，没有原始请求；实测 #1 返回'请提供用户输入'。需在 direct/capability 执行时注入原始 request。
+
+### B044 · 主脑规划器把 Excel 生成任务派给 python-docx 能力（无 xlsx 路由能力，产出 docx）
+- 区域：route_table ｜ 严重度：P2 ｜ 状态：parked
+- 发现于：S15 ｜ 登记：2026-10-27T00:08:33
+- 详情：route/auto 生成的 5 项中 #3/#4/#5 的 Excel 任务都选了 capability:ext:pypi:python-docx，生成的是 .docx 而非 .xlsx（平台没有 route_table 可选的 xlsx 外部能力；write_sheet 只是 agent 工具）。S15 用云端工作流 tool 节点 write_sheet 绕过。建议登记 xlsx 外部能力或在规划器资产说明中标注 write_sheet。
 
 ### B001 · 前端任务表无自动轮询，执行后需手动刷新
 - 区域：frontend ｜ 严重度：P3 ｜ 状态：fixed

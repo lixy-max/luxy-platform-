@@ -6051,11 +6051,77 @@ def route_auto(payload: dict = None):
             "category": "local", "target": "workflow:%s" % hit.get("wf_id"),
             "reason": "命中已蒸馏工作流，自动执行本地路径", "depends_on": [],
         }], meta={"reuse_workflow": {"wf_id": hit.get("wf_id"), "score": hit.get("score"),
-                                     "path": hit.get("path")}})
+                                     "path": hit.get("path")}},
+            conversation_id=str(p.get("conversation_id") or ""))
+        import time as _time3
+        _t_exec = _time3.time()
         out = _rt.execute_table(t["id"]) if p.get("execute", True) else {"table": t, "executed": []}
+        # ★ S15：命中本地工作流也评估"是否复现云端目标"（若该工作流带 golden）
+        _eval = None
+        try:
+            import cloud_workflow_builder as _cwb
+            _wf = _td.get_workflow(hit.get("wf_id"))
+            _gp = str((_wf or {}).get("golden_path") or "")
+            if _gp and pathlib.Path(_gp).exists():
+                _g = json_lib.loads(pathlib.Path(_gp).read_text(encoding="utf-8"))
+                _eval = _cwb.evaluate_against_golden(_g, since_ts=_t_exec)
+        except Exception as _ee:
+            print("[route/auto] 命中工作流评估失败: %s: %s"
+                  % (type(_ee).__name__, str(_ee)[:200]), flush=True)
+            _eval = None
         return {"ok": True, "hit": True, "workflow": hit, "threshold": thr,
+                "evaluation": _eval,
                 "table": out.get("table"), "executed": out.get("executed")}
-    t = _rt.create_table(request, meta={"context": p.get("context") or ""})
+    # ★ S15：本地无命中 → 判断是否需要"云端搭建工作流并沉淀本地"
+    try:
+        import cloud_workflow_builder as _cwb
+        _need, _why, _info = _cwb.should_cloud_build(
+            request, allow=p.get("allow_cloud_build"))
+        if _need:
+            _b = _cwb.build(request, context=str(p.get("context") or ""),
+                            execute=False, max_repair=int(p.get("max_repair") or 2))
+            _t = _rt.create_table(request, items=[{
+                "content": "本地执行云端沉淀工作流：%s" % _b.get("workflow", {}).get(
+                    "workflow_name", _b["wf_id"]),
+                "category": "local", "target": "workflow:%s" % _b["wf_id"],
+                "reason": "本地无该工作流 → 云端搭建并已沉淀（目标模型: %s，实际 builder: %s）"
+                          % (_b.get("target_model_requested"), (_b.get("cloud") or {}).get("provider")),
+                "depends_on": [],
+            }], meta={"cloud_build": {"wf_id": _b["wf_id"], "golden_path": _b.get("golden_path"),
+                                      "builder": _b.get("cloud"),
+                                      "target_model_requested": _b.get("target_model_requested")}},
+                conversation_id=str(p.get("conversation_id") or ""))
+            import time as _time2
+            _t_exec = _time2.time()
+            _out = _rt.execute_table(_t["id"]) if p.get("execute") else {"table": _t, "executed": []}
+            _eval = None
+            try:
+                if _b.get("golden"):
+                    _eval = _cwb.evaluate_against_golden(_b["golden"], since_ts=_t_exec)
+            except Exception:
+                _eval = None
+            return {"ok": True, "hit": False, "route": "cloud_build",
+                    "why": _why, "local_candidates": _info.get("candidates", [])[:3],
+                    "cloud_build": {k: _b.get(k) for k in
+                                    ("wf_id", "workflow_path", "golden_path", "cloud",
+                                     "target_model_requested", "tool_nodes", "lint")},
+                    "evaluation": _eval,
+                    "table": _out.get("table"), "executed": _out.get("executed")}
+    except Exception as _e:
+        # 云端搭建失败 → 记录 bug 并退回主脑生成（不阻塞用户）
+        print("[route/auto] 云端建工作流失败(退回主脑生成): %s" % str(_e)[:300], flush=True)
+        try:
+            import bug_ledger as _bl
+            _rows = {r.get("title") for r in _bl.list_bugs()}
+            if "云端搭建工作流失败（S15 自动路由）" not in _rows:
+                _bl.add("云端搭建工作流失败（S15 自动路由）", area="cloud_build",
+                        detail="route/auto 自动云端建工作流失败，已退回主脑生成。错误：%s"
+                               % str(_e)[:500], severity="P2", found_in="S15")
+                _bl.render_doc()
+        except Exception:
+            pass
+    t = _rt.create_table(request, meta={"context": p.get("context") or ""},
+                         conversation_id=str(p.get("conversation_id") or ""))
     out = _rt.execute_table(t["id"]) if p.get("execute") else {"table": t, "executed": []}
     return {"ok": True, "hit": False, "threshold": thr,
             "candidates": hits[:3], "table": out.get("table"), "executed": out.get("executed")}
@@ -6385,6 +6451,45 @@ def capability_run(payload: dict = None):
     r = _se.execute_capability(cap, args=args, kwargs=kwargs)
     return {"ok": bool(r.get("ok")), "cap_id": cap_id,
             "result": r.get("result"), "error": r.get("error"), "meta": r.get("meta")}
+
+
+# ══════════════════════════════════════════════════════════
+# S15：缺失工作流 → 云端搭建 → 蒸馏沉淀本地 → 本地执行
+# ══════════════════════════════════════════════════════════
+@app.post("/workflow/build_from_cloud")
+def workflow_build_from_cloud(payload: dict = None):
+    """检测本地无该工作流 → 云端设计 → 沉淀本地 → （可选）本地执行"""
+    import cloud_workflow_builder as _cwb
+    p = payload or {}
+    request = str(p.get("request") or "").strip()
+    if not request:
+        raise HTTPException(400, "request 必填")
+    try:
+        r = _cwb.build(request, context=str(p.get("context") or ""),
+                       execute=bool(p.get("execute")),
+                       max_repair=int(p.get("max_repair") or 2))
+    except Exception as e:
+        raise HTTPException(500, "%s: %s" % (type(e).__name__, str(e)[:400]))
+    conv = str(p.get("conversation_id") or "")
+    if p.get("create_table") and r.get("wf_id"):
+        import route_table as _rt
+        t = _rt.create_table(request, items=[{
+            "content": "本地执行云端沉淀工作流：%s" % r.get("workflow", {}).get("workflow_name", r["wf_id"]),
+            "category": "local", "target": "workflow:%s" % r["wf_id"],
+            "reason": "云端搭建已沉淀本地（golden: %s）" % r.get("golden_path"),
+            "depends_on": [],
+        }], meta={"cloud_build": {"wf_id": r["wf_id"], "golden_path": r.get("golden_path"),
+                                  "builder": r.get("cloud")}}, conversation_id=conv)
+        r["table"] = t
+    return {"ok": bool(r.get("ok")), **r}
+
+
+@app.get("/workflow/cloud_builds")
+def workflow_cloud_builds(limit: int = 20):
+    import cloud_workflow_builder as _cwb
+    rows = _cwb.list_builds(limit=limit)
+    return {"ok": True, "builds": rows, "count": len(rows),
+            "summary": _cwb.summary_text()}
 
 
 @app.post("/orchestrate")
