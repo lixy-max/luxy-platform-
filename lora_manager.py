@@ -5760,8 +5760,17 @@ def orchestrate_capabilities():
         return {"ok": False, "error": f"{type(e).__name__}: {e}"}
 
 
+@app.get("/agent/tools/health")
+def agent_tools_health():
+    """工具可执行性健康度（幻影工具 37/68 硬门）"""
+    import sys as _sys
+    _sys.path.insert(0, str(PROJECT_DIR / "tools"))
+    import tool_guard as _tg
+    return {"ok": True, **_tg.health()}
+
+
 @app.get("/agent/tools")
-def agent_tools(query: str = ""):
+def agent_tools(query: str = "", executable_only: bool = False):
     """只要工具表 ✓（从 _tool_docs.json 动态生成 ✓）
 
     ★ P-19（2026-10-21）: 支持 ?query= 动态筛选 ✓
@@ -5770,8 +5779,16 @@ def agent_tools(query: str = ""):
       · 筛选后 <15 个 ⇒ 自动退回全部 ✓（安全兜底 ✗）
     """
     import agent_config as _ac
-    return {"ok": True, "version": _ac.AGENT_PROMPT_VERSION,
-            **_ac.agent_tools_payload(query)}
+    import sys as _sys
+    _sys.path.insert(0, str(PROJECT_DIR / "tools"))
+    import tool_guard as _tg
+    payload = _ac.agent_tools_payload(query)
+    tools = payload.get("tools") or {}
+    filtered = _tg.filter_tools(tools, executable_only=bool(executable_only))
+    payload["tools"] = filtered
+    payload["count"] = len(filtered)
+    payload["phantom_count"] = sum(1 for v in filtered.values() if not v.get("executable"))
+    return {"ok": True, "version": _ac.AGENT_PROMPT_VERSION, **payload}
 
 
 @app.get("/agent/prompt-version")
@@ -9727,6 +9744,26 @@ db.init_db()
 _imported = db.scan_existing_results(OUTPUT_DIR)
 if _imported:
     print(f"[db] 首次启动，已导入 {_imported} 条历史结果", flush=True)
+
+
+# ══════════════════════════════════════════════════════════
+# 启动预热（2026-10-26）：后台加载 bge-m3，消除 KB 首次检索 10s+ 延迟
+#   ⚠ 必须在 if __name__ == "__main__" 之前注册（uvicorn.run 会阻塞后续代码）
+# ══════════════════════════════════════════════════════════
+@app.on_event("startup")
+def _luxy_warmup_embedding():
+    import threading
+
+    def _w():
+        try:
+            import kb as _kb
+            _kb._get_embedder()
+            _kb._encode(["预热"], is_query=True)
+            print("[startup] embedding 预热完成", flush=True)
+        except Exception as _e:
+            print("[startup] embedding 预热跳过: %s" % str(_e)[:200], flush=True)
+
+    threading.Thread(target=_w, daemon=True).start()
 
 
 if __name__ == "__main__":

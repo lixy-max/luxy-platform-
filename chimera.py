@@ -22,6 +22,10 @@ from pathlib import Path
 PROJECT_DIR = Path(__file__).resolve().parent
 CHIMERA_DIR = PROJECT_DIR / "data" / "chimera"
 CANDIDATES_FILE = CHIMERA_DIR / "candidates.jsonl"
+REVIEW_CACHE_FILE = CHIMERA_DIR / "review_cache.json"
+PLAN_CACHE_FILE = CHIMERA_DIR / "plan_cache.json"
+CACHE_TTL = int(os.environ.get("CHIMERA_CACHE_TTL", "600"))
+REVIEW_CACHE_TTL = int(os.environ.get("CHIMERA_REVIEW_CACHE_TTL", "600"))
 
 # 许可政策（与许可证闸门一致）
 LICENSE_ALLOW = ("mit", "apache-2.0", "bsd-3-clause", "bsd-2-clause", "isc", "mpl-2.0")
@@ -133,7 +137,12 @@ def discover(gap, limit_github=5, limit_hf=3):
     """返回候选列表：[{source,id,url,stars,desc,license}]
 
     中文缺口会自动生成英文检索词（GitHub/HF 检索主要吃英文）。
+    ★ 优化：同缺口候选缓存 10 分钟（GitHub 未认证 60/h，重复计划不再搜）。
     """
+    _dk = _plan_cache_key("discover:" + str(gap), 0)
+    _dc = _plan_cache_get(_dk)
+    if _dc:
+        return list(_dc)
     out = []
     try:
         se = _search_tools()
@@ -171,7 +180,9 @@ def discover(gap, limit_github=5, limit_hf=3):
             "license": str(r.get("license") or "").lower(),
             "updated": str(r.get("lastModified") or ""),
         })
-    return _dedupe(out)
+    _res = _dedupe(out)
+    _plan_cache_put(_plan_cache_key("discover:" + str(gap), 0), _res)
+    return _res
 
 
 def _license_level(lic):
@@ -227,8 +238,82 @@ def _extract_json(text):
     return None
 
 
+def _plan_cache_get(key):
+    try:
+        d = json.loads(PLAN_CACHE_FILE.read_text(encoding="utf-8"))
+        rec = (d or {}).get(key)
+        if rec and (time.time() - float(rec.get("ts") or 0)) < CACHE_TTL:
+            return rec.get("plan")
+    except Exception:
+        pass
+    return None
+
+
+def _plan_cache_put(key, plan):
+    try:
+        CHIMERA_DIR.mkdir(parents=True, exist_ok=True)
+        d = {}
+        if PLAN_CACHE_FILE.exists():
+            try:
+                d = json.loads(PLAN_CACHE_FILE.read_text(encoding="utf-8")) or {}
+            except Exception:
+                d = {}
+        d[key] = {"ts": time.time(), "plan": plan}
+        PLAN_CACHE_FILE.write_text(json.dumps(d, ensure_ascii=False), encoding="utf-8")
+    except Exception:
+        pass
+
+
+def _plan_cache_key(gap, top_k):
+    import hashlib
+    return hashlib.sha1(("v1|%s|%s" % (gap, top_k)).encode()).hexdigest()[:16]
+
+
+def _review_cache_key(gap, candidates, version="v2"):
+    """★ 修（2026-10-26）：缓存 key 只用候选 id 集合（stars 会漂移，不应导致缓存失效）"""
+    import hashlib
+    ids = sorted(str(c.get("id") or "") for c in (candidates or []) if c.get("id"))
+    raw = "%s|%s|%s" % (version, gap, "\n".join(ids))
+    return hashlib.sha1(raw.encode()).hexdigest()[:16]
+
+
+def _cache_get(key):
+    try:
+        d = json.loads(REVIEW_CACHE_FILE.read_text(encoding="utf-8"))
+        rec = (d or {}).get(key)
+        if rec and (time.time() - float(rec.get("ts") or 0)) < REVIEW_CACHE_TTL:
+            return rec.get("result")
+    except Exception:
+        pass
+    return None
+
+
+def _cache_put(key, result):
+    try:
+        CHIMERA_DIR.mkdir(parents=True, exist_ok=True)
+        d = {}
+        if REVIEW_CACHE_FILE.exists():
+            try:
+                d = json.loads(REVIEW_CACHE_FILE.read_text(encoding="utf-8")) or {}
+            except Exception:
+                d = {}
+        d[key] = {"ts": time.time(), "result": result}
+        REVIEW_CACHE_FILE.write_text(json.dumps(d, ensure_ascii=False), encoding="utf-8")
+    except Exception:
+        pass
+
+
 def cloud_review(gap, candidates):
-    """若配置了云 provider key 则调用（Kimi）；输出 JSON 解析失败会重试一次"""
+    """若配置了云 provider key 则调用（Kimi）；输出 JSON 解析失败会重试一次
+
+    ★ 优化：结果按 (gap+候选) 缓存 10 分钟（Kimi RPM=3，重复计划不再调用）。
+    """
+    _ck = _review_cache_key(gap, candidates)
+    _cached = _cache_get(_ck)
+    if _cached is not None:
+        c = dict(_cached)
+        c["cached"] = True
+        return c
     try:
         import cloud_bridge
         if not cloud_bridge.available():
@@ -249,7 +334,9 @@ def cloud_review(gap, candidates):
             last_raw = str(ans or "")
             data = _extract_json(last_raw)
             if isinstance(data, dict) and (data.get("verdict") or data.get("recommend") is not None):
-                return {"status": "ok", "review": data}
+                _res = {"status": "ok", "review": data}
+                _cache_put(_ck, _res)
+                return _res
         return {"status": "parse_error", "raw": last_raw[:1500]}
     except Exception as e:
         return {"status": "error", "reason": str(e)[:200]}
@@ -257,6 +344,12 @@ def cloud_review(gap, candidates):
 
 def plan(gap, top_k=5):
     gap = str(gap or "").strip()
+    _cpk = _plan_cache_key(gap, top_k)
+    _cached = _plan_cache_get(_cpk)
+    if _cached:
+        p = dict(_cached)
+        p["cached_plan"] = True
+        return p
     cands = discover(gap)[:max(1, int(top_k))]
     scored = []
     for c in cands:
@@ -312,6 +405,7 @@ def plan(gap, top_k=5):
                 f.write(json.dumps(rec, ensure_ascii=False) + "\n")
     except Exception:
         pass
+    _plan_cache_put(_plan_cache_key(gap, top_k), plan_obj)
     return plan_obj
 
 

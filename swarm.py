@@ -86,7 +86,47 @@ def _models_text():
         return ""
 
 
-def build_prompt(caps, kb_entries):
+def _text_tokens(text):
+    """中英混合检索词：英文/数字词 + 中文 2~3 字 n-gram（解决整句当一个词的问题）"""
+    t = str(text or "").lower()
+    toks = set(re.findall(r"[a-z0-9_]{2,}", t))
+    for run in re.findall(r"[\u4e00-\u9fff]+", t):
+        if len(run) <= 3:
+            toks.add(run)
+        else:
+            for n in (2, 3):
+                for i in range(0, len(run) - n + 1):
+                    toks.add(run[i:i + n])
+    return toks
+
+
+def _cap_tokens(c):
+    """能力条目的检索词集合（id/name/desc/tags）"""
+    text = " ".join([str(c.get("cap_id") or ""), str(c.get("name") or ""),
+                     str(c.get("description") or ""), " ".join(c.get("tags") or [])])
+    return _text_tokens(text)
+
+
+def select_caps(task, caps, limit=14):
+    """★ 优化：按任务相关度筛选能力，给主脑 prompt 瘦身（44→≤14）"""
+    if not caps:
+        return []
+    tt = _text_tokens(task)
+    scored = []
+    for c in caps:
+        score = len(tt & _cap_tokens(c)) * 3
+        if c.get("kind") == "external" and c.get("installed"):
+            score += 2
+        if c.get("status") == "active":
+            score += 1
+        scored.append((score, str(c.get("cap_id") or ""), c))
+    scored.sort(key=lambda x: (-x[0], x[1]))
+    return [c for _, _, c in scored[:max(1, int(limit))]]
+
+
+def build_prompt(caps, kb_entries, task=None):
+    if task:
+        caps = select_caps(task, caps)
     cap_lines = []
     for c in caps:
         tags = "、".join((c.get("tags") or [])[:4])
@@ -233,12 +273,12 @@ def validate_decision(dec, caps, kb_entries):
 
 
 def decide(task, caps=None, kb_entries=None):
-    if caps is None or kb_entries is None:
-        caps, kb_entries = load_assets()
-    system = build_prompt(caps, kb_entries)
+    all_caps, kb_entries = load_assets() if (caps is None or kb_entries is None) else (caps, kb_entries)
+    # ★ 优化：给 prompt 只喂相关能力（瘦身）；但决策校验必须用全量能力清单
+    system = build_prompt(all_caps, kb_entries, task=task)
     content = ask_brain(system, task)
     dec = parse_decision(content)
-    return validate_decision(dec, caps, kb_entries), (caps, kb_entries)
+    return validate_decision(dec, all_caps, kb_entries), (all_caps, kb_entries)
 
 
 # ───────────────────────── 执行 ─────────────────────────

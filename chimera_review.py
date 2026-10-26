@@ -157,13 +157,21 @@ def auto_dry_run(plan):
 
 
 def auto_review(gap, top_k=5, do_dry_run=True):
-    """完整自动云审流程：plan → 云审 → 双闸门定级 → 自动晋级 → 合格者 dry-run"""
+    """完整自动云审流程：plan → 云审 → 双闸门定级 → 自动晋级 → 合格者 dry-run
+
+    ★ 优化：最终计划回写 chimera plan 缓存 → 同缺口重复调用 ~0.1s（跳过网络）。
+    """
     import chimera as _chim
     plan = _chim.plan(gap, top_k=top_k)
+    _cached = bool(plan.get("cached_plan"))
     decision = apply_cloud_review(plan)
-    if do_dry_run:
+    if do_dry_run and not (_cached and plan.get("dry_runs")):
         auto_dry_run(plan)
     plan["auto_reviewed"] = True
+    try:
+        _chim._plan_cache_put(_chim._plan_cache_key(str(gap or "").strip(), top_k), plan)
+    except Exception:
+        pass
     return plan
 
 

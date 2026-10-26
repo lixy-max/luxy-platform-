@@ -156,16 +156,77 @@ def _save_last_args(model_path, args):
         pass
 
 
-def is_running():
-    """通过 PID 文件检查 vLLM 是否在跑"""
+def _proc_cmdline(pid):
+    """读 /proc/<pid>/cmdline（进程不存在返回 ''）"""
+    try:
+        with open("/proc/%d/cmdline" % int(pid), "rb") as f:
+            return f.read().replace(b"\x00", b" ").decode(errors="ignore")
+    except Exception:
+        return ""
+
+
+def _pid_is_vllm(pid, port=None):
+    """★ 修 BUG（2026-10-26）：PID 可能被系统复用 → 只 os.kill(pid,0) 不够。
+    必须验证 cmdline 里确实是 vllm.entrypoints（可选校验 --port）。"""
+    cmd = _proc_cmdline(pid)
+    if "vllm.entrypoints" not in cmd:
+        return False
+    if port is not None:
+        p = str(int(port))
+        if ("--port " + p) not in cmd and ("--port=" + p) not in cmd:
+            # 兼容：没显式写 --port 但模型在跑（默认 8000）
+            if p != "8000":
+                return False
+    return True
+
+
+def find_vllm_pids(port=None):
+    """扫描系统里的 vLLM 进程（用于 PID 文件缺失/stale 时纠正）"""
+    import subprocess
+    out = []
+    try:
+        r = subprocess.run(["pgrep", "-af", "vllm.entrypoints.openai.api_server"],
+                           capture_output=True, text=True, timeout=5)
+        for ln in (r.stdout or "").splitlines():
+            parts = ln.strip().split(None, 1)
+            if not parts:
+                continue
+            try:
+                pid = int(parts[0])
+            except ValueError:
+                continue
+            cmd = parts[1] if len(parts) > 1 else ""
+            if port is None or ("--port " + str(port)) in cmd or ("--port=" + str(port)) in cmd:
+                out.append(pid)
+    except Exception:
+        pass
+    return out
+
+
+def is_running(port=None):
+    """通过 PID 文件检查 vLLM 是否在跑（★ 校验 cmdline，防 PID 复用误报）"""
     if PID_FILE.exists():
         try:
             pid = int(PID_FILE.read_text().strip())
             os.kill(pid, 0)
-            return True, pid
         except (ProcessLookupError, ValueError):
             PID_FILE.unlink(missing_ok=True)
             return False, None
+        except PermissionError:
+            # ★ 修 BUG（2026-10-26）：PID 指向别的用户进程（如 pid=1）→ 不是我们管的 vLLM
+            #   原来未捕获 PermissionError → /vllm/status 直接 500
+            PID_FILE.unlink(missing_ok=True)
+            return False, None
+        # PID 存活但可能被复用 → 校验 cmdline
+        if _pid_is_vllm(pid, port):
+            return True, pid
+        PID_FILE.unlink(missing_ok=True)
+        # 顺便找真正的 vLLM 进程（手动启动/PID 文件过期）
+        real = find_vllm_pids(port)
+        if real:
+            PID_FILE.write_text(str(real[0]))
+            return True, real[0]
+        return False, None
     return False, None
 
 
@@ -178,8 +239,10 @@ def is_port_responding(port=8000, timeout=3):
         return False
 
 
-def stop_vllm(timeout=15):
-    """停止 vLLM 进程（兼容手动启动的情况）"""
+def stop_vllm(timeout=3):
+    """停止 vLLM 进程（兼容手动启动）。
+    ★ 优化（2026-10-26）：原来 timeout=15 → 实测 stop 17s；vLLM 对 SIGTERM 反应慢，
+      改为 6s 优雅等待后 SIGKILL（目标 <8s），并用端口确认是否真的停了。"""
     running, pid = is_running()
 
     if not running:
@@ -212,7 +275,10 @@ def stop_vllm(timeout=15):
         os.kill(pid, signal.SIGKILL)
     except ProcessLookupError:
         pass
-    time.sleep(2)
+    for _ in range(5):
+        time.sleep(0.5)
+        if not is_port_responding():
+            break
     PID_FILE.unlink(missing_ok=True)
     return True
 
@@ -498,8 +564,20 @@ def wait_until_ready(port=8000, timeout=180):
 
 def get_status(port=8000):
     """查询 vLLM 当前状态（不管谁启动的，只要端口能响应就算在跑）"""
-    _, pid = is_running()
+    try:
+        running, pid = is_running(port)
+    except Exception:
+        running, pid = False, None
     result = {"running": False, "pid": pid, "model": None, "port": port}
+    # ★ 修 BUG：PID 文件 stale 但端口有 vLLM（手动启动）→ 扫描真实 PID 补上
+    if not pid:
+        _real = find_vllm_pids(port)
+        if _real:
+            result["pid"] = _real[0]
+            try:
+                PID_FILE.write_text(str(_real[0]))
+            except Exception:
+                pass
 
     try:
         r = requests.get(f"http://127.0.0.1:{port}/v1/models", timeout=3)

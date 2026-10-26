@@ -50,12 +50,17 @@ class TestGate(unittest.TestCase):
 class TestPlan(unittest.TestCase):
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp(prefix="chimera_ut_"))
-        self._orig = (chimera.CHIMERA_DIR, chimera.CANDIDATES_FILE)
+        self._orig = (chimera.CHIMERA_DIR, chimera.CANDIDATES_FILE,
+                      chimera.PLAN_CACHE_FILE, chimera.REVIEW_CACHE_FILE)
         chimera.CHIMERA_DIR = self.tmp
         chimera.CANDIDATES_FILE = self.tmp / "candidates.jsonl"
+        chimera.PLAN_CACHE_FILE = self.tmp / "plan_cache.json"
+        chimera.REVIEW_CACHE_FILE = self.tmp / "review_cache.json"
         self.addCleanup(shutil.rmtree, self.tmp, True)
         self.addCleanup(setattr, chimera, "CHIMERA_DIR", self._orig[0])
         self.addCleanup(setattr, chimera, "CANDIDATES_FILE", self._orig[1])
+        self.addCleanup(setattr, chimera, "PLAN_CACHE_FILE", self._orig[2])
+        self.addCleanup(setattr, chimera, "REVIEW_CACHE_FILE", self._orig[3])
         self._cap_patch = mock.patch(
             "capabilities.register_proposed_capability",
             side_effect=lambda c, gap="", plan_id="": {"cap_id": chimera.candidate_capability_id(c)})
