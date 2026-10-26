@@ -1,0 +1,338 @@
+# -*- coding: utf-8 -*-
+"""swarm.py —— 蜂群编排（主脑决策 → 执行）
+
+用途：把已实测通过的"主脑编排"流程落进平台 API（P2.5）。
+  · decide(task)  ：14B 主脑根据能力清单 + 知识库白名单输出路由决策 JSON
+  · execute(...)  ：按决策执行 direct / kb / capability / kb+capability
+  · orchestrate(task)：decide + execute 一步到位（/chat/completions 的 auto_orchestrate 用）
+
+设计原则：
+  · 决策只输出 JSON（云端 propose 风格；本地执行仍由策略控制）
+  · capability 执行会按需拉起工蜂 7B(:8002) + 热挂 LoRA（实测 22s 冷启动）
+  · 本地无匹配能力时 → 交给 chimera.plan()（缺口的云端/开源映射预案）
+  · 所有步骤可测试（HTTP 调用可注入 base URL；worker 自动启动可用环境变量关闭）
+"""
+import json
+import os
+import re
+import subprocess
+import time
+import urllib.error
+import urllib.parse
+import urllib.request
+from pathlib import Path
+
+PROJECT_DIR = Path(__file__).resolve().parent
+
+MAIN_BASE = os.environ.get("SWARM_MAIN_BASE", "http://127.0.0.1:8000")
+WORKER_BASE = os.environ.get("SWARM_WORKER_BASE", "http://127.0.0.1:8002")
+BACKEND_BASE = os.environ.get("SWARM_BACKEND_BASE", "http://127.0.0.1:8001")
+MAIN_MODEL = os.environ.get("SWARM_MAIN_MODEL", "/home/luxy/models/Qwen2.5-14B-Instruct-AWQ")
+WORKER_MODEL = os.environ.get("SWARM_WORKER_MODEL", "/home/luxy/models/Qwen2.5-7B-Instruct-AWQ")
+WORKER_PORT = int(os.environ.get("WORKER_PORT", "8002"))
+VENV_PY = os.environ.get("SWARM_VENV_PY", "/home/luxy/.venv/bin/python")
+AUTO_WORKER = os.environ.get("SWARM_AUTO_WORKER", "1") != "0"
+
+# 路由白名单（知识库；可用环境变量覆盖）
+DEFAULT_KB_ALLOW = (
+    "bcpcn", "kb_toolchain", "medical_guidelines", "learned_skills",
+    "ab_clean_v2", "ab_clean_20261021", "ab_raw_20261021", "drill_part1_test",
+    "tool_docs", "final_transformed_lora_kb",
+)
+KB_ALLOW = tuple(os.environ.get("SWARM_KB_ALLOW", "").split(",")) if os.environ.get("SWARM_KB_ALLOW") else DEFAULT_KB_ALLOW
+
+
+# ───────────────────────── HTTP helpers ─────────────────────────
+def _get(url, timeout=15):
+    with urllib.request.urlopen(url, timeout=timeout) as r:
+        return json.loads(r.read().decode())
+
+
+def _post(url, payload, timeout=300):
+    req = urllib.request.Request(url, data=json.dumps(payload).encode(),
+                                 headers={"Content-Type": "application/json"}, method="POST")
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return json.loads(r.read().decode())
+
+
+# ───────────────────────── 上下文 ─────────────────────────
+def load_assets():
+    """返回 (caps, kb_entries)；caps 排除 disabled，kb 只保留白名单"""
+    caps = []
+    try:
+        d = _get(BACKEND_BASE + "/capabilities?status=")
+        caps = [c for c in (d.get("capabilities") or []) if c.get("status") != "disabled"]
+    except Exception:
+        pass
+    kb_entries = []
+    try:
+        d = _get(BACKEND_BASE + "/kb/list")
+        kbs = d.get("knowledge_bases") or d.get("kbs") or []
+        for k in kbs:
+            name = str(k.get("name") or "")
+            if name and name in KB_ALLOW:
+                kb_entries.append((name, str(k.get("description") or "")[:60]))
+    except Exception:
+        pass
+    return caps, kb_entries
+
+
+def build_prompt(caps, kb_entries):
+    cap_lines = []
+    for c in caps:
+        tags = "、".join((c.get("tags") or [])[:4])
+        cap_lines.append("- %s（%s；标签：%s）" % (c.get("cap_id"), str(c.get("name"))[:36], tags))
+    kb_lines = ["- %s：%s" % (n, d or "（无描述）") for n, d in kb_entries]
+    system = (
+        "你是 Luxy 蜂群的主脑（调度器）。根据用户请求决定执行方式，只输出 JSON。\n"
+        "\n可选 route：\n"
+        "1) direct —— 你自己直接回答（通用知识/写作/翻译/简单问答；不需要检索或专业能力）\n"
+        "2) kb —— 需要平台/项目/文档知识，检索知识库\n"
+        "3) capability —— 需要单步专业能力（LoRA），调用工蜂 7B + LoRA\n"
+        "4) kb+capability —— 既需要知识库、又需要专业能力（多步任务）\n"
+        "5) cloud —— 本地没有对应能力、需要云端模型介入（长尾/复杂推理）\n"
+        "6) chimera —— 本地没有对应能力、需要嫁接外部开源能力（缺口）\n"
+        "\n硬规则：\n"
+        "- capability_id 只能填【能力清单】里的 cap_id（原样复制，含 lora: 前缀）；\n"
+        "- kb_names 只能填【知识库清单】里的库名，绝不能把能力名放进 kb_names；\n"
+        "- capability/kb+capability 必须 need_worker=true 且 load_lora=true；direct/kb/cloud/chimera 必须都为 false；\n"
+        "- 判断是否需要 LoRA：任务需要特定领域专长（农业/法律/医学/语义/客服/诗歌/办公等）才用；\n"
+        "- 判断能力解耦：任务能拆成单个专业步骤时用 capability；多步（先查资料再用专业能力）用 kb+capability。\n"
+        "\n示例：\n"
+        '用户：用一句话解释什么是 LoRA\n{"route":"direct","kb_names":[],"capability_id":null,"need_worker":false,"load_lora":false,"reason":"通用知识"}\n'
+        '用户：BCPCN 协议里 Hub 和 Switch 的区别\n{"route":"kb","kb_names":["bcpcn"],"capability_id":null,"need_worker":false,"load_lora":false,"reason":"需要项目资料"}\n'
+        '用户：玉米缺氮有什么表现\n{"route":"capability","kb_names":[],"capability_id":"lora:agri_expert_v1","need_worker":true,"load_lora":true,"reason":"需要农学能力"}\n'
+        '用户：先查 BCPCN 知识库再让农学模型总结\n{"route":"kb+capability","kb_names":["bcpcn"],"capability_id":"lora:agri_expert_v1","need_worker":true,"load_lora":true,"reason":"检索+专业能力"}\n'
+        '用户：帮我做一个从 PDF 表格抽取结构化数据的工具\n{"route":"chimera","kb_names":[],"capability_id":null,"need_worker":false,"load_lora":false,"reason":"本地无此能力，需要嫁接开源"}\n'
+        '\n可用能力清单（__NCAP__ 个）：\n__CAPS__\n'
+        '\n可用知识库清单（__MKB__ 个）：\n__KBS__\n'
+        '\n输出 JSON 字段：route, kb_names, capability_id, need_worker, load_lora, reason。'
+    )
+    return (system.replace("__NCAP__", str(len(cap_lines)))
+                  .replace("__CAPS__", "\n".join(cap_lines))
+                  .replace("__MKB__", str(len(kb_entries)))
+                  .replace("__KBS__", "\n".join(kb_lines)))
+
+
+# ───────────────────────── 决策 ─────────────────────────
+def ask_brain(system, task, max_tokens=300):
+    d = _post(MAIN_BASE + "/v1/chat/completions",
+              {"model": MAIN_MODEL,
+               "messages": [{"role": "system", "content": system},
+                            {"role": "user", "content": task}],
+               "max_tokens": max_tokens, "temperature": 0.0}, timeout=300)
+    return (d.get("choices") or [{}])[0].get("message", {}).get("content", "") or ""
+
+
+def parse_decision(text):
+    t = str(text or "")
+    if "```" in t:
+        t = max(t.split("```"), key=len)
+    i, j = t.find("{"), t.rfind("}")
+    if i < 0 or j <= i:
+        return None
+    try:
+        d = json.loads(t[i:j + 1])
+    except Exception:
+        return None
+    return d if isinstance(d, dict) else None
+
+
+def _norm_cap(x):
+    x = str(x or "").strip().lower()
+    return x[5:] if x.startswith("lora:") else x
+
+
+VALID_ROUTES = ("direct", "kb", "capability", "kb+capability", "cloud", "chimera")
+
+
+def validate_decision(dec, caps, kb_entries):
+    """把模型输出规整为可执行决策：容忍裸名、过滤不存在的 kb/cap、修正 worker 标志"""
+    if not isinstance(dec, dict):
+        return None
+    route = str(dec.get("route") or "").strip().lower()
+    if route not in VALID_ROUTES:
+        return None
+    cap_ids = {str(c.get("cap_id")): c for c in caps}
+    names = {_norm_cap(k): k for k in cap_ids}
+    kb_names = {n for n, _ in kb_entries}
+    out = {"route": route,
+           "kb_names": [str(x) for x in (dec.get("kb_names") or []) if str(x) in kb_names],
+           "capability_id": None, "need_worker": False, "load_lora": False,
+           "reason": str(dec.get("reason") or "")[:200]}
+    if route in ("capability", "kb+capability"):
+        raw = str(dec.get("capability_id") or "").strip()
+        cap_id = raw if raw in cap_ids else names.get(_norm_cap(raw))
+        if not cap_id:
+            # 没有匹配能力 → 退化为 chimera 缺口流程
+            out.update({"route": "chimera", "reason": ("能力未匹配(%s)，转缺口流程；" % raw) + out["reason"]})
+            return out
+        out["capability_id"] = cap_id
+        out["need_worker"] = True
+        out["load_lora"] = True
+    return out
+
+
+def decide(task, caps=None, kb_entries=None):
+    if caps is None or kb_entries is None:
+        caps, kb_entries = load_assets()
+    system = build_prompt(caps, kb_entries)
+    content = ask_brain(system, task)
+    dec = parse_decision(content)
+    return validate_decision(dec, caps, kb_entries), (caps, kb_entries)
+
+
+# ───────────────────────── 执行 ─────────────────────────
+def worker_up():
+    try:
+        _get(WORKER_BASE + "/v1/models", timeout=5)
+        return True
+    except Exception:
+        return False
+
+
+def start_worker(timeout=120):
+    if not AUTO_WORKER:
+        return False, 0.0
+    cmd = (
+        "cd %s && CUDA_VISIBLE_DEVICES=1 VLLM_USE_FLASHINFER_SAMPLER=0 "
+        "VLLM_ALLOW_RUNTIME_LORA_UPDATING=True setsid nohup %s -m vllm.entrypoints.openai.api_server "
+        "--model %s --max-model-len 32768 --gpu-memory-utilization 0.80 "
+        "--host 127.0.0.1 --port %d --dtype half --enforce-eager --max-num-seqs 8 "
+        "--enable-lora --max-loras 2 --max-lora-rank 128 --max-cpu-loras 4 "
+        "--enable-prefix-caching --quantization awq_marlin "
+        "--enable-auto-tool-choice --tool-call-parser hermes "
+        "> logs/vllm_worker_7b.log 2>&1 < /dev/null &"
+    ) % (PROJECT_DIR, VENV_PY, WORKER_MODEL, WORKER_PORT)
+    subprocess.Popen(["bash", "-c", cmd], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    t0 = time.time()
+    while time.time() - t0 < timeout:
+        if worker_up():
+            return True, time.time() - t0
+        time.sleep(2)
+    return False, time.time() - t0
+
+
+def activate_lora(cap_id):
+    return _post(BACKEND_BASE + "/capabilities/%s/activate" % urllib.parse.quote(str(cap_id), safe=":"), {}, timeout=180)
+
+
+def deactivate_lora(cap_id):
+    try:
+        return _post(BACKEND_BASE + "/capabilities/%s/deactivate" % urllib.parse.quote(str(cap_id), safe=":"), {}, timeout=120)
+    except Exception:
+        return {}
+
+
+def worker_chat(model, messages, max_tokens=512):
+    d = _post(WORKER_BASE + "/v1/chat/completions",
+              {"model": model, "messages": messages, "max_tokens": max_tokens, "temperature": 0.3},
+              timeout=300)
+    return (d.get("choices") or [{}])[0].get("message", {}).get("content", "") or ""
+
+
+def kb_query(kb_name, query, top_k=3):
+    d = _post(BACKEND_BASE + "/kb/%s/query" % urllib.parse.quote(kb_name), {"query": query, "top_k": top_k})
+    return d.get("results") or []
+
+
+def main_answer(task, kb_context=""):
+    user = task if not kb_context else ("参考资料：\n%s\n\n用户问题：%s" % (kb_context, task))
+    d = _post(MAIN_BASE + "/v1/chat/completions",
+              {"model": MAIN_MODEL, "messages": [{"role": "user", "content": user}],
+               "max_tokens": 512, "temperature": 0.3}, timeout=300)
+    return (d.get("choices") or [{}])[0].get("message", {}).get("content", "") or ""
+
+
+def execute(dec, task, kb_entries=None):
+    """执行决策，返回 {content, route, meta, ok}"""
+    route = str(dec.get("route") or "")
+    meta = {"route": route, "reason": dec.get("reason")}
+    if route == "direct":
+        ans = main_answer(task)
+        return {"ok": bool(ans), "content": ans, "route": route, "meta": meta}
+    if route == "kb":
+        kbs = [str(x) for x in (dec.get("kb_names") or [])][:2]
+        texts = []
+        for kbn in kbs:
+            try:
+                for r in kb_query(kbn, task, 3):
+                    texts.append("[%s] %s" % (kbn, str(r.get("text") or "")))
+            except Exception:
+                continue
+        ans = main_answer(task, "\n---\n".join(texts)[:4000])
+        meta.update({"kb_names": kbs, "hits": len(texts)})
+        return {"ok": bool(ans), "content": ans, "route": route, "meta": meta}
+    if route in ("capability", "kb+capability"):
+        cap_id = dec.get("capability_id")
+        kb_ctx = ""
+        if route == "kb+capability":
+            kbs = [str(x) for x in (dec.get("kb_names") or [])][:2]
+            texts = []
+            for kbn in kbs:
+                try:
+                    for r in kb_query(kbn, task, 2):
+                        texts.append("[%s] %s" % (kbn, str(r.get("text") or "")))
+                except Exception:
+                    continue
+            kb_ctx = "\n---\n".join(texts)[:3000]
+            meta["kb_names"] = kbs
+        started = None
+        if dec.get("need_worker") and not worker_up():
+            okw, sec = start_worker()
+            started = round(sec, 1)
+            if not okw:
+                return {"ok": False, "content": "", "route": route,
+                        "meta": dict(meta, error="工蜂启动失败")}
+        try:
+            act = activate_lora(cap_id)
+        except urllib.error.HTTPError as e:
+            return {"ok": False, "content": "", "route": route,
+                    "meta": dict(meta, error="LoRA 装载失败 HTTP %d" % e.code)}
+        if not act.get("ok"):
+            return {"ok": False, "content": "", "route": route,
+                    "meta": dict(meta, error="LoRA 装载失败")}
+        lora_name = str(act.get("lora_name") or str(cap_id).split(":")[-1])
+        user = task if not kb_ctx else ("参考资料：\n%s\n\n用户问题：%s" % (kb_ctx, task))
+        try:
+            ans = worker_chat(lora_name, [{"role": "user", "content": user}])
+        finally:
+            deactivate_lora(cap_id)
+        meta.update({"capability_id": cap_id, "worker_started_sec": started})
+        return {"ok": bool(ans), "content": ans, "route": route, "meta": meta}
+    if route == "cloud":
+        try:
+            import cloud_bridge
+            ans = cloud_bridge.ask(task, system="你是云端导师，请直接回答用户问题。")
+            return {"ok": bool(ans), "content": ans or "", "route": route,
+                    "meta": dict(meta, provider="cloud")}
+        except Exception as e:
+            ans = main_answer(task)
+            return {"ok": bool(ans), "content": ans, "route": "direct",
+                    "meta": dict(meta, fallback="cloud不可用:%s" % str(e)[:80])}
+    if route == "chimera":
+        try:
+            import chimera
+            plan = chimera.plan(task)
+            return {"ok": True, "content": chimera.render_plan_text(plan),
+                    "route": route, "meta": dict(meta, plan=plan)}
+        except Exception as e:
+            ans = main_answer(task)
+            return {"ok": bool(ans), "content": ans, "route": "direct",
+                    "meta": dict(meta, fallback="chimera失败:%s" % str(e)[:80])}
+    return {"ok": False, "content": "", "route": route, "meta": dict(meta, error="未知 route")}
+
+
+def orchestrate(task):
+    """一步到位：决策 + 执行。返回 {ok, route, content, meta}"""
+    task = str(task or "").strip()
+    if not task:
+        return {"ok": False, "content": "", "route": "none", "meta": {"error": "空任务"}}
+    dec, _ = decide(task)
+    if not dec:
+        ans = main_answer(task)
+        return {"ok": bool(ans), "content": ans, "route": "direct",
+                "meta": {"fallback": "决策解析失败，直接回答"}}
+    out = execute(dec, task)
+    out["decision"] = dec
+    return out

@@ -284,6 +284,7 @@ class ChatRequest(BaseModel):
     max_tokens: int = 2048
     kb: dict | None = None
     session_id: str | None = None   # P2.1: 会话级 KB 挂载隔离（不传=旧行为）
+    auto_orchestrate: bool = False   # P2.5: 蜂群自动编排（主脑决策 → 执行）
     # 学习增强（阶段2）: 不传 = 行为与以前完全一致 ✓
     #   {enabled, timeout_sec, escalate_model, escalate_provider, distill_model}
     learn: dict | None = None
@@ -5483,6 +5484,42 @@ def capabilities_deactivate(cap_id: str):
         raise HTTPException(400, "卸载异常: %s" % str(e)[:200])
 
 
+# ══════════════════════════════════════════════════════════
+# 奇美拉 v1（2026-10-26）：能力缺口 → 开源候选映射 → 落地计划
+#   计划为声明式 IR（不含可执行命令）；不自动安装；政策闸门 + 可选云端复审
+# ══════════════════════════════════════════════════════════
+@app.post("/chimera/plan")
+def chimera_plan(payload: dict = None):
+    """给定能力缺口，返回候选开源项目 + 落地计划 + 政策闸门结论"""
+    import chimera as _chim
+    p = payload or {}
+    gap = str(p.get("gap") or p.get("task") or "").strip()
+    if not gap:
+        raise HTTPException(400, "gap 必填（能力缺口描述，例如：从 PDF 表格抽取结构化数据）")
+    try:
+        plan = _chim.plan(gap, top_k=int(p.get("top_k") or 5))
+        return {"ok": True, "plan": plan, "text": _chim.render_plan_text(plan)}
+    except Exception as e:
+        raise HTTPException(500, "%s: %s" % (type(e).__name__, str(e)[:200]))
+
+
+@app.get("/chimera/candidates")
+def chimera_candidates(limit: int = 50):
+    import chimera as _chim
+    cands = _chim.list_candidates(limit=limit)
+    return {"ok": True, "candidates": cands, "count": len(cands)}
+
+
+@app.post("/chimera/approve/{candidate_id}")
+def chimera_approve(candidate_id: str, payload: dict = None):
+    import chimera as _chim
+    by = str((payload or {}).get("by") or "policy")
+    try:
+        return {"ok": True, "record": _chim.approve_candidate(candidate_id, approved_by=by)}
+    except ValueError as e:
+        raise HTTPException(404, str(e))
+
+
 @app.post("/orchestrate")
 def orchestrate_ep(req: OrchestrateRequest):
     """★ DSH 调这个 ⇒ 拿执行计划 ✓
@@ -8326,6 +8363,26 @@ def chat_completions_stream(req: ChatRequest):
 
 @app.post("/chat/completions")
 def chat_completions(req: ChatRequest):
+    # ══ P2.5（2026-10-26）：蜂群自动编排（主脑决策 → direct/kb/capability/kb+capability/chimera）
+    #   开启后：主脑（14B）先判路由，执行器按路由真实执行（含自动起 7B、挂 LoRA、KB 检索）
+    if bool(getattr(req, "auto_orchestrate", False)):
+        try:
+            import swarm as _sw
+            _task = ""
+            for _m in reversed(req.messages or []):
+                if getattr(_m, "role", None) == "user":
+                    _task = str(getattr(_m, "content", "") or "")
+                    break
+            _r = _sw.orchestrate(_task)
+            return {"content": _r.get("content") or "",
+                    "route": _r.get("route"),
+                    "decision": _r.get("decision"),
+                    "meta": _r.get("meta") or {},
+                    "provider": "swarm",
+                    "usage": None}
+        except Exception as _e:
+            return {"content": "", "route": "error", "provider": "swarm",
+                    "meta": {"error": "%s: %s" % (type(_e).__name__, str(_e)[:200])}}
     kb_context = []
     if req.kb and req.kb.get("name"):
         try:

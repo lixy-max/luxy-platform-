@@ -169,9 +169,12 @@ def search_github(query, limit=6):
         # 降噪：排除 awesome/list/curated/资源合集 ✗
         if any(x in name or x in desc for x in ('awesome', 'list-of', 'curated', 'book', 'tutorial', 'course')):
             continue
+        _lic = it.get('license') or {}
         out.append({'source': 'github', 'id': it.get('full_name'), 'url': it.get('html_url'),
                     'stars': it.get('stargazers_count') or 0, 'desc': (it.get('description') or '')[:100],
-                    'lang': it.get('language') or '', 'updated': (it.get('pushed_at') or '')[:10]})
+                    'lang': it.get('language') or '', 'updated': (it.get('pushed_at') or '')[:10],
+                    # P2.5: 许可证（奇美拉政策闸门要用）
+                    'license': str(_lic.get('spdx_id') or _lic.get('name') or '')})
         if len(out) >= limit:
             break
     return out
