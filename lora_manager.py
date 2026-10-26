@@ -5370,6 +5370,117 @@ class OrchestrateRequest(BaseModel):
     strategy: str = "auto"      # auto | local_only | cloud_first
 
 
+# ══════════════════════════════════════════════════════════
+# P2.3（2026-10-26）：工蜂能力注册表 + 多 LoRA 装载/路由
+#   设计：一个 LoRA = 一个单步能力；多步任务由主脑编排
+#   注册表：data/capabilities/registry.json（capabilities.py）
+# ══════════════════════════════════════════════════════════
+@app.get("/capabilities")
+def capabilities_list(status: str = ""):
+    """列出能力（可按 status 过滤：active|shadow|disabled）"""
+    import capabilities as _caps
+    caps = _caps.list_capabilities(status=status or None)
+    return {"ok": True, "capabilities": caps, "count": len(caps),
+            "summary": _caps.summary()}
+
+
+@app.get("/capabilities/summary")
+def capabilities_summary():
+    import capabilities as _caps
+    return {"ok": True, **_caps.summary()}
+
+
+@app.post("/capabilities/scan")
+def capabilities_scan(payload: dict = None):
+    """扫描 loras/ 目录，把可用 LoRA 登记为单步能力（默认影子期）"""
+    import capabilities as _caps
+    p = payload or {}
+    try:
+        res = _caps.register_from_loras(worker_port=p.get("worker_port"),
+                                        overwrite=bool(p.get("overwrite")))
+        return {"ok": True, **res}
+    except Exception as e:
+        raise HTTPException(400, "%s: %s" % (type(e).__name__, e))
+
+
+@app.get("/capabilities/match")
+def capabilities_match(query: str = "", top_k: int = 3, only_active: bool = False):
+    """能力路由：按 query 匹配能力（轻量关键词打分）"""
+    import capabilities as _caps
+    if not str(query or "").strip():
+        raise HTTPException(400, "query 必填")
+    hits = _caps.match(query, top_k=int(top_k), only_active=bool(only_active))
+    return {"ok": True, "query": query, "matches": hits, "count": len(hits)}
+
+
+@app.post("/capabilities/{cap_id}/status")
+def capabilities_set_status(cap_id: str, payload: dict = None):
+    import capabilities as _caps
+    st = str((payload or {}).get("status") or "").strip()
+    try:
+        c = _caps.set_status(cap_id, st)
+        return {"ok": True, "capability": c}
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+
+
+@app.post("/capabilities/{cap_id}/use")
+def capabilities_record_use(cap_id: str, payload: dict = None):
+    """记录一次能力使用（成功率滚动统计）"""
+    import capabilities as _caps
+    ok = bool((payload or {}).get("success", True))
+    try:
+        c = _caps.record_use(cap_id, success=ok)
+        return {"ok": True, "capability": c}
+    except ValueError as e:
+        raise HTTPException(404, str(e))
+
+
+@app.post("/capabilities/{cap_id}/activate")
+def capabilities_activate(cap_id: str):
+    """把该能力对应 LoRA 装载到工蜂 vLLM（worker_port）"""
+    import capabilities as _caps
+    cap = _caps.get_capability(cap_id)
+    if not cap:
+        raise HTTPException(404, "capability 不存在: %s" % cap_id)
+    port = int(cap.get("worker_port") or 8002)
+    base = "http://127.0.0.1:%d" % port
+    try:
+        code = requests.get(base + "/v1/models", timeout=5).status_code
+    except Exception as e:
+        raise HTTPException(400, "工蜂 vLLM(:%d) 不可达: %s" % (port, str(e)[:120]))
+    lora_name = str(cap.get("lora") or cap_id)
+    payload = {"lora_name": lora_name, "lora_path": str(cap.get("lora_path") or "")}
+    try:
+        r = requests.post(base + "/v1/load_lora_adapter", json=payload, timeout=120)
+        if r.status_code >= 400:
+            raise HTTPException(400, "装载失败 HTTP %d: %s" % (r.status_code, r.text[:200]))
+        _caps.record_use(cap_id, success=True)
+        return {"ok": True, "cap_id": cap_id, "worker_port": port,
+                "lora_name": lora_name, "message": "已装载到工蜂"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(400, "装载异常: %s" % str(e)[:200])
+
+
+@app.post("/capabilities/{cap_id}/deactivate")
+def capabilities_deactivate(cap_id: str):
+    """从工蜂 vLLM 卸载该 LoRA"""
+    import capabilities as _caps
+    cap = _caps.get_capability(cap_id)
+    if not cap:
+        raise HTTPException(404, "capability 不存在: %s" % cap_id)
+    base = "http://127.0.0.1:%d" % int(cap.get("worker_port") or 8002)
+    lora_name = str(cap.get("lora") or cap_id)
+    try:
+        r = requests.post(base + "/v1/unload_lora_adapter", json={"lora_name": lora_name}, timeout=60)
+        return {"ok": r.status_code < 400, "status_code": r.status_code,
+                "body": r.text[:300]}
+    except Exception as e:
+        raise HTTPException(400, "卸载异常: %s" % str(e)[:200])
+
+
 @app.post("/orchestrate")
 def orchestrate_ep(req: OrchestrateRequest):
     """★ DSH 调这个 ⇒ 拿执行计划 ✓
