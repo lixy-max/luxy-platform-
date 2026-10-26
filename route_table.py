@@ -241,6 +241,20 @@ def generate_items(request, max_items=MAX_ITEMS, context=None):
     if not items:
         items = [{"content": str(request)[:300], "category": "local", "target": "direct",
                   "reason": "任务表生成失败，退化为直接回答", "depends_on": []}]
+    # ★ S12：请求整体含图谱/多模态但 items 未涉云 → 补一条云端项
+    try:
+        import modality_router as _mr
+        _d = _mr.detect(str(request) + " " + str(context or ""))
+        if _d.get("kinds") and not any(i.get("category") == "cloud" for i in items):
+            _rt = _mr.route(str(request))
+            items.append({"content": "处理整体需求中的%s部分：%s" % (
+                "/".join(_d["kinds"]), str(request)[:200]),
+                "category": "cloud",
+                "target": _rt.get("target") or ("cloud:" + "+".join(_d["kinds"])),
+                "reason": "检测到%s需求→云端（架构路由）" % "/".join(_d["kinds"]),
+                "depends_on": []})
+    except Exception:
+        pass
     return items
 
 
@@ -544,9 +558,29 @@ def execute_table(table_id, run_cloud=False, run_transplant=False,
                         executed.append({"seq": seq, "ok": False, "skipped": "cloud"})
                         progress = True
                         continue
+                    # ★ S12：cloud:<kinds> 多模态能力检查（无能力则明确跳过，不假装处理）
+                    _kinds = []
+                    if target.startswith("cloud:"):
+                        _kinds = [x for x in target.split(":", 1)[1].replace(";", "+").split("+") if x]
+                    _prefix = ""
+                    if _kinds:
+                        try:
+                            import modality_router as _mr
+                            _blk = _mr.blocked_reason(_kinds)
+                        except Exception:
+                            _blk = None
+                        if _blk:
+                            with _conn() as c:
+                                _set_item(c, table_id, seq, status="skipped", updated_at=_now(),
+                                          result="多模态/图谱云端不可用：%s" % _blk)
+                            items[seq]["status"] = "skipped"
+                            executed.append({"seq": seq, "ok": False, "skipped": "modality"})
+                            progress = True
+                            continue
+                        _prefix = "（架构路由：本任务涉及%s，按云端能力处理）\n" % "/".join(_kinds)
                     import swarm
                     r = swarm.execute({"route": "cloud"},
-                                      it["content"] + ("\n\n前序结果：\n" + ctx[:1500] if ctx else ""))
+                                      _prefix + it["content"] + ("\n\n前序结果：\n" + ctx[:1500] if ctx else ""))
                     ok, result = bool(r.get("ok")), str(r.get("content") or "")
                     attempts.append({"try": "cloud", "ok": ok, "at": _now()})
                 else:  # transplant
