@@ -5569,6 +5569,57 @@ def chimera_approve(candidate_id: str, payload: dict = None):
         raise HTTPException(404, str(e))
 
 
+# ══════════════════════════════════════════════════════════
+# 奇美拉 P3 v1（2026-10-26）：沙箱安装（dry-run / install / installed）
+#   安全边界：纯 wheel + 无依赖 + sha256 锁定 + --target 隔离 + 显式 approve
+# ══════════════════════════════════════════════════════════
+def _chimera_candidate(candidate_id, payload=None):
+    import chimera as _chim
+    p = payload or {}
+    if p.get("repo"):
+        return {"candidate_id": candidate_id, "id": str(p.get("repo")),
+                "source": str(p.get("source") or "github"),
+                "stars": p.get("stars"), "license": str(p.get("license") or "")}
+    cand = _chim.get_candidate(candidate_id)
+    if not cand:
+        raise HTTPException(404, "候选不存在: %s（可先 /chimera/plan，或在 body 里传 repo）" % candidate_id)
+    return cand
+
+
+@app.post("/chimera/{candidate_id}/dry-run")
+def chimera_dry_run(candidate_id: str, payload: dict = None):
+    """安装前评估：PyPI 映射/纯 wheel/依赖数/许可/sha256 → 是否可装"""
+    import sandbox_installer as _si
+    cand = _chimera_candidate(candidate_id, payload)
+    try:
+        plan = _si.dry_run(cand, package=(payload or {}).get("package"))
+        return {"ok": True, "candidate_id": candidate_id, "plan": plan}
+    except Exception as e:
+        raise HTTPException(500, "%s: %s" % (type(e).__name__, str(e)[:200]))
+
+
+@app.post("/chimera/{candidate_id}/install")
+def chimera_install(candidate_id: str, payload: dict = None):
+    """执行沙箱安装（必须 approve=true；只装满足 P3 v1 条件的候选）"""
+    import sandbox_installer as _si
+    p = payload or {}
+    if not bool(p.get("approve")):
+        raise HTTPException(400, "必须显式 approve=true（政策闸门：不自动安装）")
+    cand = _chimera_candidate(candidate_id, p)
+    try:
+        res = _si.install(cand, approve=True, package=p.get("package"))
+        return {"ok": bool(res.get("ok")), **res}
+    except Exception as e:
+        raise HTTPException(500, "%s: %s" % (type(e).__name__, str(e)[:200]))
+
+
+@app.get("/chimera/installed")
+def chimera_installed(limit: int = 100):
+    import sandbox_installer as _si
+    rows = _si.list_installed(limit=limit)
+    return {"ok": True, "installed": rows, "count": len(rows)}
+
+
 @app.post("/orchestrate")
 def orchestrate_ep(req: OrchestrateRequest):
     """★ DSH 调这个 ⇒ 拿执行计划 ✓
