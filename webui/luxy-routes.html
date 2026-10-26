@@ -58,6 +58,8 @@
   <span class="sub">本地 · 云端 · 移植 &nbsp;|&nbsp; 生成 → 勾选 → 复用（S1 v1）</span>
   <span class="spacer"></span>
   <a href="/luxy-evolution.html" style="margin-right:10px;font-size:12px;color:#B5603F">📈 进化指标</a>
+  <span class="badge" id="convBadge" title="当前对话（任务表按对话隔离）">对话 —</span>
+  <button class="ghost" id="btnNewConv">新建对话</button>
   <span class="badge" id="stat">—</span>
 </header>
 
@@ -133,6 +135,23 @@ let currentId = null;
 let timer = null;
 
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+// ★ S14：任务表按对话隔离（?conv= 或 localStorage）
+function _randConv(){ return 'conv_' + Math.random().toString(36).slice(2, 10); }
+function getConversation(){
+  try{
+    const u = new URLSearchParams(location.search).get('conv');
+    if(u){ localStorage.setItem('luxy_conv', u); return u; }
+    let c = localStorage.getItem('luxy_conv');
+    if(!c){ c = _randConv(); localStorage.setItem('luxy_conv', c); }
+    return c;
+  }catch(e){ return 'conv_default'; }
+}
+let CONV = getConversation();
+function renderConv(){
+  const el = document.getElementById('convBadge');
+  if(el){ el.textContent = '对话 ' + (CONV ? CONV.replace('conv_','').slice(0,8) : '—'); el.title = '对话 ID: ' + CONV; }
+}
+
 async function api(path, opts){
   const r = await fetch(API + path, Object.assign({headers:{'Content-Type':'application/json'}}, opts||{}));
   const d = await r.json().catch(()=>({}));
@@ -148,7 +167,7 @@ async function refreshStats(){
 async function loadTables(){
   const box = document.getElementById('tableList');
   try{
-    const d = await api('/route/tables?limit=30');
+    const d = await api('/route/tables?limit=30&conversation_id='+encodeURIComponent(CONV));
     const ts = d.tables || [];
     if(!ts.length){ box.innerHTML = '<div class="empty">暂无任务表</div>'; return; }
     box.innerHTML = ts.map(t=>`
@@ -228,7 +247,7 @@ document.getElementById('btnCreate').onclick = async ()=>{
   const btn = document.getElementById('btnCreate');
   btn.disabled = true; btn.textContent = '主脑生成中（约 5-10s）…'; setErr('');
   try{
-    const d = await api('/route/table',{method:'POST',body:JSON.stringify({request})});
+    const d = await api('/route/table',{method:'POST',body:JSON.stringify({request, conversation_id: CONV})});
     document.getElementById('request').value = '';
     await loadTables(); await openTable(d.table.id);
   }catch(e){ setErr('生成失败：'+e.message); }
@@ -241,7 +260,7 @@ document.getElementById('btnSearch').onclick = async ()=>{
   const box = document.getElementById('searchResults');
   box.innerHTML = '<div class="muted">检索中…</div>';
   try{
-    const d = await api('/route/table/search?q='+encodeURIComponent(q));
+    const d = await api('/route/table/search?q='+encodeURIComponent(q)+'&conversation_id='+encodeURIComponent(CONV));
     const rs = d.results || [];
     box.innerHTML = rs.length ? rs.map(r=>`<div class="list-item" data-id="${esc(r.id)}"><div class="t">${esc(r.request).slice(0,80)}</div><div class="muted">相似度 ${r.score} · ${r.items_count} 项</div></div>`).join('')
       : '<div class="muted">无匹配（生成一份新任务表后即可检索）</div>';
@@ -282,6 +301,15 @@ document.getElementById('btnClone').onclick = async ()=>{
   }catch(e){ alert('复用失败：'+e.message); }
 };
 
+renderConv();
+document.getElementById('btnNewConv').onclick = ()=>{
+  CONV = _randConv();
+  try{ localStorage.setItem('luxy_conv', CONV); }catch(e){}
+  renderConv();
+  if(currentId) closeDetail && closeDetail();
+  document.getElementById('tableList').innerHTML = '';
+  loadTables(); refreshStats();
+};
 loadTables(); refreshStats();
 </script>
 </body>

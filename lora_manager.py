@@ -5740,9 +5740,10 @@ def route_stats():
 
 
 @app.get("/route/table/search")
-def route_table_search(q: str = "", limit: int = 10):
+def route_table_search(q: str = "", limit: int = 10, conversation_id: str = ""):
     import route_table as _rt
-    return {"ok": True, "results": _rt.search_tables(q, limit=limit)}
+    conv = conversation_id if conversation_id != "" else None
+    return {"ok": True, "results": _rt.search_tables(q, limit=limit, conversation_id=conv)}
 
 
 @app.post("/route/table")
@@ -5753,17 +5754,28 @@ def route_table_create(payload: dict = None):
     if not request:
         raise HTTPException(400, "request 必填")
     items = p.get("items") if isinstance(p.get("items"), list) else None
+    conv = str(p.get("conversation_id") or p.get("conv") or "")
     try:
-        t = _rt.create_table(request, items=items, meta=p.get("meta") or {})
+        t = _rt.create_table(request, items=items, meta=p.get("meta") or {},
+                             conversation_id=conv)
     except ValueError as e:
         raise HTTPException(400, str(e))
     return {"ok": True, "table": t}
 
 
 @app.get("/route/tables")
-def route_tables(limit: int = 30, status: str = ""):
+def route_tables(limit: int = 30, status: str = "", conversation_id: str = ""):
+    """任务表列表；传 conversation_id 时只返回该对话（S14 对话隔离）"""
     import route_table as _rt
-    return {"ok": True, "tables": _rt.list_tables(limit=limit, status=status or None)}
+    conv = conversation_id if conversation_id != "" else None
+    return {"ok": True, "tables": _rt.list_tables(limit=limit, status=status or None,
+                                                  conversation_id=conv)}
+
+
+@app.get("/route/tables/conversations")
+def route_tables_conversations(limit: int = 50):
+    import route_table as _rt
+    return {"ok": True, "conversations": _rt.list_conversations(limit=limit)}
 
 
 @app.get("/route/table/{table_id}")
@@ -6352,6 +6364,26 @@ def cloud_vision(payload: dict = None):
     return {"ok": True, "answer": ans,
             "provider": (sel.get("provider") or {}).get("name"),
             "model": (sel.get("provider") or {}).get("vision_model")}
+
+
+# ══════════════════════════════════════════════════════════
+# S14：外部能力直调 + 渗透验收
+# ══════════════════════════════════════════════════════════
+@app.post("/capability/run")
+def capability_run(payload: dict = None):
+    """直接执行已安装外部能力（显式 args/kwargs；用于渗透验收/调试）"""
+    import sandbox_exec as _se
+    import capabilities as _caps
+    p = payload or {}
+    cap_id = str(p.get("cap_id") or p.get("capability_id") or "")
+    cap = _caps.get_capability(cap_id)
+    if not cap:
+        raise HTTPException(404, "能力不存在: %s" % cap_id)
+    kwargs = p.get("kwargs") if isinstance(p.get("kwargs"), dict) else {}
+    args = p.get("args") if isinstance(p.get("args"), list) else []
+    r = _se.execute_capability(cap, args=args, kwargs=kwargs)
+    return {"ok": bool(r.get("ok")), "cap_id": cap_id,
+            "result": r.get("result"), "error": r.get("error"), "meta": r.get("meta")}
 
 
 @app.post("/orchestrate")

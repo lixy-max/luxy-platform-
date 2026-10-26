@@ -69,7 +69,13 @@ def _conn():
         c.execute("ALTER TABLE items ADD COLUMN depends_on TEXT DEFAULT '[]'")
     if "attempts" not in cols:
         c.execute("ALTER TABLE items ADD COLUMN attempts TEXT DEFAULT '[]'")
+    # ★ S14：任务表按对话隔离
+    tcols = {r["name"] for r in c.execute("PRAGMA table_info(tables)").fetchall()}
+    if "conversation_id" not in tcols:
+        c.execute("ALTER TABLE tables ADD COLUMN conversation_id TEXT DEFAULT ''")
+        c.execute("CREATE INDEX IF NOT EXISTS idx_tables_conv ON tables(conversation_id)")
     c.commit()
+    return c
     return c
 
 
@@ -175,6 +181,12 @@ def _norm_depends(v, seq):
             continue
     return out
 
+def _strip_paths(text):
+    """去掉文本中的本地路径（避免文件名里的"视觉/图谱"等词触发误判）"""
+    import re as _re
+    return _re.sub(r'/[^\s"\'（）()【】\[\]，,；;：:]+', ' ', str(text or ''))
+
+
 
 def _normalize_item(it, seq=1):
     if not isinstance(it, dict):
@@ -200,14 +212,19 @@ def _normalize_item(it, seq=1):
     if cat == "transplant" and not target:
         target = "chimera"
     _reason = str(it.get("reason") or "")
-    # ★ S12：图谱/多模态检测 → 强制云端（架构 D 项）
+    # ★ S12/S14：图谱/多模态检测 → 云端；但显式本地能力/知识库/工作流优先（避免文件名误判）
     try:
         import modality_router as _mr
-        _d = _mr.detect(content + " " + target)
+        _d = _mr.detect(_strip_paths(content) + " " + target)
         if _d.get("kinds"):
-            cat = "cloud"
-            target = "cloud:" + "+".join(_d["kinds"])
-            _reason = (_reason + "；" if _reason else "") + "检测到%s需求→云端" % "/".join(_d["kinds"])
+            _explicit_local = cat == "local" and target.startswith(("capability:", "kb:", "workflow:"))
+            if _explicit_local:
+                _reason = (_reason + "；" if _reason else "") + (
+                    "检测到%s词但已显式指定本地执行体，优先本地" % "/".join(_d["kinds"]))
+            else:
+                cat = "cloud"
+                target = "cloud:" + "+".join(_d["kinds"])
+                _reason = (_reason + "；" if _reason else "") + "检测到%s需求→云端" % "/".join(_d["kinds"])
     except Exception:
         pass
     return {"content": content[:300], "category": cat, "target": target[:120],
@@ -280,10 +297,11 @@ def _insert_item(c, tid, seq, it):
                "pending", "", _now(), json.dumps(it.get("depends_on") or []), "[]"))
 
 
-def create_table(request, items=None, meta=None):
+def create_table(request, items=None, meta=None, conversation_id=""):
     request = str(request or "").strip()
     if not request:
         raise ValueError("request 不能为空")
+    conversation_id = str(conversation_id or "")
     meta = meta or {}
     reuse = {"attempted": False}
     if items is None and os.environ.get("WORKFLOW_REUSE", "1") == "1":
@@ -321,25 +339,34 @@ def create_table(request, items=None, meta=None):
     meta = dict(meta)
     meta.setdefault("similar", sim)
     with _conn() as c:
-        c.execute("INSERT INTO tables(id, request, created_at, status, items_count, embedding, meta) "
-                  "VALUES (?,?,?,?,?,?,?)",
+        c.execute("INSERT INTO tables(id, request, created_at, status, items_count, embedding, meta, conversation_id) "
+                  "VALUES (?,?,?,?,?,?,?,?)",
                   (tid, request, _now(), "pending", len(items), _embed(request),
-                   json.dumps(meta, ensure_ascii=False)))
+                   json.dumps(meta, ensure_ascii=False), conversation_id))
         for i, it in enumerate(items, 1):
             _insert_item(c, tid, i, it)
     return get_table(tid)
 
 
-def list_tables(limit=30, status=None):
+def list_tables(limit=30, status=None, conversation_id=None):
+    """列出任务表；conversation_id 非 None 时只返回该对话的表（S14 对话隔离）"""
+    sql = "SELECT id, request, created_at, status, items_count, meta, conversation_id FROM tables"
+    where, args = [], []
+    if status:
+        where.append("status=?")
+        args.append(status)
+    if conversation_id is not None:
+        where.append("conversation_id=?")
+        args.append(str(conversation_id))
+    if where:
+        sql += " WHERE " + " AND ".join(where)
+    sql += " ORDER BY created_at DESC LIMIT ?"
+    args.append(int(limit))
     with _conn() as c:
-        if status:
-            rows = c.execute("SELECT id, request, created_at, status, items_count, meta FROM tables "
-                             "WHERE status=? ORDER BY created_at DESC LIMIT ?", (status, int(limit))).fetchall()
-        else:
-            rows = c.execute("SELECT id, request, created_at, status, items_count, meta FROM tables "
-                             "ORDER BY created_at DESC LIMIT ?", (int(limit),)).fetchall()
+        rows = c.execute(sql, tuple(args)).fetchall()
     return [{"id": r["id"], "request": r["request"], "created_at": r["created_at"],
              "status": r["status"], "items_count": r["items_count"],
+             "conversation_id": r["conversation_id"] or "",
              "meta": json.loads(r["meta"] or "{}")} for r in rows]
 
 
@@ -351,8 +378,14 @@ def get_table(table_id):
         items = c.execute("SELECT * FROM items WHERE table_id=? ORDER BY seq", (str(table_id),)).fetchall()
     done = sum(1 for x in items if x["status"] == "done")
     meta = json.loads(t["meta"] or "{}")
+    _conv = ""
+    try:
+        _conv = t["conversation_id"] or ""
+    except Exception:
+        _conv = ""
     return {"id": t["id"], "request": t["request"], "created_at": t["created_at"],
-            "status": t["status"], "items_count": t["items_count"], "meta": meta,
+            "status": t["status"], "items_count": t["items_count"],
+            "conversation_id": _conv, "meta": meta,
             "progress": {"done": done, "total": len(items),
                          "percent": round(done * 100.0 / len(items), 1) if items else 0.0},
             "artifact": meta.get("artifact"),
@@ -405,13 +438,18 @@ def _refresh_status(table_id):
     return st
 
 
-def search_tables(q, limit=10):
+def search_tables(q, limit=10, conversation_id=None):
     q = str(q or "").strip()
     if not q:
         return []
+    _sql = "SELECT id, request, embedding, items_count, created_at FROM tables"
+    _args = []
+    if conversation_id is not None:
+        _sql += " WHERE conversation_id=?"
+        _args.append(str(conversation_id))
+    _sql += " ORDER BY created_at DESC LIMIT 500"
     with _conn() as c:
-        ts = c.execute("SELECT id, request, embedding, items_count, created_at FROM tables "
-                       "ORDER BY created_at DESC LIMIT 500").fetchall()
+        ts = c.execute(_sql, tuple(_args)).fetchall()
     qv = _unpack(_embed(q))
     scored = []
     for t in ts:
@@ -434,7 +472,8 @@ def clone_table(table_id, request=None):
     items = [{"content": x["content"], "category": x["category"], "target": x["target"],
               "reason": x["reason"], "depends_on": x["depends_on"]} for x in src["items"]]
     return create_table(request or src["request"], items=items,
-                        meta={"clone_of": table_id, "context": src["meta"].get("context")})
+                        meta={"clone_of": table_id, "context": src["meta"].get("context")},
+                        conversation_id=src.get("conversation_id") or "")
 
 
 def similar(table_id, limit=5):
@@ -452,6 +491,75 @@ def _dep_context(items, deps):
         if it and it.get("result"):
             parts.append("第%d步结果：\n%s" % (d, str(it["result"])[:1200]))
     return "\n\n".join(parts)
+
+
+
+def _find_existing_path(text, prefer_ext=None):
+    """从文本里找存在的本地文件路径（默认常见交付格式）"""
+    import re as _re
+    from pathlib import Path as _P
+    if prefer_ext:
+        pat = r'(/[^\s"\')）】\]，,；;：:]+\.%s)' % prefer_ext
+    else:
+        pat = r'(/[^\s"\')）】\]，,；;：:]+\.(?:pdf|docx|xlsx|png|jpe?g|txt|md|json|csv|wav|mp4))'
+    for m in _re.findall(pat, str(text or "")):
+        try:
+            p = _P(m)
+            if p.exists():
+                return p
+        except Exception:
+            continue
+    return None
+
+
+def build_capability_input(cap, content, ctx):
+    """按外部能力 args_schema 从任务内容/前序结果推断参数（S14 外部能力渗透）。"""
+    import re as _re
+    schema = cap.get("args_schema") or {}
+    if not isinstance(schema, dict):
+        schema = {}
+    text_all = str(content or "") + "\n" + str(ctx or "")
+    kwargs = {}
+    mj = _re.search(r"\{.*\}", str(content or ""), _re.S)
+    if mj:
+        try:
+            _j = json.loads(mj.group(0))
+            if isinstance(_j, dict):
+                kwargs.update(_j)
+        except Exception:
+            pass
+    pos = list(schema.get("positional") or [])
+    if pos == ["data"]:
+        lines = [ln.strip() for ln in str(ctx).splitlines() if ln.strip()][:20]
+        return {"data": [[ln[:120]] for ln in lines] or [["（无输入）"]], "headers": ["内容"]}
+    if "text" in pos:
+        kwargs["text"] = (str(content) + ("\n\n前序结果：\n" + str(ctx)[:1500] if ctx else ""))[:4000]
+        return kwargs
+    if pos:
+        p0 = str(pos[0])
+        prefer = "pdf" if "pdf" in p0.lower() else None
+        path = _find_existing_path(text_all, prefer)
+        if path:
+            kwargs[p0] = str(path)
+            if "max_pages" in schema:
+                kwargs.setdefault("max_pages", 3)
+            return kwargs
+        kwargs[p0] = str(content)[:800]
+        return kwargs
+    if "out_path" in schema:
+        out = (PROJECT_DIR / "outputs" / "external").resolve()
+        out.mkdir(parents=True, exist_ok=True)
+        name = "cap_%s_%d" % (hashlib.sha1(text_all[:300].encode()).hexdigest()[:8], int(time.time()))
+        kwargs["out_path"] = str(out / (name + ".docx"))
+        if "title" in schema:
+            first = (str(content or "").strip().splitlines() or [""])[0]
+            kwargs["title"] = (first or "外部能力产物")[:60]
+        if "sections" in schema:
+            lines2 = [ln.rstrip() for ln in str(ctx or content).splitlines() if ln.strip()]
+            kwargs["sections"] = [{"heading": "内容", "lines": lines2[:60] or ["（无内容）"]}]
+        return kwargs
+    kwargs.setdefault("input", str(content)[:1000])
+    return kwargs
 
 
 def _local_execute(item, ctx):
@@ -483,17 +591,10 @@ def _local_execute(item, ctx):
         except Exception:
             cap = None
         if cap and cap.get("kind") == "external":
-            schema = cap.get("args_schema") or {}
-            if isinstance(schema, dict):
-                _pos = schema.get("positional") or []
-                if _pos == ["data"]:
-                    lines = [ln.strip() for ln in str(ctx).splitlines() if ln.strip()][:20]
-                    dec["capability_input"] = {"data": [[ln[:120]] for ln in lines] or [["（无输入）"]],
-                                               "headers": ["内容"]}
-                elif "text" in _pos:
-                    # ★ S13：文本类外部能力（chunker 等）需要 text 参数
-                    _txt = content + ("\n\n前序结果：\n" + ctx[:1500] if ctx else "")
-                    dec["capability_input"] = {"text": _txt[:4000]}
+            try:
+                dec["capability_input"] = build_capability_input(cap, content, ctx)
+            except Exception:
+                dec["capability_input"] = {}
         r = swarm.execute(dec, (content + ("\n\n前序结果：\n" + ctx if ctx else "")))
         return bool(r.get("ok")), str(r.get("content") or r.get("meta", {}).get("error") or ""), "local"
     if target.startswith("kb:"):
@@ -725,3 +826,13 @@ def stats():
     for r in items:
         by_cat.setdefault(r["category"], {})[r["status"]] = r["n"]
     return {"tables": n, "by_category": by_cat}
+
+def list_conversations(limit=50):
+    """列出有任务表的对话（S14）"""
+    with _conn() as c:
+        rows = c.execute(
+            "SELECT conversation_id, COUNT(*) n, MAX(created_at) last_at FROM tables "
+            "GROUP BY conversation_id ORDER BY last_at DESC LIMIT ?", (int(limit),)).fetchall()
+    return [{"conversation_id": r["conversation_id"] or "", "tables": r["n"],
+             "last_at": r["last_at"]} for r in rows]
+
