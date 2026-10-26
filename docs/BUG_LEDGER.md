@@ -37,6 +37,7 @@
 | B025 | P3 | parked | model | 模型部署需停机：主脑14B/工蜂7B 占满两张卡，导入后无法立即起服务 | S7 |
 | B026 | P3 | parked | model | 模型下载无断点续传/进度上报 API（长下载只能等，UI 不可见） | S7 |
 | B028 | P3 | fixed | chimera | GitHub raw 抓取不稳定（60s 超时）：已加 jsDelivr/GitHub API 镜像回退 | S8 |
+| B032 | P3 | parked | route_table | 任务表对话隔离是组织级（conversation_id 由客户端 URL/localStorage 指定），非服务端鉴权隔离 | S14 |
 
 ## 详细说明
 
@@ -194,3 +195,8 @@
 - 区域：chimera ｜ 严重度：P3 ｜ 状态：fixed
 - 发现于：S8 ｜ 登记：2026-10-26T21:57:43
 - 详情：S8 实测 raw.githubusercontent 单文件 60s 超时；重建管线已改为 raw→jsDelivr→GitHub API 三级回退（jsDelivr 实测 0.9s）。仍建议加本地缓存/离线包，避免每次重建依赖网络。
+
+### B032 · 任务表对话隔离是组织级（conversation_id 由客户端 URL/localStorage 指定），非服务端鉴权隔离
+- 区域：route_table ｜ 严重度：P3 ｜ 状态：parked
+- 发现于：S14 ｜ 登记：2026-10-26T23:42:05
+- 详情：S14 已实现任务表按对话隔离（DB conversation_id + API 过滤 + 前端对话切换），但 conversation_id 由前端（?conv= 或 localStorage）传入，服务端不校验归属；同一局域网/同机其他客户端只要知道 conv id 仍可读该对话任务表。当前为单机本地平台（回环地址），风险低；若将来多用户/暴露公网，需要加会话鉴权（token/会话绑定）。
