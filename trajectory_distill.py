@@ -81,17 +81,79 @@ def _tidy(t, limit=400):
     return t[:limit]
 
 
-def decompose(record):
+_SEM_MARKER_RE = re.compile(
+    r"^\s*(?:#{1,4}\s+|第[一二三四五六七八九十百]+[步章节条]|[0-9]{1,2}[.、)]\s*|[-*•]\s+|【[^】]{1,24}】)")
+
+
+def _semantic_split(text, max_parts=8, min_chars=25):
+    """把一段文本按语义边界切分（B013）：标题/编号/列表标记优先，其次空行段落。
+
+    返回 [(label, text)]。没有明确边界且不长的文本保持单步。
+    """
+    t = str(text or "").strip()
+    if not t:
+        return []
+    lines = t.splitlines()
+    marker_lines = [ln for ln in lines if _SEM_MARKER_RE.match(ln)]
+    segs, cur, label = [], [], None
+    if len(marker_lines) >= 2:
+        # ① 结构标记（标题/第X步/1. / 1、/ - / 【小节】）
+        for ln in lines:
+            m = _SEM_MARKER_RE.match(ln)
+            if m:
+                if cur and "".join(cur).strip():
+                    segs.append((label, "\n".join(cur).strip()))
+                label = ln.strip()[:30]
+                cur = [ln]
+            else:
+                cur.append(ln)
+        if cur and "".join(cur).strip():
+            segs.append((label, "\n".join(cur).strip()))
+    elif len(t) >= 120:
+        # ② 空行段落
+        paras = [p.strip() for p in re.split(r"\n\s*\n", t) if p.strip()]
+        if len(paras) >= 2:
+            segs = [(None, p) for p in paras]
+    segs = [(l, x) for l, x in segs if x and x.strip()]
+    if len(segs) < 2:
+        return [(None, t)]
+    # 合并过短片段：只合并"无标题且极短"的残片；有显式标记的段落保持独立（语义步）
+    merged = []
+    for l, x in segs:
+        if merged and l is None and len(x) < min(15, min_chars):
+            pl, px = merged[-1]
+            merged[-1] = (pl, px + "\n" + x)
+        else:
+            merged.append((l, x))
+    if len(merged) > max_parts:
+        head, rest = merged[:max_parts - 1], merged[max_parts - 1:]
+        merged = head + [(rest[0][0], "\n".join(x for _, x in rest))]
+    return merged
+
+
+def decompose(record, semantic=None):
     """轨迹 → 原子步骤列表
 
-    步骤粒度（v1）：一次工具调用 = 一步；一轮纯文本 = 一步；最终答案 = 一步。
+    v1（semantic=False）：一次工具调用 = 一步；一轮纯文本 = 一步；最终答案 = 一步。
+    v2（semantic=True，B013）：
+      · 有工具调用的回合，若文本是实质性思考/说明（≥20 字），先记一个「思考」语义步
+      · 纯文本/最终答案按语义边界切分（标题/编号/列表/空行段落）
+      · 工具调用仍以一次调用为一步（不把工具结果硬拆成多步）
+    环境变量 DECOMPOSE_SEMANTIC=0 可回退 v1 行为。
     """
+    if semantic is None:
+        semantic = os.environ.get("DECOMPOSE_SEMANTIC", "1") not in ("0", "false", "False")
     steps = []
     for turn in (record.get("steps") or []):
         if not isinstance(turn, dict):
             continue
         tcs = turn.get("tool_calls") or []
+        txt = _tidy(turn.get("text"), 1200)
         if tcs:
+            # 思考/说明文本：语义上先于工具动作
+            if semantic and txt and len(txt) >= 20:
+                steps.append({"kind": "llm", "text": txt, "semantic": True,
+                              "label": "思考/说明", "origin": "thinking"})
             for tc in tcs:
                 if not isinstance(tc, dict):
                     continue
@@ -101,16 +163,27 @@ def decompose(record):
                     "input": tc.get("input"),
                     "output": _tidy(tc.get("result"), 600),
                     "status": str(tc.get("status") or ""),
+                    "semantic": semantic, "label": "工具：%s" % str(tc.get("tool") or "")[:30],
+                    "origin": "tool",
                 })
-        else:
-            txt = _tidy(turn.get("text"), 600)
-            if txt:
-                steps.append({"kind": "llm", "text": txt})
-    final = _tidy(record.get("final"), 800)
+        elif txt:
+            if semantic:
+                for lbl, piece in _semantic_split(txt):
+                    steps.append({"kind": "llm", "text": piece, "semantic": True,
+                                  "label": lbl, "origin": "text"})
+            else:
+                steps.append({"kind": "llm", "text": txt, "semantic": False, "origin": "text"})
+    final = _tidy(record.get("final"), 1200)
     if final:
-        steps.append({"kind": "answer", "text": final})
+        if semantic:
+            for lbl, piece in _semantic_split(final):
+                steps.append({"kind": "answer", "text": piece, "semantic": True,
+                              "label": lbl or "最终答案", "origin": "answer"})
+        else:
+            steps.append({"kind": "answer", "text": final, "semantic": False, "origin": "answer"})
     if not steps:
-        steps = [{"kind": "answer", "text": _tidy(record.get("task"), 300)}]
+        steps = [{"kind": "answer", "text": _tidy(record.get("task"), 300),
+                  "semantic": semantic, "label": "任务", "origin": "task"}]
     for i, s in enumerate(steps, 1):
         s["seq"] = i
     return steps
@@ -191,10 +264,12 @@ def stats(limit_per_file=400, max_total=1600):
     tools = {}
     success = 0
     examples = []
+    steps_v1_list = []
     for r in records:
         steps = decompose(r)
         k = len(steps)
         steps_list.append(k)
+        steps_v1_list.append(len(decompose(r, semantic=False)))
         if k <= 1:
             buckets["1步"] += 1
         elif k <= 3:
@@ -218,10 +293,37 @@ def stats(limit_per_file=400, max_total=1600):
                              "tools": list(r.get("tools_used") or [])[:5]})
     n = len(records) or 1
     steps_list.sort()
+    steps_v1_list.sort()
+
+    def _dist(lst):
+        if not lst:
+            return {"min": 0, "median": 0, "mean": 0, "max": 0,
+                    "buckets": {"1步": 0, "2-3步": 0, "4-6步": 0, "7-10步": 0, "11+步": 0}}
+        b = {"1步": 0, "2-3步": 0, "4-6步": 0, "7-10步": 0, "11+步": 0}
+        for k in lst:
+            if k <= 1:
+                b["1步"] += 1
+            elif k <= 3:
+                b["2-3步"] += 1
+            elif k <= 6:
+                b["4-6步"] += 1
+            elif k <= 10:
+                b["7-10步"] += 1
+            else:
+                b["11+步"] += 1
+        return {"min": lst[0], "median": lst[len(lst) // 2],
+                "mean": round(sum(lst) / len(lst), 2), "max": lst[-1], "buckets": b}
+    steps_v1_list.sort()
     scores.sort()
+    def _pct(lst, p):
+        if not lst:
+            return 0
+        return lst[min(len(lst) - 1, int(len(lst) * p))]
     return {
         "records": len(records),
         "success_rate": round(success / n, 3),
+        "steps_mode": "semantic",
+        "steps_v1": _dist(steps_v1_list),
         "steps": {"min": steps_list[0], "median": steps_list[len(steps_list) // 2],
                   "mean": round(sum(steps_list) / n, 1), "max": steps_list[-1],
                   "buckets": buckets},
