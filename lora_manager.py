@@ -5734,9 +5734,10 @@ def chimera_reviews(limit: int = 50):
 # S1（2026-10-26）级联路由任务表：持久化 · 可检索 · 可勾选 · 前端可视化
 # ══════════════════════════════════════════════════════════
 @app.get("/route/stats")
-def route_stats():
+def route_stats(conversation_id: str = ""):
     import route_table as _rt
-    return {"ok": True, **_rt.stats()}
+    conv = conversation_id if conversation_id != "" else None
+    return {"ok": True, **_rt.stats(conversation_id=conv)}
 
 
 @app.get("/route/table/search")

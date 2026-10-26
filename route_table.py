@@ -818,10 +818,18 @@ def get_artifact(table_id):
     return {"exists": True, "path": p, "content": Path(p).read_text(encoding="utf-8")[:20000]}
 
 
-def stats():
+def stats(conversation_id=None):
     with _conn() as c:
-        n = c.execute("SELECT COUNT(*) AS n FROM tables").fetchone()["n"]
-        items = c.execute("SELECT category, status, COUNT(*) AS n FROM items GROUP BY category, status").fetchall()
+        if conversation_id is None:
+            n = c.execute("SELECT COUNT(*) AS n FROM tables").fetchone()["n"]
+            items = c.execute("SELECT category, status, COUNT(*) AS n FROM items "
+                              "GROUP BY category, status").fetchall()
+        else:
+            n = c.execute("SELECT COUNT(*) AS n FROM tables WHERE conversation_id=?",
+                          (str(conversation_id),)).fetchone()["n"]
+            items = c.execute("SELECT i.category, i.status, COUNT(*) AS n FROM items i "
+                              "JOIN tables t ON t.id=i.table_id WHERE t.conversation_id=? "
+                              "GROUP BY i.category, i.status", (str(conversation_id),)).fetchall()
     by_cat = {}
     for r in items:
         by_cat.setdefault(r["category"], {})[r["status"]] = r["n"]

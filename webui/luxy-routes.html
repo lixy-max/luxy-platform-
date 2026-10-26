@@ -161,7 +161,7 @@ async function api(path, opts){
 function setErr(m){document.getElementById('err').textContent = m || '';}
 
 async function refreshStats(){
-  try{ const d = await api('/route/stats'); document.getElementById('stat').textContent = '任务表 '+d.tables+' 份'; }catch(e){}
+  try{ const d = await api('/route/stats?conversation_id='+encodeURIComponent(CONV)); document.getElementById('stat').textContent = '任务表 '+d.tables+' 份'; }catch(e){}
 }
 
 async function loadTables(){
