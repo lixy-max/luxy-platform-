@@ -251,6 +251,17 @@ def validate_decision(dec, caps, kb_entries):
             route = "capability"
         else:
             return None
+    if route == "workflow":
+        try:
+            import trajectory_distill as _td2
+            wf_id = dec.get("wf_id") or dec.get("capability_id")
+            r = _td2.run_workflow(wf_id, input_text=task)
+            return {"ok": bool(r.get("ok")), "content": r.get("content") or r.get("error") or "",
+                    "route": route, "meta": dict(meta, wf_id=wf_id, duration=r.get("duration"),
+                                                 result_path=r.get("path"))}
+        except Exception as e:
+            return {"ok": False, "content": "", "route": route,
+                    "meta": dict(meta, error=str(e)[:200])}
     if route == "multi":
         steps = dec.get("steps") or []
         out_steps = []
@@ -572,6 +583,26 @@ def orchestrate(task):
         if _gov.is_frozen():
             return {"ok": False, "content": "系统已冻结（KILL 开关）：%s" % (_gov.status().get("frozen_reason") or ""),
                     "route": "frozen", "meta": {"error": "frozen"}}
+    except Exception:
+        pass
+    # ★ S5 命中即执行：相似任务已有沉淀工作流 → 直接跑本地路径（阈值 0.65）
+    try:
+        import os as _os
+        if _os.environ.get("WORKFLOW_REUSE", "1") == "1":
+            import trajectory_distill as _td
+            _hits = _td.search_workflows(task, limit=1)
+            _thr = float(_os.environ.get("WORKFLOW_REUSE_MIN", "0.65"))
+            if _hits and float(_hits[0].get("score") or 0) >= _thr:
+                _hit = _hits[0]
+                _r = _td.run_workflow(_hit.get("wf_id"), input_text=task)
+                if _r.get("ok"):
+                    return {"ok": True, "content": _r.get("content") or "",
+                            "route": "workflow",
+                            "meta": {"reason": "命中已蒸馏工作流（%.2f）" % float(_hit.get("score") or 0),
+                                     "wf_id": _hit.get("wf_id"), "score": _hit.get("score"),
+                                     "workflow_name": _hit.get("workflow_name"),
+                                     "duration": _r.get("duration"),
+                                     "result_path": _r.get("path")}}
     except Exception:
         pass
     dec, _ = decide(task)

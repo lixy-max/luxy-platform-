@@ -423,3 +423,75 @@ def build(record_index=None):
     return {"record_index": record.get("_index"), "source_file": record.get("_source"),
             "task": _tidy(record.get("task"), 160), "steps": len(steps),
             "score": s, "workflow": wf, "dataset": ds}
+
+# ───────────────────── 工作流执行（命中即执行）─────────────────────
+WF_RUN_DIR = DISTILL_DIR / "runs"
+
+
+def get_workflow(wf_id):
+    """按 wf_id 从索引取工作流记录"""
+    for r in list_workflows(limit=1000):
+        if str(r.get("wf_id")) == str(wf_id):
+            return r
+    return None
+
+
+def run_workflow(wf_id, input_text="", timeout=None):
+    """执行已沉淀工作流：输入文本 → workflow_engine.run_workflow → 解析结果
+
+    · 用子进程执行（避免阻塞后端；workflow_engine 日志不会污染 API 进程）
+    · 返回 {ok, content, path, duration, usage, status, wf_id, workflow_name}
+    """
+    import subprocess
+    import sys as _sys
+    wf = get_workflow(wf_id)
+    if not wf or not Path(str(wf.get("path") or "")).exists():
+        raise ValueError("工作流不存在或文件缺失: %s" % wf_id)
+    WF_RUN_DIR.mkdir(parents=True, exist_ok=True)
+    inp = WF_RUN_DIR / ("input_%s_%s.txt" % (wf_id, time.strftime("%Y%m%d_%H%M%S")))
+    inp.write_text(str(input_text or "")[:6000] or "（无输入）", encoding="utf-8")
+    timeout = int(timeout or os.environ.get("WORKFLOW_REUSE_TIMEOUT", "600"))
+    code = (
+        "import sys, json\n"
+        "sys.path.insert(0, %r)\n"
+        "import workflow_engine as we\n"
+        "print(json.dumps(we.run_workflow(%r, %r)))\n"
+    ) % (str(PROJECT_DIR), str(inp), str(wf["path"]))
+    t0 = time.time()
+    try:
+        r = subprocess.run([_sys.executable, "-c", code], capture_output=True, text=True,
+                           timeout=timeout, cwd=str(PROJECT_DIR))
+    except subprocess.TimeoutExpired:
+        return {"ok": False, "content": "", "error": "工作流执行超时（%ss）" % timeout,
+                "duration": round(time.time() - t0, 1), "wf_id": wf_id}
+    duration = round(time.time() - t0, 1)
+    out_path = ""
+    for ln in reversed((r.stdout or "").strip().splitlines()):
+        ln = ln.strip()
+        if ln.startswith('"') and ln.endswith('"'):
+            try:
+                import json as _json
+                out_path = _json.loads(ln)
+            except Exception:
+                out_path = ln.strip('"')
+            break
+        if ln and Path(ln).exists():
+            out_path = ln
+            break
+    if not out_path or not Path(out_path).exists():
+        return {"ok": False, "content": "", "duration": duration, "wf_id": wf_id,
+                "error": "未找到运行结果（stderr: %s）" % (r.stderr or "")[-300:]}
+    try:
+        d = json.loads(Path(out_path).read_text(encoding="utf-8"))
+        status = str(d.get("status") or "")
+        content = str(d.get("final_report") or "")
+        if not content:
+            nodes = d.get("nodes") or {}
+            content = str(list(nodes.values())[-1] if nodes else "")[:4000]
+        usage = (d.get("_meta") or {}).get("usage") or {}
+        return {"ok": status == "success", "content": content[:6000], "path": out_path,
+                "duration": duration, "status": status, "usage": usage,
+                "wf_id": wf_id, "workflow_name": wf.get("workflow_name")}
+    except Exception as e:
+        return {"ok": False, "content": "", "duration": duration, "wf_id": wf_id,
+                "error": "结果解析失败: %s" % str(e)[:200], "path": out_path}

@@ -6013,6 +6013,40 @@ def bugs_status(bug_id: str, payload: dict = None):
     return {"ok": True, "bug": rec}
 
 
+@app.post("/route/auto")
+def route_auto(payload: dict = None):
+    """S5 命中即执行：检索已沉淀工作流 → 建表 → 自动执行 → 返回结果
+
+    body: {request, execute?: true, force_generate?: false}
+    · 命中（>=0.65）→ 单任务项（workflow:<id>）→ 自动执行
+    · 未命中 → 走主脑生成任务表（不自动执行，除非 execute 且显式 force_generate）
+    """
+    import route_table as _rt
+    import trajectory_distill as _td
+    p = payload or {}
+    request = str(p.get("request") or p.get("task") or "").strip()
+    if not request:
+        raise HTTPException(400, "request 必填")
+    hits = _td.search_workflows(request, limit=3)
+    thr = float(os.environ.get("WORKFLOW_REUSE_MIN", "0.65"))
+    hit = hits[0] if (hits and float(hits[0].get("score") or 0) >= thr) else None
+    if hit and not p.get("force_generate"):
+        t = _rt.create_table(request, items=[{
+            "content": "复用已沉淀工作流：%s（相似度 %.2f）" % (
+                hit.get("workflow_name") or hit.get("wf_id"), float(hit.get("score") or 0)),
+            "category": "local", "target": "workflow:%s" % hit.get("wf_id"),
+            "reason": "命中已蒸馏工作流，自动执行本地路径", "depends_on": [],
+        }], meta={"reuse_workflow": {"wf_id": hit.get("wf_id"), "score": hit.get("score"),
+                                     "path": hit.get("path")}})
+        out = _rt.execute_table(t["id"]) if p.get("execute", True) else {"table": t, "executed": []}
+        return {"ok": True, "hit": True, "workflow": hit, "threshold": thr,
+                "table": out.get("table"), "executed": out.get("executed")}
+    t = _rt.create_table(request, meta={"context": p.get("context") or ""})
+    out = _rt.execute_table(t["id"]) if p.get("execute") else {"table": t, "executed": []}
+    return {"ok": True, "hit": False, "threshold": thr,
+            "candidates": hits[:3], "table": out.get("table"), "executed": out.get("executed")}
+
+
 @app.post("/orchestrate")
 def orchestrate_ep(req: OrchestrateRequest):
     """★ DSH 调这个 ⇒ 拿执行计划 ✓

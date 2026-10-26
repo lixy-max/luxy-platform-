@@ -23,6 +23,9 @@
 | B015 | P3 | parked | frontend | 前端页面为独立页（未接入 index3 导航） | S2 |
 | B016 | P3 | parked | chimera | 奇美拉安装后入口探测靠 introspect 猜测 | P4 |
 | B017 | P3 | parked | distill | 轨迹蒸馏评分口径：覆盖判定只查平台工具文档，DSH 开发工具(pwsh/read)被当新能力 | S4 |
+| B018 | P3 | parked | distill | 工作流复用可能过时：沉淀自历史轨迹，执行结果不反映当前环境状态 | S5 |
+| B019 | P3 | parked | distill | 命中阈值 0.65 为经验值，未系统调优；embedding 相似度对'同义不同表述'可能漏命中 | S5 |
+| B020 | P3 | parked | governance | 工作流执行不经治理预算（直接调 vLLM，不计入外部能力预算） | S5 |
 
 ## 详细说明
 
@@ -110,3 +113,18 @@
 - 区域：distill ｜ 严重度：P3 ｜ 状态：parked
 - 发现于：S4 ｜ 登记：2026-10-26T21:05:45
 - 详情：covered 仅检查 agent_kb/_tool_docs.json；历史轨迹大量使用 DSH 开发工具（pwsh/read/grep），不在平台工具文档 → novelty=1.0、评分偏高（587 条中 500 条 high）。后续应区分『平台能力覆盖』与『开发工具轨迹』，或按工具归属分类评分。
+
+### B018 · 工作流复用可能过时：沉淀自历史轨迹，执行结果不反映当前环境状态
+- 区域：distill ｜ 严重度：P3 ｜ 状态：parked
+- 发现于：S5 ｜ 登记：2026-10-26T21:15:11
+- 详情：命中即执行会直接跑旧轨迹蒸馏出的工作流；输入/工具状态可能已变化（如 LoRA 数量），结果需标注来源与时间。
+
+### B019 · 命中阈值 0.65 为经验值，未系统调优；embedding 相似度对'同义不同表述'可能漏命中
+- 区域：distill ｜ 严重度：P3 ｜ 状态：parked
+- 发现于：S5 ｜ 登记：2026-10-26T21:15:11
+- 详情：search_workflows 阈值硬编码 env 默认 0.65；建议用路由命中率/误命中率做一次标定。
+
+### B020 · 工作流执行不经治理预算（直接调 vLLM，不计入外部能力预算）
+- 区域：governance ｜ 严重度：P3 ｜ 状态：parked
+- 发现于：S5 ｜ 登记：2026-10-26T21:15:11
+- 详情：S5 快路径/任务表 workflow 项调用 workflow_engine→vLLM；governance 执行预算只统计 external 能力。

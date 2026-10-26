@@ -246,7 +246,30 @@ def create_table(request, items=None, meta=None):
     if not request:
         raise ValueError("request 不能为空")
     meta = meta or {}
-    items = items if items is not None else generate_items(request, context=meta.get("context"))
+    reuse = {"attempted": False}
+    if items is None and os.environ.get("WORKFLOW_REUSE", "1") == "1":
+        # ★ S5 命中即执行：相似任务已有沉淀工作流 → 直接建"复用工作流"任务表（不调主脑）
+        try:
+            import trajectory_distill as _td
+            _hits = _td.search_workflows(request, limit=1)
+            _thr = float(os.environ.get("WORKFLOW_REUSE_MIN", "0.65"))
+            if _hits and float(_hits[0].get("score") or 0) >= _thr:
+                _hit = _hits[0]
+                reuse = {"attempted": True, "hit": _hit, "threshold": _thr}
+                items = [{
+                    "content": "复用已沉淀工作流：%s（相似度 %.2f）" % (
+                        _hit.get("workflow_name") or _hit.get("wf_id"), float(_hit.get("score") or 0)),
+                    "category": "local", "target": "workflow:%s" % _hit.get("wf_id"),
+                    "reason": "命中已蒸馏工作流，自动执行本地路径",
+                    "depends_on": [],
+                }]
+                meta["reuse_workflow"] = {"wf_id": _hit.get("wf_id"), "score": _hit.get("score"),
+                                          "path": _hit.get("path"),
+                                          "workflow_name": _hit.get("workflow_name")}
+        except Exception as _e:
+            reuse = {"attempted": True, "error": str(_e)[:200]}
+    if items is None:
+        items = generate_items(request, context=meta.get("context"))
     items = [n for n in (_normalize_item(it, i) for i, it in enumerate(items, 1)) if n][:MAX_ITEMS]
     if not items:
         raise ValueError("任务表为空")
@@ -397,6 +420,15 @@ def _local_execute(item, ctx):
     import swarm
     target = item["target"]
     content = item["content"]
+    if target.startswith("workflow:"):
+        # ★ S5：命中即执行——运行已沉淀工作流
+        try:
+            import trajectory_distill as _td
+            wf_id = target.split(":", 1)[1]
+            r = _td.run_workflow(wf_id, input_text=(content + ("\n\n前序结果：\n" + ctx if ctx else "")))
+            return bool(r.get("ok")), str(r.get("content") or r.get("error") or ""), "workflow"
+        except Exception as e:
+            return False, "工作流执行异常: %s" % str(e)[:300], "workflow"
     if target.startswith("capability:"):
         cap_id = target.split(":", 1)[1]
         dec = {"route": "capability", "capability_id": cap_id}
