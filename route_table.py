@@ -426,6 +426,11 @@ def _local_execute(item, ctx):
             import trajectory_distill as _td
             wf_id = target.split(":", 1)[1]
             r = _td.run_workflow(wf_id, input_text=(content + ("\n\n前序结果：\n" + ctx if ctx else "")))
+            if r.get("ok"):
+                try:
+                    _td.record_reuse(wf_id, task=content, channel="task_table")
+                except Exception:
+                    pass
             return bool(r.get("ok")), str(r.get("content") or r.get("error") or ""), "workflow"
         except Exception as e:
             return False, "工作流执行异常: %s" % str(e)[:300], "workflow"

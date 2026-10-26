@@ -6269,6 +6269,37 @@ def route_table_artifact_file(table_id: str, format: str = "docx"):
     return FileResponse(str(path), filename=path.name)
 
 
+# ══════════════════════════════════════════════════════════
+# S9（2026-10-26）进化指标 v2
+# ══════════════════════════════════════════════════════════
+@app.get("/evolution/metrics")
+def evolution_metrics():
+    """当前进化指标（本地闭环率/云调用/蒸馏/复用/能力/治理/Bug）"""
+    import evolution_metrics as _em
+    return {"ok": True, **_em.current()}
+
+
+@app.post("/evolution/snapshot")
+def evolution_snapshot():
+    """记录一次指标快照（趋势用）"""
+    import evolution_metrics as _em
+    m = _em.snapshot(save=True)
+    return {"ok": True, "at": m.get("at"), "kpis": m.get("kpis")}
+
+
+@app.get("/evolution/trend")
+def evolution_trend(limit: int = 30):
+    import evolution_metrics as _em
+    return {"ok": True, "trend": _em.trend(limit=limit)}
+
+
+@app.get("/evolution/summary")
+def evolution_summary():
+    """给主脑/Agent 的文本摘要"""
+    import evolution_metrics as _em
+    return {"ok": True, "text": _em.summary_text()}
+
+
 @app.post("/orchestrate")
 def orchestrate_ep(req: OrchestrateRequest):
     """★ DSH 调这个 ⇒ 拿执行计划 ✓

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>进化指标看板 · Luxy 蜂群</title>
+<style>
+  :root{--bg:#FAF7F2;--card:#fff;--ink:#24211F;--muted:#7A736C;--line:#E7DED2;--accent:#D97757;--accent2:#B5603F;--green:#4F8A6B;--blue:#4A7BA7;--orange:#C98A3F;--red:#B04A4A}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:"Microsoft YaHei","PingFang SC",system-ui,sans-serif;font-size:14px}
+  header{background:#fff;border-bottom:2px solid var(--accent);padding:14px 22px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:5}
+  header h1{font-size:18px;margin:0}
+  header .sub{color:var(--muted);font-size:12px}
+  header .spacer{flex:1}
+  .wrap{max-width:1280px;margin:0 auto;padding:18px 22px 40px}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:16px}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+  .kpi .v{font-size:22px;font-weight:700;color:var(--accent2)}
+  .kpi .l{font-size:12px;color:var(--muted);margin-top:2px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media (max-width:900px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:14px}
+  .card h2{font-size:14px;margin:0 0 10px;color:var(--accent2)}
+  table{width:100%;border-collapse:collapse}
+  th,td{text-align:left;padding:6px 8px;border-bottom:1px solid #F0E9DF;font-size:13px;vertical-align:top}
+  th{color:var(--muted);font-size:12px;background:#FBF8F3}
+  .bar{height:10px;background:#F0E9DF;border-radius:5px;overflow:hidden;margin-top:6px}
+  .bar > div{height:100%;background:var(--accent)}
+  .pill{display:inline-block;padding:1px 8px;border-radius:10px;border:1px solid var(--line);background:#F8F5F0;color:var(--muted);font-size:11px}
+  .ok{color:var(--green)} .bad{color:var(--red)} .warn{color:var(--orange)}
+  pre{background:#F8F5F0;border:1px solid #E7DED2;border-radius:8px;padding:10px;white-space:pre-wrap;font-size:12px}
+  .row{display:flex;gap:10px;flex-wrap:wrap}
+  button{cursor:pointer;border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 13px;font:inherit}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  a{color:var(--accent2)}
+</style>
+</head>
+<body>
+<header>
+  <h1>进化指标看板</h1>
+  <span class="sub">本地闭环率 · 云调用 · 蒸馏/复用 · 能力 · 治理 · Bug 修复</span>
+  <span class="spacer"></span>
+  <span class="pill" id="at">—</span>
+</header>
+<div class="wrap">
+  <div class="row" style="margin-bottom:12px">
+    <button class="primary" id="btnRefresh">刷新</button>
+    <button id="btnSnap">记录快照</button>
+    <a href="/luxy-routes.html" style="align-self:center;font-size:13px">← 路由任务表</a>
+  </div>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>任务表（本地闭环）</h2>
+      <div id="tables"></div>
+      <div class="bar"><div id="taskBar" style="width:0"></div></div>
+      <div id="tables2" style="margin-top:8px"></div>
+    </div>
+    <div class="card">
+      <h2>蒸馏工作流与复用</h2>
+      <div id="workflows"></div>
+    </div>
+    <div class="card">
+      <h2>云调用（Kimi / DeepSeek 接口）</h2>
+      <div id="cloud"></div>
+    </div>
+    <div class="card">
+      <h2>能力与治理</h2>
+      <div id="caps"></div>
+    </div>
+    <div class="card">
+      <h2>Bug 台账</h2>
+      <div id="bugs"></div>
+    </div>
+    <div class="card">
+      <h2>趋势（最近快照）</h2>
+      <pre id="trend">尚无快照，点"记录快照"生成第一条</pre>
+    </div>
+  </div>
+</div>
+<script>
+const API = (location.protocol + '//' + location.hostname + ':8001');
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+function pct(v){return (v==null)?'—':(Math.round(v*1000)/10)+'%';}
+async function api(path, opts){
+  const r = await fetch(API+path, Object.assign({headers:{'Content-Type':'application/json'}}, opts||{}));
+  const d = await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(d.detail||('HTTP '+r.status));
+  return d;
+}
+function kpiCard(v,l){return `<div class="kpi"><div class="v">${esc(v)}</div><div class="l">${esc(l)}</div></div>`;}
+
+async function load(){
+  try{
+    const m = await api('/evolution/metrics');
+    document.getElementById('at').textContent = m.at || '—';
+    const k = m.kpis || {};
+    document.getElementById('kpis').innerHTML =
+      kpiCard(pct(k.local_closure_rate), '本地闭环率（任务项完成率）') +
+      kpiCard(k.task_tables, '任务表数量') +
+      kpiCard(k.workflow_reuse_count, '工作流复用次数') +
+      kpiCard(k.distilled_workflows, '沉淀工作流') +
+      kpiCard(k.cloud_calls, '云调用次数') +
+      kpiCard(pct(k.cloud_success_rate), '云调用成功率') +
+      kpiCard(k.capability_active, '活跃能力（active）') +
+      kpiCard(pct(k.bug_fixed_rate), 'Bug 修复率');
+
+    const t = m.task_tables||{}, w = m.workflows||{}, c = m.cloud||{}, cap = m.capabilities||{}, g = m.governance||{}, b = m.bugs||{};
+    document.getElementById('tables').innerHTML =
+      `<div>表状态：<span class="pill">${esc(JSON.stringify(t.by_status||{}))}</span></div>
+       <div style="margin-top:6px">任务项：<span class="pill">${esc(JSON.stringify(t.items_by_category||{}))}</span></div>
+       <div style="margin-top:6px">含工作流项：<b>${esc(t.workflow_items)}</b> ｜ 有产物表：<b>${esc(t.tables_with_artifact||0)}</b></div>`;
+    document.getElementById('taskBar').style.width = (t.completion_rate||0)*100+'%';
+    const recent = (t.recent||[]).map(x=>`<tr><td>${esc(x.created_at)}</td><td>${esc(x.request)}</td><td>${esc(x.status)}</td><td>${esc(x.items)}</td></tr>`).join('');
+    document.getElementById('tables2').innerHTML = recent ? `<table><tr><th>时间</th><th>需求</th><th>状态</th><th>项</th></tr>${recent}</table>` : '';
+
+    document.getElementById('workflows').innerHTML =
+      `<div>工作流：<b>${esc(w.workflows)}</b> 条 ｜ 复用：<b>${esc(w.reuse_total)}</b> 次 ｜ 渠道：<span class="pill">${esc(JSON.stringify(w.reuse_by_channel||{}))}</span></div>
+       <div style="margin-top:6px">最近复用：${esc(w.last_reuse_at||'—')}</div>`;
+
+    document.getElementById('cloud').innerHTML =
+      `<div>调用：<b>${esc(c.calls_total)}</b> 次 ｜ 成功：<b>${esc(c.calls_ok)}</b> ｜ 成功率：<b>${pct(c.success_rate)}</b> ｜ 均耗时：${esc(c.avg_duration)}s</div>
+       <div style="margin-top:6px">模型：<span class="pill">${esc(JSON.stringify(c.by_model||{}))}</span></div>
+       <div style="margin-top:6px">最近：${esc(c.last_at||'—')}</div>`;
+
+    document.getElementById('caps').innerHTML =
+      `<div>能力：总 <b>${esc(cap.total)}</b> ｜ active <b>${esc(cap.active)}</b> ｜ shadow <b>${esc(cap.shadow)}</b></div>
+       <div style="margin-top:6px">状态：<span class="pill">${esc(JSON.stringify(cap.by_status||{}))}</span></div>
+       <div style="margin-top:6px">治理：审计 <b>${esc(g.audit_events)}</b> 条 ｜ 今日执行 ${esc(g.exec_today)}/${esc(g.exec_per_day)} ｜ 冻结：${g.frozen?'<span class="bad">是</span>':'<span class="ok">否</span>'}</div>`;
+
+    document.getElementById('bugs').innerHTML =
+      `<div>总数 <b>${esc(b.total)}</b> ｜ fixed <b>${esc(b.fixed)}</b> ｜ 修复率 <b>${pct(b.fixed_rate)}</b></div>
+       <div style="margin-top:6px">状态：<span class="pill">${esc(JSON.stringify(b.by_status||{}))}</span></div>`;
+
+    const tr = await api('/evolution/trend?limit=8');
+    const rows = (tr.trend||[]);
+    document.getElementById('trend').textContent = rows.length ? rows.map(r=>
+      `${r.at}  闭环率=${pct(r.kpis&&r.kpis.local_closure_rate)}  复用=${esc(r.kpis&&r.kpis.workflow_reuse_count)}  云=${esc(r.kpis&&r.kpis.cloud_calls)}  Bug修复率=${pct(r.kpis&&r.kpis.bug_fixed_rate)}`
+    ).join('\n') : '尚无快照，点"记录快照"生成第一条';
+  }catch(e){
+    document.getElementById('at').textContent = '加载失败: '+e.message;
+  }
+}
+document.getElementById('btnRefresh').onclick = load;
+document.getElementById('btnSnap').onclick = async ()=>{
+  try{ await api('/evolution/snapshot',{method:'POST',body:JSON.stringify({})}); await load(); }
+  catch(e){ alert('快照失败：'+e.message); }
+};
+load();
+</script>
+</body>
+</html>

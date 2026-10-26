@@ -8,6 +8,8 @@ import json
 import os
 from pathlib import Path
 
+_PROJECT_DIR = __import__("pathlib").Path(__file__).resolve().parent
+
 PROJECT_DIR = Path(__file__).resolve().parent
 SETTINGS = PROJECT_DIR / "settings.json"
 
@@ -39,6 +41,25 @@ def available():
     return bool(_provider().get("api_key"))
 
 
+
+def _log_usage(cfg, ok, duration, error=""):
+    """S9 进化指标：记录云调用（data/cloud/usage.jsonl）"""
+    try:
+        import json as _json
+        import os as _os
+        import time as _time
+        d = _PROJECT_DIR / "data" / "cloud"
+        d.mkdir(parents=True, exist_ok=True)
+        rec = {"at": _time.strftime("%Y-%m-%dT%H:%M:%S"),
+               "provider": cfg.get("api_base", ""), "model": cfg.get("model", ""),
+               "ok": bool(ok), "duration": round(float(duration), 2),
+               "error": str(error)[:200]}
+        with open(d / "usage.jsonl", "a", encoding="utf-8") as f:
+            f.write(_json.dumps(rec, ensure_ascii=False) + "\n")
+    except Exception:
+        pass
+
+
 def ask(prompt, system=None, max_tokens=2000, temperature=None, timeout=180, retries=4):
     """调用云端模型；未配置时抛 RuntimeError（调用方需降级）
 
@@ -50,6 +71,7 @@ def ask(prompt, system=None, max_tokens=2000, temperature=None, timeout=180, ret
         raise RuntimeError("云 provider 未配置 key")
     import time
     import requests
+    _t0 = time.time()
     messages = []
     if system:
         messages.append({"role": "system", "content": system})
@@ -77,10 +99,14 @@ def ask(prompt, system=None, max_tokens=2000, temperature=None, timeout=180, ret
         msg = ((d.get("choices") or [{}])[0].get("message") or {})
         content = str(msg.get("content") or "").strip()
         if content:
+            _log_usage(cfg, True, time.time() - _t0)
             return content
         # Kimi K2 是思考模型：token 预算太小时 content 可能为空，用 reasoning 兜底
         reasoning = str(msg.get("reasoning_content") or "").strip()
         if reasoning:
+            _log_usage(cfg, True, time.time() - _t0)
             return reasoning[-1500:]
+        _log_usage(cfg, True, time.time() - _t0)
         return ""
+    _log_usage(cfg, False, time.time() - _t0, "限流重试失败: %s" % last_err)
     raise RuntimeError("云端限流重试失败: %s" % last_err)

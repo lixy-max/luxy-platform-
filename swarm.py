@@ -631,6 +631,11 @@ def orchestrate(task):
                 _hit = _hits[0]
                 _r = _td.run_workflow(_hit.get("wf_id"), input_text=task)
                 if _r.get("ok"):
+                    try:
+                        _td.record_reuse(_hit.get("wf_id"), task=task, score=_hit.get("score"),
+                                         channel="chat_fastpath")
+                    except Exception:
+                        pass
                     return {"ok": True, "content": _r.get("content") or "",
                             "route": "workflow",
                             "meta": {"reason": "命中已蒸馏工作流（%.2f）" % float(_hit.get("score") or 0),

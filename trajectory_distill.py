@@ -364,6 +364,22 @@ def list_workflows(limit=30):
     return rows[-int(limit):]
 
 
+
+def record_reuse(wf_id, task="", score=None, channel="unknown"):
+    """S9：记录工作流复用（命中即执行时打点，供进化指标）"""
+    try:
+        import json as _json
+        import time as _time
+        p = DISTILL_DIR / "reuse_log.jsonl"
+        DISTILL_DIR.mkdir(parents=True, exist_ok=True)
+        rec = {"at": _time.strftime("%Y-%m-%dT%H:%M:%S"), "wf_id": wf_id,
+               "task": str(task)[:200], "score": score, "channel": channel}
+        with open(p, "a", encoding="utf-8") as f:
+            f.write(_json.dumps(rec, ensure_ascii=False) + "\n")
+    except Exception:
+        pass
+
+
 def search_workflows(task, limit=5):
     """相似任务 → 已沉淀工作流（复用路径）"""
     rows = list_workflows(limit=500)
