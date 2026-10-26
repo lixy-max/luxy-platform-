@@ -5729,6 +5729,158 @@ def chimera_reviews(limit: int = 50):
     return {"ok": True, "reviews": rows, "count": len(rows)}
 
 
+# ══════════════════════════════════════════════════════════
+# S1（2026-10-26）级联路由任务表：持久化 · 可检索 · 可勾选 · 前端可视化
+# ══════════════════════════════════════════════════════════
+@app.get("/route/stats")
+def route_stats():
+    import route_table as _rt
+    return {"ok": True, **_rt.stats()}
+
+
+@app.get("/route/table/search")
+def route_table_search(q: str = "", limit: int = 10):
+    import route_table as _rt
+    return {"ok": True, "results": _rt.search_tables(q, limit=limit)}
+
+
+@app.post("/route/table")
+def route_table_create(payload: dict = None):
+    import route_table as _rt
+    p = payload or {}
+    request = str(p.get("request") or p.get("task") or "").strip()
+    if not request:
+        raise HTTPException(400, "request 必填")
+    items = p.get("items") if isinstance(p.get("items"), list) else None
+    try:
+        t = _rt.create_table(request, items=items, meta=p.get("meta") or {})
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+    return {"ok": True, "table": t}
+
+
+@app.get("/route/tables")
+def route_tables(limit: int = 30, status: str = ""):
+    import route_table as _rt
+    return {"ok": True, "tables": _rt.list_tables(limit=limit, status=status or None)}
+
+
+@app.get("/route/table/{table_id}")
+def route_table_get(table_id: str):
+    import route_table as _rt
+    t = _rt.get_table(table_id)
+    if not t:
+        raise HTTPException(404, "任务表不存在: %s" % table_id)
+    return {"ok": True, "table": t}
+
+
+@app.post("/route/table/{table_id}/check")
+def route_table_check(table_id: str, payload: dict = None):
+    import route_table as _rt
+    p = payload or {}
+    try:
+        t = _rt.check_item(table_id, int(p.get("seq") or 0),
+                           status=str(p.get("status") or "done"),
+                           result=p.get("result"))
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+    return {"ok": True, "table": t}
+
+
+@app.post("/route/table/{table_id}/execute")
+def route_table_execute(table_id: str, payload: dict = None):
+    import route_table as _rt
+    p = payload or {}
+    try:
+        r = _rt.execute_table(table_id, run_cloud=bool(p.get("run_cloud")),
+                              run_transplant=bool(p.get("run_transplant")),
+                              max_items=p.get("max_items"))
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+    return {"ok": True, **r}
+
+
+# ══════════════════════════════════════════════════════════
+# S1（2026-10-26）：表格→知识库标准链路 + 奇美拉兼容性/三档移植判定
+# ══════════════════════════════════════════════════════════
+@app.post("/kb/table_ingest")
+def kb_table_ingest(payload: dict = None):
+    """xls/xlsx → 结构化文档 → 知识库（表格类知识库链路）"""
+    import table_kb as _tk
+    p = payload or {}
+    path = str(p.get("path") or "").strip()
+    kb_name = str(p.get("kb_name") or "").strip()
+    if not path or not kb_name:
+        raise HTTPException(400, "path 与 kb_name 必填")
+    if not Path(path).exists():
+        raise HTTPException(404, "文件不存在: %s" % path)
+    try:
+        r = _tk.ingest_table(path, kb_name, batch_size=int(p.get("batch_size") or 20),
+                             description=str(p.get("description") or ""),
+                             source_note=str(p.get("source_note") or ""))
+        return {"ok": True, **r}
+    except Exception as e:
+        raise HTTPException(500, "%s: %s" % (type(e).__name__, str(e)[:200]))
+
+
+@app.post("/kb/table_stats")
+def kb_table_stats(payload: dict = None):
+    """仅解析统计（不入库）"""
+    import table_kb as _tk
+    p = payload or {}
+    path = str(p.get("path") or "").strip()
+    if not path or not Path(path).exists():
+        raise HTTPException(404, "文件不存在: %s" % path)
+    try:
+        return {"ok": True, **_tk.table_stats(path)}
+    except Exception as e:
+        raise HTTPException(500, "%s: %s" % (type(e).__name__, str(e)[:200]))
+
+
+@app.post("/chimera/compat")
+def chimera_compat_endpoint(payload: dict = None):
+    """候选兼容性评估（不安装）"""
+    import chimera_compat as _cc
+    p = payload or {}
+    cands = p.get("candidates") if isinstance(p.get("candidates"), list) else None
+    if cands:
+        rows = [_cc.compat(c) for c in cands]
+        return {"ok": True, "env": _cc.LOCAL_ENV, "candidates": rows}
+    rows = [_cc.compat(c) for c in _cc.KB_CHAIN_CANDIDATES]
+    return {"ok": True, "env": _cc.LOCAL_ENV, "candidates": rows}
+
+
+@app.post("/chimera/port_plan")
+def chimera_port_plan(payload: dict = None):
+    """三档移植决策：直接移植 / 代码借鉴重建 / 云端 / 跳过（兼容优先，都兼容选 star 多）"""
+    import chimera_compat as _cc
+    p = payload or {}
+    cands = p.get("candidates") if isinstance(p.get("candidates"), list) else None
+    try:
+        plan = _cc.port_plan(cands, use_cloud=bool(p.get("use_cloud", True)))
+        return {"ok": True, "plan": plan}
+    except Exception as e:
+        raise HTTPException(500, "%s: %s" % (type(e).__name__, str(e)[:200]))
+
+
+@app.get("/distill/scoring")
+def distill_scoring_spec():
+    """轨迹蒸馏评分方案 v1（权重/阈值）"""
+    import distill_score as _ds
+    return {"ok": True, "weights": _ds.WEIGHTS,
+            "thresholds": {"high": _ds.THRESHOLD_HIGH, "watch": _ds.THRESHOLD_WATCH},
+            "doc": "docs/DISTILL_SCORING_v1.md"}
+
+
+@app.post("/distill/score")
+def distill_score_endpoint(payload: dict = None):
+    """自动评分：是否值得蒸馏（record 或 records）"""
+    import distill_score as _ds
+    p = payload or {}
+    recs = p.get("records") if isinstance(p.get("records"), list) else [p.get("record") or p]
+    return {"ok": True, "results": _ds.score_batch(recs)}
+
+
 @app.post("/orchestrate")
 def orchestrate_ep(req: OrchestrateRequest):
     """★ DSH 调这个 ⇒ 拿执行计划 ✓

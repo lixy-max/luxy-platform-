@@ -355,7 +355,7 @@ def execute(dec, task, kb_entries=None):
         texts = []
         for kbn in kbs:
             try:
-                for r in kb_query(kbn, task, 3):
+                for r in kb_query(kbn, task, 5):
                     texts.append("[%s] %s" % (kbn, str(r.get("text") or "")))
             except Exception:
                 continue

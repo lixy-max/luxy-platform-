@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>级联路由任务表 · Luxy 蜂群</title>
+<style>
+  :root{--bg:#FAF7F2;--card:#FFFFFF;--ink:#24211F;--muted:#7A736C;--line:#E7DED2;--accent:#D97757;--accent2:#B5603F;--green:#4F8A6B;--blue:#4A7BA7;--orange:#C98A3F}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:"Microsoft YaHei","PingFang SC",system-ui,sans-serif;font-size:14px}
+  header{background:#fff;border-bottom:2px solid var(--accent);padding:14px 22px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:5}
+  header h1{font-size:18px;margin:0;font-weight:600}
+  header .sub{color:var(--muted);font-size:12px}
+  header .spacer{flex:1}
+  .badge{display:inline-block;padding:1px 8px;border-radius:10px;font-size:11px;border:1px solid var(--line);background:#F8F5F0;color:var(--muted)}
+  .wrap{max-width:1280px;margin:0 auto;padding:18px 22px 40px;display:grid;grid-template-columns:360px 1fr;gap:18px}
+  @media (max-width:940px){.wrap{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:14px}
+  .card h2{font-size:14px;margin:0 0 10px;color:var(--accent2);font-weight:600}
+  textarea,input[type=text]{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;font:inherit;background:#FFFDFA;color:var(--ink)}
+  textarea{min-height:96px;resize:vertical}
+  .row{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+  button{cursor:pointer;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:8px;padding:7px 13px;font:inherit}
+  button:hover{border-color:var(--accent)}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  button.primary:hover{background:var(--accent2)}
+  button.ghost{background:#F8F5F0}
+  .muted{color:var(--muted);font-size:12px}
+  .list-item{padding:9px 10px;border:1px solid var(--line);border-radius:8px;margin-bottom:8px;cursor:pointer;background:#FFFDFA}
+  .list-item:hover{border-color:var(--accent)}
+  .list-item.active{border-color:var(--accent);background:#FDF1EB}
+  .list-item .t{font-size:13px;line-height:1.4;margin-bottom:4px}
+  .progress{height:8px;background:#F0E9DF;border-radius:5px;overflow:hidden;margin:8px 0}
+  .progress > div{height:100%;background:var(--accent);width:0}
+  table{width:100%;border-collapse:collapse}
+  th,td{text-align:left;padding:7px 8px;border-bottom:1px solid #F0E9DF;vertical-align:top;font-size:13px}
+  th{color:var(--muted);font-weight:600;font-size:12px;background:#FBF8F3}
+  .cat{display:inline-block;padding:1px 7px;border-radius:8px;font-size:11px;white-space:nowrap}
+  .cat.local{background:#EAF3EE;color:var(--green);border:1px solid #CFE4D8}
+  .cat.cloud{background:#EAF0F6;color:var(--blue);border:1px solid #CFDEEB}
+  .cat.transplant{background:#FBF0E4;color:var(--orange);border:1px solid #EEDCC4}
+  .st{font-size:11px;padding:1px 7px;border-radius:8px;border:1px solid var(--line);background:#F8F5F0;color:var(--muted)}
+  .st.done{background:#EAF3EE;color:var(--green);border-color:#CFE4D8}
+  .st.failed{background:#FBEAEA;color:#B04A4A;border-color:#EBCFCF}
+  .st.running{background:#FBF0E4;color:var(--orange);border-color:#EEDCC4}
+  .st.skipped{background:#EFEFEF;color:#8A8580}
+  .result{font-size:12px;color:var(--muted);white-space:pre-wrap;word-break:break-all;max-width:520px}
+  .empty{color:var(--muted);text-align:center;padding:26px 10px}
+  .toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+  .pill{font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:10px;padding:2px 8px;background:#FBF8F3}
+  .err{color:#B04A4A;font-size:12px;margin-top:8px;min-height:16px}
+  .ok{color:var(--green);font-size:12px}
+</style>
+</head>
+<body>
+<header>
+  <h1>级联路由任务表</h1>
+  <span class="sub">本地 · 云端 · 移植 &nbsp;|&nbsp; 生成 → 勾选 → 复用（S1 v1）</span>
+  <span class="spacer"></span>
+  <span class="badge" id="stat">—</span>
+</header>
+
+<div class="wrap">
+  <div>
+    <div class="card">
+      <h2>① 新需求 → 生成任务表</h2>
+      <textarea id="request" placeholder="例：把 2025 区角玩具采购清单整理成可招标的表格，核对价格并生成 Word 招标文件"></textarea>
+      <div class="row">
+        <button class="primary" id="btnCreate">生成任务表</button>
+        <button class="ghost" id="btnClear">清空</button>
+      </div>
+      <div class="err" id="err"></div>
+    </div>
+
+    <div class="card">
+      <h2>② 历史检索 / 复用</h2>
+      <div class="row" style="margin-top:0">
+        <input type="text" id="q" placeholder="按相似需求检索（向量）">
+        <button id="btnSearch">检索</button>
+      </div>
+      <div id="searchResults" style="margin-top:10px"></div>
+    </div>
+
+    <div class="card">
+      <h2>任务表列表</h2>
+      <div id="tableList"><div class="empty">暂无任务表</div></div>
+    </div>
+  </div>
+
+  <div>
+    <div class="card" id="detailCard">
+      <div class="empty" id="detailEmpty">← 生成或选择一份任务表查看详情</div>
+      <div id="detail" style="display:none">
+        <div style="display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap">
+          <div style="flex:1;min-width:240px">
+            <div class="muted" id="dMeta"></div>
+            <div class="t" id="dReq" style="font-size:15px;font-weight:600;margin-top:4px"></div>
+          </div>
+          <div style="text-align:right">
+            <span class="st" id="dStatus"></span>
+            <div class="muted" id="dProg" style="margin-top:5px"></div>
+          </div>
+        </div>
+        <div class="progress"><div id="dBar"></div></div>
+        <div class="toolbar">
+          <button class="primary" id="btnExec">执行本地项</button>
+          <button class="ghost" id="btnExecCloud">执行本地+云端</button>
+          <button class="ghost" id="btnRefresh">刷新</button>
+          <span class="pill" id="dCount"></span>
+        </div>
+        <div style="overflow:auto">
+          <table>
+            <thead><tr><th style="width:34px">#</th><th>子任务</th><th style="width:78px">类型</th><th style="width:120px">执行体</th><th style="width:74px">状态</th><th style="width:90px">操作</th><th>结果</th></tr></thead>
+            <tbody id="dItems"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = (location.protocol + '//' + location.hostname + ':8001');
+let currentId = null;
+let timer = null;
+
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+async function api(path, opts){
+  const r = await fetch(API + path, Object.assign({headers:{'Content-Type':'application/json'}}, opts||{}));
+  const d = await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error((d && (d.detail||d.message)) || ('HTTP '+r.status));
+  return d;
+}
+function setErr(m){document.getElementById('err').textContent = m || '';}
+
+async function refreshStats(){
+  try{ const d = await api('/route/stats'); document.getElementById('stat').textContent = '任务表 '+d.tables+' 份'; }catch(e){}
+}
+
+async function loadTables(){
+  const box = document.getElementById('tableList');
+  try{
+    const d = await api('/route/tables?limit=30');
+    const ts = d.tables || [];
+    if(!ts.length){ box.innerHTML = '<div class="empty">暂无任务表</div>'; return; }
+    box.innerHTML = ts.map(t=>`
+      <div class="list-item ${t.id===currentId?'active':''}" data-id="${esc(t.id)}">
+        <div class="t">${esc(t.request).slice(0,90)}</div>
+        <div class="muted">${esc(t.created_at)} · ${t.items_count} 项 · <span class="st ${esc(t.status)}">${esc(t.status)}</span></div>
+      </div>`).join('');
+    box.querySelectorAll('.list-item').forEach(el=>el.onclick=()=>openTable(el.dataset.id));
+  }catch(e){ box.innerHTML = '<div class="empty">加载失败：'+esc(e.message)+'</div>'; }
+}
+
+async function openTable(id){
+  currentId = id;
+  try{
+    const d = await api('/route/table/'+id);
+    const t = d.table;
+    document.getElementById('detailEmpty').style.display='none';
+    document.getElementById('detail').style.display='block';
+    document.getElementById('dMeta').textContent = 'ID '+t.id+' · '+t.created_at;
+    document.getElementById('dReq').textContent = t.request;
+    const st = document.getElementById('dStatus');
+    st.textContent = t.status; st.className = 'st '+t.status;
+    const p = t.progress||{done:0,total:0,percent:0};
+    document.getElementById('dProg').textContent = p.done+'/'+p.total+' 完成';
+    document.getElementById('dBar').style.width = (p.percent||0)+'%';
+    document.getElementById('dCount').textContent = '共 '+(t.items||[]).length+' 项';
+    document.getElementById('dItems').innerHTML = (t.items||[]).map(it=>{
+      const done = it.status==='done';
+      return `<tr>
+        <td>${it.seq}</td>
+        <td>${esc(it.content)}<div class="muted">${esc(it.reason||'')}</div></td>
+        <td><span class="cat ${esc(it.category)}">${esc(it.category)}</span></td>
+        <td class="muted">${esc(it.target)}</td>
+        <td><span class="st ${esc(it.status)}">${esc(it.status)}</span></td>
+        <td>
+          <button class="ghost" data-check="${it.seq}" data-to="${done?'pending':'done'}">${done?'撤销':'勾选'}</button>
+        </td>
+        <td class="result">${esc(it.result||'')}</td>
+      </tr>`;
+    }).join('');
+    document.querySelectorAll('#dItems [data-check]').forEach(b=>b.onclick=async()=>{
+      try{ await api('/route/table/'+id+'/check',{method:'POST',body:JSON.stringify({seq:Number(b.dataset.check),status:b.dataset.to})}); await openTable(id); await loadTables(); }
+      catch(e){ alert('更新失败：'+e.message); }
+    });
+    await loadTables();
+    refreshStats();
+  }catch(e){ alert('打开失败：'+e.message); }
+}
+
+async function execTable(runCloud){
+  if(!currentId) return;
+  const btn = document.getElementById(runCloud?'btnExecCloud':'btnExec');
+  btn.disabled = true; btn.textContent = '执行中…';
+  try{
+    const d = await api('/route/table/'+currentId+'/execute',{method:'POST',body:JSON.stringify({run_cloud:!!runCloud})});
+    await openTable(currentId);
+    const n = (d.executed||[]).filter(x=>x.ok).length;
+    setErr('');
+    document.getElementById('dMeta').textContent += ' · 本次执行 '+n+' 项';
+  }catch(e){ alert('执行失败：'+e.message); }
+  finally{ btn.disabled=false; btn.textContent = runCloud?'执行本地+云端':'执行本地项'; }
+}
+
+document.getElementById('btnCreate').onclick = async ()=>{
+  const request = document.getElementById('request').value.trim();
+  if(!request){ setErr('请先输入需求'); return; }
+  const btn = document.getElementById('btnCreate');
+  btn.disabled = true; btn.textContent = '主脑生成中（约 5-10s）…'; setErr('');
+  try{
+    const d = await api('/route/table',{method:'POST',body:JSON.stringify({request})});
+    document.getElementById('request').value = '';
+    await loadTables(); await openTable(d.table.id);
+  }catch(e){ setErr('生成失败：'+e.message); }
+  finally{ btn.disabled=false; btn.textContent='生成任务表'; }
+};
+document.getElementById('btnClear').onclick = ()=>{document.getElementById('request').value=''; setErr('');};
+document.getElementById('btnSearch').onclick = async ()=>{
+  const q = document.getElementById('q').value.trim();
+  if(!q) return;
+  const box = document.getElementById('searchResults');
+  box.innerHTML = '<div class="muted">检索中…</div>';
+  try{
+    const d = await api('/route/table/search?q='+encodeURIComponent(q));
+    const rs = d.results || [];
+    box.innerHTML = rs.length ? rs.map(r=>`<div class="list-item" data-id="${esc(r.id)}"><div class="t">${esc(r.request).slice(0,80)}</div><div class="muted">相似度 ${r.score} · ${r.items_count} 项</div></div>`).join('')
+      : '<div class="muted">无匹配（生成一份新任务表后即可检索）</div>';
+    box.querySelectorAll('.list-item').forEach(el=>el.onclick=()=>openTable(el.dataset.id));
+  }catch(e){ box.innerHTML = '<div class="muted">检索失败：'+esc(e.message)+'</div>'; }
+};
+document.getElementById('btnExec').onclick = ()=>execTable(false);
+document.getElementById('btnExecCloud').onclick = ()=>execTable(true);
+document.getElementById('btnRefresh').onclick = ()=>{ if(currentId) openTable(currentId); else loadTables(); };
+
+loadTables(); refreshStats();
+</script>
+</body>
+</html>
