@@ -92,6 +92,8 @@ def build_prompt(caps, kb_entries):
         "4) kb+capability —— 既需要知识库、又需要专业能力（多步任务）\n"
         "5) cloud —— 本地没有对应能力、需要云端模型介入（长尾/复杂推理）\n"
         "6) chimera —— 本地没有对应能力、需要嫁接外部开源能力（缺口）\n"
+        "7) multi —— 任务需要多个步骤（≥2 步，可能含多个能力），给出 steps 数组\n"
+        "   steps 每项：{\"route\":\"kb|capability|direct\",\"kb_names\":[],\"capability_id\":null,\"instruction\":\"该步做什么\"}\n"
         "\n硬规则：\n"
         "- capability_id 只能填【能力清单】里的 cap_id（原样复制，含 lora: 前缀）；\n"
         "- kb_names 只能填【知识库清单】里的库名，绝不能把能力名放进 kb_names；\n"
@@ -104,6 +106,7 @@ def build_prompt(caps, kb_entries):
         '用户：玉米缺氮有什么表现\n{"route":"capability","kb_names":[],"capability_id":"lora:agri_expert_v1","need_worker":true,"load_lora":true,"reason":"需要农学能力"}\n'
         '用户：先查 BCPCN 知识库再让农学模型总结\n{"route":"kb+capability","kb_names":["bcpcn"],"capability_id":"lora:agri_expert_v1","need_worker":true,"load_lora":true,"reason":"检索+专业能力"}\n'
         '用户：帮我做一个从 PDF 表格抽取结构化数据的工具\n{"route":"chimera","kb_names":[],"capability_id":null,"need_worker":false,"load_lora":false,"reason":"本地无此能力，需要嫁接开源"}\n'
+        '用户：先查 BCPCN 路由器内容，再用农学模型总结，最后写成给领导的摘要\n{"route":"multi","steps":[{"route":"kb","kb_names":["bcpcn"],"instruction":"查 BCPCN 路由器资料"},{"route":"capability","capability_id":"lora:agri_expert_v1","instruction":"用农学模型总结"},{"route":"direct","instruction":"写成给领导的摘要"}],"reason":"多步任务"}\n'
         '\n可用能力清单（__NCAP__ 个）：\n__CAPS__\n'
         '\n可用知识库清单（__MKB__ 个）：\n__KBS__\n'
         '\n输出 JSON 字段：route, kb_names, capability_id, need_worker, load_lora, reason。'
@@ -143,7 +146,8 @@ def _norm_cap(x):
     return x[5:] if x.startswith("lora:") else x
 
 
-VALID_ROUTES = ("direct", "kb", "capability", "kb+capability", "cloud", "chimera")
+VALID_ROUTES = ("direct", "kb", "capability", "kb+capability", "cloud", "chimera", "multi")
+MAX_STEPS = 5
 
 
 def validate_decision(dec, caps, kb_entries):
@@ -153,6 +157,20 @@ def validate_decision(dec, caps, kb_entries):
     route = str(dec.get("route") or "").strip().lower()
     if route not in VALID_ROUTES:
         return None
+    if route == "multi":
+        steps = dec.get("steps") or []
+        out_steps = []
+        for st in steps[:MAX_STEPS]:
+            sub = validate_decision(dict(st, route=str(st.get("route") or "").strip().lower())
+                                    if isinstance(st, dict) else None, caps, kb_entries)
+            if sub and sub.get("route") in ("direct", "kb", "capability"):
+                if st.get("instruction"):
+                    sub["instruction"] = str(st.get("instruction"))[:200]
+                out_steps.append(sub)
+        if not out_steps:
+            return None
+        return {"route": "multi", "steps": out_steps,
+                "reason": str(dec.get("reason") or "")[:200]}
     cap_ids = {str(c.get("cap_id")): c for c in caps}
     names = {_norm_cap(k): k for k in cap_ids}
     kb_names = {n for n, _ in kb_entries}
@@ -300,6 +318,29 @@ def execute(dec, task, kb_entries=None):
             deactivate_lora(cap_id)
         meta.update({"capability_id": cap_id, "worker_started_sec": started})
         return {"ok": bool(ans), "content": ans, "route": route, "meta": meta}
+    if route == "multi":
+        steps = dec.get("steps") or []
+        if not steps:
+            return {"ok": False, "content": "", "route": "multi",
+                    "meta": dict(meta, error="multi 但 steps 为空")}
+        ctx_parts = []
+        step_meta = []
+        last = ""
+        for i, st in enumerate(steps, 1):
+            sub_task = st.get("instruction") or task
+            if ctx_parts:
+                sub_task = "%s\n\n前序结果：\n%s" % (sub_task, "\n---\n".join(ctx_parts)[-2000:])
+            r = execute(st, sub_task, kb_entries=kb_entries)
+            step_meta.append({"step": i, "route": st.get("route"), "ok": bool(r.get("ok")),
+                              "capability_id": st.get("capability_id")})
+            if not r.get("ok"):
+                return {"ok": False, "content": r.get("content") or "",
+                        "route": "multi", "meta": dict(meta, steps=step_meta,
+                                                       failed_step=i, error=r.get("meta", {}).get("error"))}
+            last = r.get("content") or ""
+            ctx_parts.append("第%d步(%s)：%s" % (i, st.get("route"), last[:800]))
+        return {"ok": True, "content": last, "route": "multi",
+                "meta": dict(meta, steps=step_meta, count=len(steps))}
     if route == "cloud":
         try:
             import cloud_bridge

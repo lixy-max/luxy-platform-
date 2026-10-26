@@ -126,5 +126,75 @@ class TestExecute(unittest.TestCase):
         self.assertFalse(r["ok"])
 
 
+class TestMultiStep(unittest.TestCase):
+    def test_validate_multi(self):
+        dec = swarm.validate_decision({
+            "route": "multi",
+            "steps": [
+                {"route": "kb", "kb_names": ["bcpcn"], "instruction": "查资料"},
+                {"route": "capability", "capability_id": "agri_expert_v1", "instruction": "总结"},
+                {"route": "direct", "instruction": "写摘要"},
+            ],
+            "reason": "多步",
+        }, CAPS, KBS)
+        self.assertEqual(dec["route"], "multi")
+        self.assertEqual(len(dec["steps"]), 3)
+        self.assertEqual(dec["steps"][0]["kb_names"], ["bcpcn"])
+        self.assertEqual(dec["steps"][1]["capability_id"], "lora:agri_expert_v1")
+        self.assertEqual(dec["steps"][2]["route"], "direct")
+
+    def test_validate_multi_filters_invalid(self):
+        dec = swarm.validate_decision({
+            "route": "multi",
+            "steps": [
+                {"route": "bogus"},
+                {"route": "kb", "kb_names": ["bcpcn"]},
+                {"route": "capability", "capability_id": "lora:no_such"},
+            ],
+        }, CAPS, KBS)
+        self.assertEqual(dec["route"], "multi")
+        # bogus 被丢；无匹配 capability 的步骤退化为 chimera 被丢弃；剩 1 个 kb
+        self.assertEqual(len(dec["steps"]), 1)
+        self.assertEqual(dec["steps"][0]["route"], "kb")
+
+    def test_validate_multi_all_invalid(self):
+        self.assertIsNone(swarm.validate_decision(
+            {"route": "multi", "steps": [{"route": "bogus"}]}, CAPS, KBS))
+
+    def test_execute_multi_ok(self):
+        with mock.patch.object(swarm, "kb_query", return_value=[{"text": "路由器资料"}]), \
+             mock.patch.object(swarm, "main_answer", return_value="综合结果"), \
+             mock.patch.object(swarm, "worker_up", return_value=True), \
+             mock.patch.object(swarm, "activate_lora", return_value={"ok": True, "lora_name": "agri_expert_v1"}), \
+             mock.patch.object(swarm, "worker_chat", return_value="农学总结"), \
+             mock.patch.object(swarm, "deactivate_lora", return_value={}):
+            dec = {"route": "multi", "steps": [
+                {"route": "kb", "kb_names": ["bcpcn"], "instruction": "查资料"},
+                {"route": "capability", "capability_id": "lora:agri_expert_v1",
+                 "need_worker": True, "load_lora": True, "instruction": "总结"},
+                {"route": "direct", "instruction": "写摘要"},
+            ]}
+            r = swarm.execute(dec, "多步任务")
+        self.assertTrue(r["ok"])
+        self.assertEqual(r["route"], "multi")
+        self.assertEqual(len(r["meta"]["steps"]), 3)
+        self.assertEqual(r["meta"]["steps"][1]["route"], "capability")
+        self.assertEqual(r["content"], "综合结果")
+
+    def test_execute_multi_failure_stops(self):
+        with mock.patch.object(swarm, "kb_query", return_value=[]), \
+             mock.patch.object(swarm, "main_answer", return_value="ok"), \
+             mock.patch.object(swarm, "worker_up", return_value=True), \
+             mock.patch.object(swarm, "activate_lora", return_value={"ok": False}):
+            dec = {"route": "multi", "steps": [
+                {"route": "kb", "kb_names": ["bcpcn"], "instruction": "查"},
+                {"route": "capability", "capability_id": "lora:agri_expert_v1",
+                 "need_worker": True, "load_lora": True, "instruction": "总结"},
+            ]}
+            r = swarm.execute(dec, "多步任务")
+        self.assertFalse(r["ok"])
+        self.assertEqual(r["meta"]["failed_step"], 2)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
