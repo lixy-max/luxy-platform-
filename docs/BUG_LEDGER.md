@@ -34,6 +34,7 @@
 | B042 | P2 | parked | cloud_build | 采购清单来源未真实接入：京东/淘宝/阿里巴巴无浏览器/API 采集，本地 Excel 未读取（当前用云端生成的目标样例行） | S15 |
 | B043 | P2 | fixed | route_table | 任务表 direct 子任务执行时缺原始任务上下文（返回'请提供输入'） | S15 |
 | B044 | P2 | fixed | route_table | 主脑规划器把 Excel 生成任务派给 python-docx 能力（无 xlsx 路由能力，产出 docx） | S15 |
+| B045 | P2 | fixed | cloud_build | 云端搭建工作流引用了不存在的本地知识库（procurement_rules），本地执行时 kb_query 节点失败 | S16 |
 | B001 | P3 | fixed | frontend | 前端任务表无自动轮询，执行后需手动刷新 | S2 |
 | B008 | P3 | parked | security | vLLM 未启用 api-key（仅绑定回环） | P0 |
 | B009 | P3 | wontfix | infra | /vllm/start 冷启动 26–28s（未优化） | P7 |
@@ -192,6 +193,11 @@
 - 区域：route_table ｜ 严重度：P2 ｜ 状态：fixed
 - 发现于：S15 ｜ 登记：2026-10-27T00:08:33
 - 详情：route/auto 生成的 5 项中 #3/#4/#5 的 Excel 任务都选了 capability:ext:pypi:python-docx，生成的是 .docx 而非 .xlsx（平台没有 route_table 可选的 xlsx 外部能力；write_sheet 只是 agent 工具）。S15 用云端工作流 tool 节点 write_sheet 绕过。建议登记 xlsx 外部能力或在规划器资产说明中标注 write_sheet。
+
+### B045 · 云端搭建工作流引用了不存在的本地知识库（procurement_rules），本地执行时 kb_query 节点失败
+- 区域：cloud_build ｜ 严重度：P2 ｜ 状态：fixed
+- 发现于：S16 ｜ 登记：2026-10-27T00:24:29
+- 详情：DeepSeek 设计的工作流含 paper_lora_kb_query(kb_name=procurement_rules)，该库本地不存在。已修：① prompt 注入'本地已有知识库列表'；② 构建后校验 kb_query 引用必须存在，否则作为错误让云端修复（最多 2 轮）。实测 DeepSeek 重建后只剩 write_sheet，不再引用幽灵 KB。
 
 ### B001 · 前端任务表无自动轮询，执行后需手动刷新
 - 区域：frontend ｜ 严重度：P3 ｜ 状态：fixed

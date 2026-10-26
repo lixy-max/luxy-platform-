@@ -170,5 +170,32 @@ class TestSearchWithMissingPath(unittest.TestCase):
         self.assertEqual(hits, [])
 
 
+
+
+class TestKBValidation(unittest.TestCase):
+    def test_rejects_nonexistent_kb(self):
+        bad = json.loads(json.dumps(GOOD))
+        bad["nodes"].insert(2, {"id": "n1b", "type": "tool", "input_from": ["n1"],
+                                "tool": "paper_lora_kb_query",
+                                "tool_args": {"kb_name": "no_such_kb_zzz", "query": "x", "top_k": 3},
+                                "tool_timeout": 30, "position": {"x": 300, "y": 0}})
+        good = json.loads(json.dumps(GOOD))
+        calls = [(json.dumps(bad, ensure_ascii=False), {}),
+                 (json.dumps(good, ensure_ascii=False), {})]
+        with mock.patch.object(cwb, "local_hit", return_value=(False, {})), \
+             mock.patch.object(cwb, "_cloud_ask", side_effect=calls), \
+             mock.patch.object(cwb, "_existing_kbs", return_value=["agent_use"]):
+            r = cwb.build("采购清单工作流", execute=False, max_repair=1)
+        self.assertTrue(r["ok"])
+        self.assertNotIn("no_such_kb_zzz",
+                         json.dumps(r.get("workflow"), ensure_ascii=False))
+
+    def test_prompt_lists_existing_kbs(self):
+        with mock.patch.object(cwb, "_existing_kbs", return_value=["agent_use", "bcpcn"]):
+            p = cwb._build_prompt("做采购清单工作流")
+        self.assertIn("agent_use", p)
+        self.assertIn("bcpcn", p)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

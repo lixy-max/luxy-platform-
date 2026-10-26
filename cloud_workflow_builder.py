@@ -226,8 +226,22 @@ SYSTEM_PROMPT = (
 )
 
 
+def _existing_kbs(limit=20):
+    """列出本地已存在的知识库名（供云端设计时引用；避免引用不存在的库）"""
+    try:
+        base = PROJECT_DIR / "data" / "kbs"
+        if not base.exists():
+            return []
+        return sorted([d.name for d in base.iterdir() if d.is_dir()])[:limit]
+    except Exception:
+        return []
+
+
 def _build_prompt(request, context="", errors=None):
     tools_desc = "\n".join("- %s：%s" % (k, v) for k, v in AVAILABLE_TOOL_NODES.items())
+    _kbs = _existing_kbs()
+    _kb_txt = ("\n4.5) 本地已有知识库（paper_lora_kb_query 的 kb_name 只能从中选）：" + "、".join(_kbs)) \
+        if _kbs else "\n4.5) 本地当前没有可用知识库 ⇒ 不要使用 paper_lora_kb_query 节点"
     err_txt = ""
     if errors:
         err_txt = "\n⚠ 上一次设计校验失败，请修正这些错误：\n" + "\n".join("- " + e for e in errors[:8])
@@ -241,6 +255,7 @@ def _build_prompt(request, context="", errors=None):
 {tools_desc}
 4) 要生成 Excel 采购清单：用 tool 节点 write_sheet，tool_args 里给 rows（二维数组，可直接写死
    你生成的目标采购清单数据）、header（表头）、name（文件名）、sheet（表名）
+{_kb_txt}
 5) process 节点 prompt 里用 {{n0}} 这样的占位符引用上游节点输出
 6) 每个节点都要有 id（n0,n1,...）/ type / input_from / position({{x,y}})
 7) 采购清单列建议：序号/商品名称/规格/数量/单价/小计/来源平台/备注
@@ -340,6 +355,15 @@ def build(request, context="", max_repair=MAX_REPAIR, execute=False, force=False
             cfg = _sanitize_config(data)
             import workflow_engine as we
             errs, warns = we.lint_config(cfg)
+            # ★ S16（修 B045）：云端常引用不存在的本地 KB → 校验并让云端修复
+            _kbs = set(_existing_kbs())
+            for _n in cfg.get("nodes") or []:
+                if _n.get("type") == "tool" and _n.get("tool") == "paper_lora_kb_query":
+                    _kb = str((_n.get("tool_args") or {}).get("kb_name") or "")
+                    if _kb and _kb not in _kbs:
+                        errs.append("节点 %s 引用了不存在的知识库 '%s'；可用: %s；"
+                                    "若无需知识库请改用 process 节点"
+                                    % (_n.get("id"), _kb, "、".join(sorted(_kbs)) or "（无）"))
             if errs:
                 errors = errs
                 continue
