@@ -35,6 +35,13 @@ LICENSE_ALLOW = ("mit", "apache-2.0", "bsd-3-clause", "bsd-2-clause", "isc", "mp
                  "python software foundation license", "psf")
 PURE_TAG_HINTS = ("py3-none-any", "py2.py3-none-any")
 MAX_WHEEL_MB = float(os.environ.get("SANDBOX_MAX_WHEEL_MB", "50"))
+# 已知包的调用契约（P4 v1；未知包不自动执行，只能显式传 args）
+KNOWN_ARGS_SCHEMA = {
+    "tabulate": {"positional": ["data"],
+                 "data": "二维数组（list[list]）—— 位置参数",
+                 "headers": "表头 list[str]（可选）",
+                 "tablefmt": "表格样式（可选，如 grid/pipe）"},
+}
 INSTALL_TIMEOUT = int(os.environ.get("SANDBOX_TIMEOUT", "180"))
 
 
@@ -187,7 +194,7 @@ def dry_run(candidate, package=None):
             break
     if pypi_info:
         checks["pypi"] = {k: pypi_info.get(k) for k in
-                          ("package", "version", "license", "hard_deps_count", "pure_wheel")}
+                          ("package", "version", "license", "hard_deps_count", "pure_wheel", "summary")}
         checks["pypi"]["file"] = pypi_info.get("file")
         if not pypi_info.get("pure_wheel"):
             risks.append("不是纯 Python wheel（含 C 扩展/平台 wheel）→ P3 v1 不装")
@@ -235,6 +242,35 @@ def dry_run(candidate, package=None):
 
 def _slug(s):
     return re.sub(r"[^0-9A-Za-z_.-]+", "-", str(s)).strip("-")[:80] or "cand"
+
+
+def introspect_entry(target_dir, module):
+    """安装后探测可用入口：优先 与模块/包同名的公共 callable，其次 run/main/convert/format"""
+    code = (
+        "import importlib, json, sys\n"
+        "m = importlib.import_module(%r)\n"
+        "names = [n for n in dir(m) if not n.startswith('_') and callable(getattr(m, n, None))]\n"
+        "print(json.dumps({'names': names[:80]}))\n" % module
+    )
+    env = {"SANDBOX_TARGET": str(target_dir), "PATH": os.environ.get("PATH", ""),
+           "HOME": str(SANDBOX_DIR / "home"), "LC_ALL": "C.UTF-8"}
+    try:
+        r = subprocess.run([PY, "-S", "-P", "-c",
+                            "import os,sys; sys.path.insert(0, os.environ['SANDBOX_TARGET']);" + code],
+                           capture_output=True, text=True, timeout=30, env=env)
+        names = json.loads((r.stdout or "{}").strip().splitlines()[-1]).get("names") or []
+    except Exception:
+        return {"module": None, "function": None, "candidates": []}
+    base = str(module or "")
+    preferred = [base, base.replace("_", ""), "run", "main", "convert", "format", "render"]
+    fn = None
+    for p in preferred:
+        if p in names:
+            fn = p
+            break
+    if fn is None and names:
+        fn = names[0]
+    return {"module": base, "function": fn, "candidates": names[:20]}
 
 
 # ───────────────────── 安装（显式 approve） ─────────────────────
@@ -301,9 +337,13 @@ def install(candidate, approve=False, package=None, target_dir=None):
     except Exception as e:
         smoke["error"] = str(e)[:200]
 
+    entry = introspect_entry(tgt, mod) if smoke.get("ok") else {"module": mod, "function": None,
+                                                                  "candidates": []}
+    args_schema = KNOWN_ARGS_SCHEMA.get(pkg)
     rec = {"candidate_id": candidate.get("candidate_id"), "repo": rid,
            "package": pkg, "version": ver, "wheel_sha256": sha, "artifact_sha256": artifact_sha,
            "target_dir": str(tgt), "install_seconds": dur, "smoke": smoke,
+           "entry": entry, "args_schema": args_schema,
            "python": sys.version.split()[0], "at": _now()}
 
     # 登记为 shadow 能力（executable=False：暂不自动路由）
@@ -328,11 +368,28 @@ def install(candidate, approve=False, package=None, target_dir=None):
                 "gate": "installed",
             }
             reg["capabilities"][cid] = e
-        e.update({"installed": True, "install_path": str(tgt), "executable": False,
+        _executable = bool(entry.get("function"))
+        _tags = list(e.get("tags") or [])
+        for t in ["external", "installed", "sandbox", pkg, mod]:
+            if t and t not in _tags:
+                _tags.append(t)
+        try:
+            import capabilities as _caps2
+            _summary = str(((plan.get("checks") or {}).get("pypi") or {}).get("summary") or "")
+            for t in _caps2.tags_for_text(pkg + " " + _summary):
+                if t not in _tags:
+                    _tags.append(t)
+        except Exception:
+            pass
+        e.update({"installed": True, "install_path": str(tgt), "executable": _executable,
+                  "entry": {"module": entry.get("module"), "function": entry.get("function")},
+                  "args_schema": args_schema, "tags": _tags,
                   "version": ver, "wheel_sha256": sha, "artifact_sha256": artifact_sha,
                   "smoke_ok": bool(smoke.get("ok")), "installed_at": _now(),
                   "status": "shadow",
-                  "description": "%s（已沙箱安装，shadow；executable=false 待 P4 接线）" % pkg})
+                  "description": "%s（已沙箱安装，shadow；%s）" % (
+                      pkg, ("可执行 " + str(entry.get("function")) if _executable
+                            else "无自动入口，仅显式 args 调用"))})
         _cs(reg)
         cap_id = cid
     except Exception:

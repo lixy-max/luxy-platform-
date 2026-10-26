@@ -95,6 +95,18 @@ _DOMAIN_HINTS = {
     "trans": ["翻译"],
     "code": ["代码", "编程"],
     "expert": ["专家"],
+    "table": ["表格", "表格化", "对齐", "格式化"],
+    "tabular": ["表格", "表格化", "对齐"],
+    "pdf": ["PDF", "文档", "抽取", "解析"],
+    "browser": ["浏览器", "网页", "自动化"],
+    "ocr": ["OCR", "文字识别", "图像"],
+    "format": ["格式化", "排版"],
+    "parse": ["解析", "抽取"],
+    "convert": ["转换", "格式转换"],
+    "image": ["图像", "图片"],
+    "audio": ["音频", "语音"],
+    "video": ["视频"],
+    "crawl": ["爬虫", "抓取", "网页"],
 }
 
 
@@ -115,6 +127,18 @@ def _guess_tags(dir_name):
             seen.add(x)
             out.append(x)
     return out
+
+
+def tags_for_text(text):
+    """从任意文本（包名/描述/别名）推断中文领域标签（用于外部能力路由）"""
+    t = str(text or "").lower()
+    tags = []
+    for kw, vals in _DOMAIN_HINTS.items():
+        if kw and kw in t:
+            for v in vals:
+                if v not in tags:
+                    tags.append(v)
+    return tags
 
 
 def _readme_snippet(d, limit=160):

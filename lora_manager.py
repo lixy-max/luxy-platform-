@@ -5425,6 +5425,35 @@ def models_registry_loras(model_id: str):
     return {"ok": True, "model_id": model_id, "loras": _mr.lora_mountable(model_id)}
 
 
+@app.post("/capabilities/{cap_id}/execute")
+def capabilities_execute(cap_id: str, payload: dict = None):
+    """P4：执行已安装的 external 能力（受限子进程；只允许登记过的 module.function）"""
+    import capabilities as _caps
+    import sandbox_exec as _se
+    cap = _caps.get_capability(cap_id)
+    if not cap:
+        raise HTTPException(404, "capability 不存在: %s" % cap_id)
+    p = payload or {}
+    args = p.get("args") or []
+    kwargs = p.get("kwargs") or {}
+    if not isinstance(args, list) or not isinstance(kwargs, dict):
+        raise HTTPException(400, "args 必须是数组、kwargs 必须是对象")
+    try:
+        res = _se.execute_capability(cap, args=args, kwargs=kwargs,
+                                     timeout=p.get("timeout"))
+        return {"ok": bool(res.get("ok")), **res}
+    except Exception as e:
+        raise HTTPException(500, "%s: %s" % (type(e).__name__, str(e)[:200]))
+
+
+@app.get("/sandbox/executables")
+def sandbox_executables():
+    """P4：可执行的 external 能力清单"""
+    import sandbox_exec as _se
+    rows = _se.list_executable()
+    return {"ok": True, "executables": rows, "count": len(rows)}
+
+
 @app.get("/capabilities")
 def capabilities_list(status: str = ""):
     """列出能力（可按 status 过滤：active|shadow|disabled）"""

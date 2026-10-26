@@ -198,5 +198,51 @@ class TestMultiStep(unittest.TestCase):
         self.assertEqual(r["meta"]["failed_step"], 2)
 
 
+class TestExternalCapability(unittest.TestCase):
+    EXTCAP = {"cap_id": "ext:github:astanin-python-tabulate", "name": "astanin/python-tabulate",
+              "kind": "external", "status": "shadow", "installed": True, "executable": True,
+              "entry": {"module": "tabulate", "function": "tabulate"},
+              "args_schema": {"positional": ["data"], "headers": "表头"},
+              "tags": ["external", "installed", "表格"]}
+
+    def test_route_filled_with_cap_id_tolerated(self):
+        caps = CAPS + [self.EXTCAP]
+        dec = swarm.validate_decision(
+            {"route": "ext:github:astanin-python-tabulate",
+             "capability_input": {"data": [["A", 1]], "headers": ["名称", "值"]},
+             "need_worker": True}, caps, KBS)
+        self.assertIsNotNone(dec)
+        self.assertEqual(dec["route"], "capability")
+        self.assertEqual(dec["capability_id"], "ext:github:astanin-python-tabulate")
+        self.assertEqual(dec["capability_input"]["headers"], ["名称", "值"])
+
+    def test_execute_external_capability(self):
+        caps = CAPS + [self.EXTCAP]
+        with mock.patch("capabilities.get_capability", return_value=self.EXTCAP), \
+             mock.patch("sandbox_exec.execute_capability",
+                        return_value={"ok": True, "result": "| A | 1 |", "meta": {}}):
+            r = swarm.execute({"route": "capability",
+                               "capability_id": "ext:github:astanin-python-tabulate",
+                               "capability_input": {"data": [["A", 1]]}}, "排表格")
+        self.assertTrue(r["ok"])
+        self.assertEqual(r["content"], "| A | 1 |")
+        self.assertEqual(r["meta"]["kind"], "external")
+
+    def test_execute_external_not_installed(self):
+        cap = dict(self.EXTCAP, installed=False)
+        with mock.patch("capabilities.get_capability", return_value=cap):
+            r = swarm.execute({"route": "capability",
+                               "capability_id": "ext:github:astanin-python-tabulate"}, "排表格")
+        self.assertFalse(r["ok"])
+        self.assertIn("未安装", r["meta"]["error"])
+
+    def test_prompt_marks_external(self):
+        caps = CAPS + [self.EXTCAP]
+        with mock.patch.object(swarm, "_models_text", return_value=""):
+            p = swarm.build_prompt(caps, KBS)
+        self.assertIn("外部工具", p)
+        self.assertIn("capability_input", p)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

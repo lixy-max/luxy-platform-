@@ -90,7 +90,15 @@ def build_prompt(caps, kb_entries):
     cap_lines = []
     for c in caps:
         tags = "、".join((c.get("tags") or [])[:4])
-        cap_lines.append("- %s（%s；标签：%s）" % (c.get("cap_id"), str(c.get("name"))[:36], tags))
+        if c.get("kind") == "external":
+            entry = c.get("entry") or {}
+            schema = c.get("args_schema")
+            cap_lines.append("- %s（外部工具 %s.%s；标签：%s；参数：%s）" % (
+                c.get("cap_id"), entry.get("module"), entry.get("function"), tags,
+                json.dumps(schema, ensure_ascii=False) if schema else "需显式参数"))
+        else:
+            cap_lines.append("- %s（LoRA 单步能力；%s；标签：%s）" % (
+                c.get("cap_id"), str(c.get("name"))[:36], tags))
     kb_lines = ["- %s：%s" % (n, d or "（无描述）") for n, d in kb_entries]
     system = (
         "你是 Luxy 蜂群的主脑（调度器）。根据用户请求决定执行方式，只输出 JSON。\n"
@@ -115,6 +123,7 @@ def build_prompt(caps, kb_entries):
         '用户：玉米缺氮有什么表现\n{"route":"capability","kb_names":[],"capability_id":"lora:agri_expert_v1","need_worker":true,"load_lora":true,"reason":"需要农学能力"}\n'
         '用户：先查 BCPCN 知识库再让农学模型总结\n{"route":"kb+capability","kb_names":["bcpcn"],"capability_id":"lora:agri_expert_v1","need_worker":true,"load_lora":true,"reason":"检索+专业能力"}\n'
         '用户：帮我做一个从 PDF 表格抽取结构化数据的工具\n{"route":"chimera","kb_names":[],"capability_id":null,"need_worker":false,"load_lora":false,"reason":"本地无此能力，需要嫁接开源"}\n'
+        '用户：把数据排成表格（用 tabulate 工具）\n{"route":"capability","kb_names":[],"capability_id":"ext:github:astanin-python-tabulate","capability_input":{"data":[["A",1]],"headers":["名称","值"]},"need_worker":true,"load_lora":false,"reason":"调用已安装外部工具"}\n'
         '用户：先查 BCPCN 路由器内容，再用农学模型总结，最后写成给领导的摘要\n{"route":"multi","steps":[{"route":"kb","kb_names":["bcpcn"],"instruction":"查 BCPCN 路由器资料"},{"route":"capability","capability_id":"lora:agri_expert_v1","instruction":"用农学模型总结"},{"route":"direct","instruction":"写成给领导的摘要"}],"reason":"多步任务"}\n'
         '\n可用能力清单（__NCAP__ 个）：\n__CAPS__\n'
         '\n可用知识库清单（__MKB__ 个）：\n__KBS__\n'
@@ -122,9 +131,11 @@ def build_prompt(caps, kb_entries):
         '\n调度规则（模型基准）：\n'
         '- 主脑（main_brain）不挂 LoRA，只做编排/判断/知识库路由；\n'
         '- 单步专业能力只能派发给 worker（工蜂，可挂 LoRA）；\n'
+        '- route 必须是 direct/kb/capability/kb+capability/cloud/chimera/multi 之一；**能力 id 只能填 capability_id，不能填 route**；\n'
         '- quality_mode 模型占双卡，不能与工蜂同时用；unavailable 模型不得选择；\n'
-        '- 若所需能力不在能力清单 → route=chimera（让奇美拉找开源/外部能力）。\n'
-        '\n输出 JSON 字段：route, kb_names, capability_id, need_worker, load_lora, reason。'
+        '- 若所需能力不在能力清单 → route=chimera（让奇美拉找开源/外部能力）；\n'
+        '- 若选中的是【外部工具】能力，请按参数说明填 capability_input（JSON 对象），执行器会据此调用。\n'
+        '\n输出 JSON 字段：route, kb_names, capability_id, capability_input, need_worker, load_lora, reason。'
     )
     return (system.replace("__MODELS__", _models_text())
                   .replace("__NCAP__", str(len(cap_lines)))
@@ -171,8 +182,16 @@ def validate_decision(dec, caps, kb_entries):
     if not isinstance(dec, dict):
         return None
     route = str(dec.get("route") or "").strip().lower()
+    cap_ids = {str(c.get("cap_id")): c for c in caps}
+    names = {_norm_cap(k): k for k in cap_ids}
     if route not in VALID_ROUTES:
-        return None
+        # ★ P4 容错：主脑可能把能力 id 直接填进 route（实测）
+        if route in cap_ids or names.get(_norm_cap(route)):
+            _cid = route if route in cap_ids else names.get(_norm_cap(route))
+            dec = dict(dec, route="capability", capability_id=_cid)
+            route = "capability"
+        else:
+            return None
     if route == "multi":
         steps = dec.get("steps") or []
         out_steps = []
@@ -187,12 +206,11 @@ def validate_decision(dec, caps, kb_entries):
             return None
         return {"route": "multi", "steps": out_steps,
                 "reason": str(dec.get("reason") or "")[:200]}
-    cap_ids = {str(c.get("cap_id")): c for c in caps}
-    names = {_norm_cap(k): k for k in cap_ids}
     kb_names = {n for n, _ in kb_entries}
     out = {"route": route,
            "kb_names": [str(x) for x in (dec.get("kb_names") or []) if str(x) in kb_names],
-           "capability_id": None, "need_worker": False, "load_lora": False,
+           "capability_id": None, "capability_input": None,
+           "need_worker": False, "load_lora": False,
            "reason": str(dec.get("reason") or "")[:200]}
     if route in ("capability", "kb+capability"):
         raw = str(dec.get("capability_id") or "").strip()
@@ -204,6 +222,9 @@ def validate_decision(dec, caps, kb_entries):
         out["capability_id"] = cap_id
         out["need_worker"] = True
         out["load_lora"] = True
+        _ci = dec.get("capability_input")
+        if isinstance(_ci, dict):
+            out["capability_input"] = {str(k)[:64]: _ci[k] for k in list(_ci)[:20]}
     return out
 
 
@@ -299,6 +320,31 @@ def execute(dec, task, kb_entries=None):
         return {"ok": bool(ans), "content": ans, "route": route, "meta": meta}
     if route in ("capability", "kb+capability"):
         cap_id = dec.get("capability_id")
+        # ★ P4：外部工具能力 → 走沙箱执行器（不用工蜂 LoRA）
+        try:
+            import capabilities as _caps
+            _cap = _caps.get_capability(cap_id)
+        except Exception:
+            _cap = None
+        if _cap and _cap.get("kind") == "external":
+            if not _cap.get("installed"):
+                return {"ok": False, "content": "", "route": route,
+                        "meta": dict(meta, error="外部能力未安装（proposed/approved 需先 install）")}
+            try:
+                import sandbox_exec as _se
+                _kwargs = dec.get("capability_input") or {}
+                r = _se.execute_capability(_cap, kwargs=_kwargs)
+                if not r.get("ok"):
+                    return {"ok": False, "content": "", "route": route,
+                            "meta": dict(meta, capability_id=cap_id, error=r.get("error"))}
+                val = r.get("result")
+                text = val if isinstance(val, str) else json.dumps(val, ensure_ascii=False)
+                return {"ok": True, "content": str(text), "route": route,
+                        "meta": dict(meta, capability_id=cap_id, kind="external",
+                                     entry=(_cap.get("entry") or {}))}
+            except Exception as e:
+                return {"ok": False, "content": "", "route": route,
+                        "meta": dict(meta, capability_id=cap_id, error="执行异常: %s" % str(e)[:150])}
         kb_ctx = ""
         if route == "kb+capability":
             kbs = [str(x) for x in (dec.get("kb_names") or [])][:2]
