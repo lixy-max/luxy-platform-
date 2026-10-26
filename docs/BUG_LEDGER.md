@@ -17,6 +17,7 @@
 | B013 | P2 | parked | distill | 轨迹拆步 v1 按工具调用/轮次计数，语义拆步未做 | S4 |
 | B014 | P2 | parked | distill | 蒸馏工作流 v1 把工具步骤近似为 LLM 模拟（未真实调用工具） | S4 |
 | B021 | P2 | parked | chimera | Docling 全量依赖过大（torch 2.14 + CUDA13 全家桶），本机直装不可行 | S6 |
+| B024 | P2 | parked | model | 模型导入只下载原格式，未做量化转换（评估建议 int4/int8 但未落地） | S7 |
 | B001 | P3 | parked | frontend | 前端任务表无自动轮询，执行后需手动刷新 | S2 |
 | B008 | P3 | parked | security | vLLM 未启用 api-key（仅绑定回环） | P0 |
 | B009 | P3 | parked | infra | /vllm/start 冷启动 26–28s（未优化） | P7 |
@@ -29,6 +30,8 @@
 | B020 | P3 | parked | governance | 工作流执行不经治理预算（直接调 vLLM，不计入外部能力预算） | S5 |
 | B022 | P3 | parked | chimera | 奇美拉 V2 依赖安装未锁版本/hash 复现：pip 解析到最新版，未来环境漂移风险 | S6 |
 | B023 | P3 | parked | chimera | V2 适配器为手写（pdfplumber/docx），新库需人工写 wrapper 才能成为可执行能力 | S6 |
+| B025 | P3 | parked | model | 模型部署需停机：主脑14B/工蜂7B 占满两张卡，导入后无法立即起服务 | S7 |
+| B026 | P3 | parked | model | 模型下载无断点续传/进度上报 API（长下载只能等，UI 不可见） | S7 |
 
 ## 详细说明
 
@@ -86,6 +89,11 @@
 - 区域：chimera ｜ 严重度：P2 ｜ 状态：parked
 - 发现于：S6 ｜ 登记：2026-10-26T21:27:30
 - 详情：S1 判定 docling '直装'，但 S6 pip dry-run 显示将安装 ~120 包（含 torch 2.14.1、nvidia-cuda-* 13.x、transformers、opencv），体积数 GB；仅 70MB 的 pdfplumber 安装耗时 412s。结论：Docling 需云端或后续换轻量替代/CPU-only 精简版，不纳入本机直装。
+
+### B024 · 模型导入只下载原格式，未做量化转换（评估建议 int4/int8 但未落地）
+- 区域：model ｜ 严重度：P2 ｜ 状态：parked
+- 发现于：S7 ｜ 登记：2026-10-26T21:36:36
+- 详情：model_import 评估会给出 fp16/int8/int4 选型建议，但 import_model 只下载原始 safetensors；若 fp16 放不下需先 AWQ/GPTQ 量化（或选现成量化版仓库），否则无法按评估结论部署。
 
 ### B001 · 前端任务表无自动轮询，执行后需手动刷新
 - 区域：frontend ｜ 严重度：P3 ｜ 状态：parked
@@ -146,3 +154,13 @@
 - 区域：chimera ｜ 严重度：P3 ｜ 状态：parked
 - 发现于：S6 ｜ 登记：2026-10-26T21:27:30
 - 详情：自动适配需要 LLM 生成 wrapper + 测试；当前是为试点手写 2 个适配器。
+
+### B025 · 模型部署需停机：主脑14B/工蜂7B 占满两张卡，导入后无法立即起服务
+- 区域：model ｜ 严重度：P3 ｜ 状态：parked
+- 发现于：S7 ｜ 登记：2026-10-26T21:36:36
+- 详情：评估已返回 deploy_now=false（当前空闲 2.2GB）；部署需要停掉现有 vLLM 服务或排队切换。
+
+### B026 · 模型下载无断点续传/进度上报 API（长下载只能等，UI 不可见）
+- 区域：model ｜ 严重度：P3 ｜ 状态：parked
+- 发现于：S7 ｜ 登记：2026-10-26T21:36:36
+- 详情：ModelScope snapshot_download 自带重试但进度只在进程输出；大模型（14GB+）下载不可视、不可取消。
