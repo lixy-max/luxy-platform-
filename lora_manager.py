@@ -5690,6 +5690,45 @@ def chimera_installed(limit: int = 100):
     return {"ok": True, "installed": rows, "count": len(rows)}
 
 
+# ══════════════════════════════════════════════════════════
+# P6 奇美拉自动云审（2026-10-26）：Kimi 批量评审 → 政策+云双闸门 → 自动定级/晋级/dry-run
+# ══════════════════════════════════════════════════════════
+@app.post("/chimera/auto_review")
+def chimera_auto_review(payload: dict = None):
+    """缺口 → 候选 → Kimi 云审 → 双闸门定级 → 自动晋级 approved_pending_install → 合格者 dry-run"""
+    import chimera_review as _cr
+    p = payload or {}
+    gap = str(p.get("gap") or p.get("task") or "").strip()
+    if not gap:
+        raise HTTPException(400, "gap 必填")
+    try:
+        plan = _cr.auto_review(gap, top_k=int(p.get("top_k") or 5),
+                               do_dry_run=bool(p.get("dry_run", True)))
+        import chimera as _chim
+        return {"ok": True, "plan": plan, "text": _chim.render_plan_text(plan)}
+    except Exception as e:
+        raise HTTPException(500, "%s: %s" % (type(e).__name__, str(e)[:200]))
+
+
+@app.post("/chimera/{candidate_id}/review")
+def chimera_review_candidate(candidate_id: str, payload: dict = None):
+    """单候选云审（Kimi）→ 最终定级"""
+    import chimera_review as _cr
+    cand = _chimera_candidate(candidate_id, payload)
+    try:
+        rec = _cr.review_one(cand)
+        return {"ok": True, "review": rec}
+    except Exception as e:
+        raise HTTPException(500, "%s: %s" % (type(e).__name__, str(e)[:200]))
+
+
+@app.get("/chimera/reviews")
+def chimera_reviews(limit: int = 50):
+    import chimera_review as _cr
+    rows = _cr.list_reviews(limit=limit)
+    return {"ok": True, "reviews": rows, "count": len(rows)}
+
+
 @app.post("/orchestrate")
 def orchestrate_ep(req: OrchestrateRequest):
     """★ DSH 调这个 ⇒ 拿执行计划 ✓

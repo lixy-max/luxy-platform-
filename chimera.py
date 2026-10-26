@@ -202,29 +202,59 @@ def gate_candidate(cand):
 
 
 # ───────────────────── 云端复审（可选） ─────────────────────
+def _extract_json(text):
+    """从云端输出提取 JSON 对象（容忍 markdown / 前后解释 / 思考文本）"""
+    t = str(text or "")
+    if "```" in t:
+        parts = t.split("```")
+        # 优先 json 代码块
+        for p in parts:
+            p = p.strip()
+            if p.startswith("json"):
+                p = p[4:]
+            i, j = p.find("{"), p.rfind("}")
+            if i >= 0 and j > i:
+                try:
+                    return json.loads(p[i:j + 1])
+                except Exception:
+                    continue
+    i, j = t.find("{"), t.rfind("}")
+    if i >= 0 and j > i:
+        try:
+            return json.loads(t[i:j + 1])
+        except Exception:
+            return None
+    return None
+
+
 def cloud_review(gap, candidates):
-    """若配置了云 provider key 则调用；否则诚实返回 skipped"""
+    """若配置了云 provider key 则调用（Kimi）；输出 JSON 解析失败会重试一次"""
     try:
         import cloud_bridge
         if not cloud_bridge.available():
-            return {"status": "skipped", "reason": "云 provider 未配置 key（settings.providers.openai.api_key 为空）"}
+            return {"status": "skipped",
+                    "reason": "云 provider 未配置 key（settings.providers.*.api_key 为空）"}
         prompt = (
             "你是奇美拉能力的云端评审。给定能力缺口和候选开源项目（含 stars/license），"
-            "请评审并输出 JSON：{\"recommend\": [\"id\"], \"concerns\": [\"...\"], \"license_notes\": \"...\", "
+            "请评审并**只输出一个 JSON 对象**（不要 markdown、不要解释）："
+            "{\"recommend\": [\"候选id\"], \"concerns\": [\"...\"], \"license_notes\": \"...\", "
             "\"sandbox_requirements\": [\"...\"], \"verdict\": \"approve|reject|need_more\"}\n"
             "缺口：%s\n候选：%s" % (gap, json.dumps(candidates[:6], ensure_ascii=False)[:3000])
         )
-        ans = cloud_bridge.ask(prompt, system="你是严格的开源选型评审，只输出 JSON。")
-        try:
-            data = json.loads(ans[ans.find("{"):ans.rfind("}") + 1])
-        except Exception:
-            data = {"raw": str(ans)[:1500]}
-        return {"status": "ok", "review": data}
+        last_raw = ""
+        for attempt in range(2):
+            ans = cloud_bridge.ask(
+                prompt if attempt == 0 else (prompt + "\n注意：上一次输出无法解析成 JSON。请严格只输出 JSON 对象。"),
+                system="你是严格的开源选型评审，只输出 JSON。", max_tokens=2500)
+            last_raw = str(ans or "")
+            data = _extract_json(last_raw)
+            if isinstance(data, dict) and (data.get("verdict") or data.get("recommend") is not None):
+                return {"status": "ok", "review": data}
+        return {"status": "parse_error", "raw": last_raw[:1500]}
     except Exception as e:
         return {"status": "error", "reason": str(e)[:200]}
 
 
-# ───────────────────── 计划生成 ─────────────────────
 def plan(gap, top_k=5):
     gap = str(gap or "").strip()
     cands = discover(gap)[:max(1, int(top_k))]
