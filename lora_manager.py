@@ -6493,18 +6493,31 @@ def workflow_cloud_builds(limit: int = 20):
 
 
 @app.post("/orchestrate")
-def orchestrate_ep(req: OrchestrateRequest):
-    """★ DSH 调这个 ⇒ 拿执行计划 ✓
+def orchestrate_ep(req: OrchestrateRequest, execute: bool = False):
+    """★ DSH 调这个 ⇒ 拿执行计划 ✓（execute=true 时继续走 route/auto 真执行）
 
     示例:
-      POST /orchestrate
-      {"task": "最近大模型置信度校准的论文", "strategy": "auto"}
-      ⇒ {ok, route:{model:"cloud",...}, plan:[{action:"retrieve",...}],
-         confidence:{level:"medium",signals:[...]}, capabilities:{...}}
+      POST /orchestrate?execute=true
+      {"task": "做一个自动生成采购清单excel的工作流", "strategy": "auto"}
+      ⇒ 计划 + execution（云端搭建/本地工作流命中）
     """
     import orchestrator as _orch
     try:
-        return _orch.orchestrate(req.task, req.context, req.strategy)
+        result = _orch.orchestrate(req.task, req.context, req.strategy)
+        # ★ S16（修 B038）：可选真执行 —— 把主脑计划接到 route/auto 闭环
+        if execute and isinstance(result, dict):
+            try:
+                ctx = req.context if isinstance(req.context, dict) else {}
+                result = dict(result)
+                result["execution"] = route_auto({
+                    "request": req.task,
+                    "execute": True,
+                    "conversation_id": str(ctx.get("conversation_id") or ""),
+                })
+            except Exception as _e:
+                result["execution"] = {"ok": False,
+                                       "error": "%s: %s" % (type(_e).__name__, str(_e)[:300])}
+        return result
     except Exception as e:
         return {"ok": False, "error": f"{type(e).__name__}: {e}",
                 "hint": "orchestrator.py 需在项目根目录 ✓"}

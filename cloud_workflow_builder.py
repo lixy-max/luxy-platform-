@@ -118,13 +118,20 @@ def _pick_cloud_provider():
     """挑可用的文本云端（优先 glm→kimi；deepseek 无 key 则跳过但记录）"""
     st = _load_settings()
     provs = st.get("providers") or {}
-    prefer = [x.strip() for x in (os.environ.get("CLOUD_BUILD_PROVIDER") or "glm,kimi").split(",")
+    prefer = [x.strip() for x in (os.environ.get("CLOUD_BUILD_PROVIDER")
+                                  or "deepseek,glm,kimi").split(",")
               if x.strip()]
     order = prefer + [k for k in provs if k not in prefer]
     for nm in order:
         cfg = provs.get(nm) or {}
         if not isinstance(cfg, dict):
             continue
+        # ★ 目标模型别名（如 deepseek4.1flash1017 → deepseek-flash）
+        _alias = (cfg.get("model_aliases") or {})
+        for _k, _v in _alias.items():
+            if _k in TARGET_MODEL_REQUESTED and _v:
+                cfg = dict(cfg)
+                cfg["model"] = str(_v)
         key = str(cfg.get("api_key") or "").strip()
         base = str(cfg.get("api_base") or "").strip()
         mods = cfg.get("modalities") or ["text"]
@@ -238,6 +245,9 @@ def _build_prompt(request, context="", errors=None):
 6) 每个节点都要有 id（n0,n1,...）/ type / input_from / position({{x,y}})
 7) 采购清单列建议：序号/商品名称/规格/数量/单价/小计/来源平台/备注
 8) golden_purchase_list.rows 必须与你 write_sheet 里写的数据一致（这是本地蒸馏的目标结果）
+9) 若补充背景里给出了本地 Excel 文件名/路径：必须包含 read_sheet tool 节点读取它（filename 填该文件）
+10) 京东/淘宝/阿里巴巴等电商来源：平台当前没有采集工具（需登录/反爬），不要假装抓取；
+    在 aggregate 里如实说明"线上来源需人工/后续接入采集工具"，只对本地 Excel/给定数据做真实处理
 {err_txt}
 
 只输出一个 JSON 对象：
@@ -305,12 +315,15 @@ def _sanitize_config(data):
     return cfg
 
 
-def build(request, context="", max_repair=MAX_REPAIR, execute=False):
-    """云端搭建工作流 → 沉淀本地 → （可选）本地执行；返回摘要"""
+def build(request, context="", max_repair=MAX_REPAIR, execute=False, force=False):
+    """云端搭建工作流 → 沉淀本地 → （可选）本地执行；返回摘要
+
+    force=True：跳过本地命中检查，强制云端重建（用于录制/更新目标结果）
+    """
     request = str(request or "").strip()
     if not request:
         raise ValueError("request 必填")
-    hit, hit_info = local_hit(request)
+    hit, hit_info = (False, {}) if force else local_hit(request)
     if hit:
         return {"ok": True, "skipped": "local_workflow_hit", "hit": hit_info.get("hit"),
                 "message": "本地已有可用工作流，无需云端搭建"}

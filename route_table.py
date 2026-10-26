@@ -128,6 +128,9 @@ def _assets_text(max_caps=16, max_kb=20):
             if c.get("kind") == "external" and not c.get("installed"):
                 continue
             usable.append(c)
+        lines.append("【平台工具（可 tool:<名称> 执行）】")
+        lines.append("- tool:write_sheet：把 rows/header 写成新 Excel（采购清单/表格导出首选）")
+        lines.append("- tool:read_sheet：读取本地 Excel 内容")
         lines.append("【本地能力（可 capability:<能力id>）】")
         for c in usable[:max_caps]:
             lines.append("- %s | %s | 标签:%s" % (
@@ -562,11 +565,36 @@ def build_capability_input(cap, content, ctx):
     return kwargs
 
 
-def _local_execute(item, ctx):
+
+def _rows_from_ctx_or_json(content, ctx):
+    """从内容里的 JSON 数组或前序结果构造二维 rows + header（write_sheet 用）"""
+    import re as _re
+    text = str(content or "")
+    m = _re.search(r"\[\s*\[.*?\]\s*\]", text, _re.S) or _re.search(
+        r"\[\s*\[.*?\]\s*\]", str(ctx or ""), _re.S)
+    if m:
+        try:
+            rows = json.loads(m.group(0))
+            if rows and isinstance(rows[0], list):
+                header = [str(i + 1) for i in range(len(rows[0]))]
+                return rows, header
+        except Exception:
+            pass
+    lines = [ln.strip() for ln in str(ctx or "").splitlines() if ln.strip()][:200]
+    if not lines:
+        lines = [ln.strip() for ln in text.splitlines() if ln.strip()][:200]
+    header = ["内容"]
+    return [[ln[:200]] for ln in lines] or [["（无数据）"]], header
+
+
+
+def _local_execute(item, ctx, task=""):
     """执行 local 项；返回 (ok, content, target_used)"""
     import swarm
     target = item["target"]
     content = item["content"]
+    # ★ S16（修 B043）：注入原始任务上下文，避免 direct 步骤返回"请提供输入"
+    _task_prefix = ("【原始任务】%s\n\n" % task) if task else ""
     if target.startswith("workflow:"):
         # ★ S5：命中即执行——运行已沉淀工作流
         try:
@@ -595,14 +623,36 @@ def _local_execute(item, ctx):
                 dec["capability_input"] = build_capability_input(cap, content, ctx)
             except Exception:
                 dec["capability_input"] = {}
-        r = swarm.execute(dec, (content + ("\n\n前序结果：\n" + ctx if ctx else "")))
+        r = swarm.execute(dec, (_task_prefix + content + ("\n\n前序结果：\n" + ctx if ctx else "")))
         return bool(r.get("ok")), str(r.get("content") or r.get("meta", {}).get("error") or ""), "local"
+    if target.startswith("tool:"):
+        # ★ S16（修 B044）：允许任务表直接调用平台工具（Excel 用 write_sheet）
+        import re as _re_t
+        _tool = target.split(":", 1)[1].strip()
+        if _tool == "write_sheet":
+            try:
+                rows, header = _rows_from_ctx_or_json(content, ctx)
+                import requests as _rq
+                _name = "采购清单"
+                _m = _re_t.search(r"name[=:：]\s*([^\s，,；;]+)", content or "")
+                if _m:
+                    _name = _m.group(1)[:40]
+                _resp = _rq.post("http://127.0.0.1:8001/docs/write_sheet",
+                                 json={"rows": rows, "header": header,
+                                       "name": _name, "sheet": _name},
+                                 timeout=120)
+                _resp.raise_for_status()
+                _d = _resp.json()
+                return True, json.dumps(_d, ensure_ascii=False), "tool"
+            except Exception as e:
+                return False, "工具 write_sheet 执行失败: %s" % str(e)[:300], "tool"
+        return False, "未知平台工具: %s（当前支持 write_sheet）" % _tool, "tool"
     if target.startswith("kb:"):
         r = swarm.execute({"route": "kb", "kb_names": [target.split(":", 1)[1]]},
-                          content + ("\n\n前序结果：\n" + ctx[:1500] if ctx else ""))
+                          _task_prefix + content + ("\n\n前序结果：\n" + ctx[:1500] if ctx else ""))
         return bool(r.get("ok")), str(r.get("content") or ""), "local"
     r = swarm.execute({"route": "direct"},
-                      content + ("\n\n前序结果：\n" + ctx[:1500] if ctx else ""))
+                      _task_prefix + content + ("\n\n前序结果：\n" + ctx[:1500] if ctx else ""))
     return bool(r.get("ok")), str(r.get("content") or ""), "local"
 
 
@@ -668,7 +718,7 @@ def execute_table(table_id, run_cloud=False, run_transplant=False,
             result = ""
             try:
                 if cat == "local":
-                    ok, result, how = _local_execute(it, ctx)
+                    ok, result, how = _local_execute(it, ctx, task=t.get("request") or "")
                     attempts.append({"try": "local", "ok": ok, "at": _now()})
                 elif cat == "cloud":
                     if not run_cloud:

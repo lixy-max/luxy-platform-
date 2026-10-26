@@ -353,6 +353,17 @@ _QUERY_VERB = re.compile(
 _QUERY_OBJECT = re.compile(r'(LoRA|lora|模型|训练任务|训练记录|数据集)', re.I)
 
 
+# ★ S16（修 B040）：外部来源/云端模型/网页采集 → 应识别为云端需求
+_EXTERNAL_HINTS = re.compile(
+    r'(京东|淘宝|天猫|阿里巴巴|1688|拼多多|电商平台|购物平台|购物网站|'
+    r'网页抓取|爬取|爬虫|抓取网页|浏览器抓取|联网搜索|'
+    r'deepseek|DeepSeek|GPT|OpenAI|Claude|Kimi|GLM|大模型API|云端模型|调用云端)')
+try:
+    CLOUD_HINTS = re.compile(CLOUD_HINTS.pattern + '|' + _EXTERNAL_HINTS.pattern)
+except Exception:
+    pass
+
+
 def _is_train_task(task: str) -> bool:
     """★ Bug1 修: 判断是否**真的**训练任务 ✓"""
     if not TRAIN_HINTS.search(task):
@@ -381,7 +392,8 @@ RETRIEVE_HINTS = re.compile(
     ACADEMIC_HINTS.pattern + r'|' + DEPENDENCY_HINTS.pattern + r'|' + WEB_HINTS.pattern, re.I)
 TOOL_HINTS = re.compile(
     r'(列出|列一下|查一下|看一下|有哪些|几个|当前|现在|状态|配置|设置|'
-    r'读一下|打开|写一个|新建|删掉|跑一下|执行|启动|停掉|工具)', re.I)
+    r'读一下|打开|写一个|新建|删掉|跑一下|执行|启动|停掉|工具|'
+    r'工作流|workflow|采购清单|表格生成|生成表格|excel|xlsx|蒸馏|搭建)', re.I)
 
 
 def build_plan(task: str, context: dict | None = None) -> list[dict]:
@@ -488,10 +500,24 @@ def build_plan(task: str, context: dict | None = None) -> list[dict]:
                     nm = x.get('name')
                     if nm:
                         picked.append(nm)
+            # ★ S16（修 B039）：工作流/Excel 意图 → 必备工具置顶，避免被相关度截断丢弃
+            _author_hint = re.search(
+                r'(工作流|workflow|自动化|搭建|蒸馏|采购清单|excel|xlsx|表格生成|生成表格|导出表格)',
+                task or '', re.I)
+            if _author_hint:
+                _need = [t for t in ("create_workflow_config", "add_workflow_node",
+                                     "validate_workflow", "run_workflow", "write_sheet",
+                                     "read_sheet", "list_workflow_nodes")
+                         if t in names]
+                picked = _need + [t for t in picked if t not in _need]
+                diag = dict(diag or {})
+                diag["author_tools_forced"] = _need
             step += 1
             plan.append({
-                'step': step, 'action': 'call_tool', 'target': picked[:8],
-                'params': {}, 'reason': '任务涉及平台操作 ⇒ 推荐这些工具 ✓（相关度排序 ✓）',
+                'step': step, 'action': 'call_tool', 'target': picked[:15],
+                'params': {},
+                'reason': '任务涉及平台操作 ⇒ 推荐这些工具 ✓（%s相关度排序 ✓）'
+                          % ('工作流/Excel 必备工具已置顶，' if _author_hint else ''),
                 'diag': diag,
             })
         except Exception as e:
