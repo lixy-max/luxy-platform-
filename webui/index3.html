@@ -1728,6 +1728,10 @@ body.layout-sidebar #theme-btn .icon {
 <div class="to-title"><svg aria-hidden="true" class="icon icon-sm"><use href="vendor/icons.svg#package"></use></svg> 整合节点</div>
 <div class="to-desc">汇总多个终端节点结果，翻译成纯文本报告</div>
 </div>
+<div class="type-option" data-type="tool" onclick="selectNodeType('tool')">
+<div class="to-title"><svg aria-hidden="true" class="icon icon-sm"><use href="vendor/icons.svg#settings"></use></svg> 工具节点</div>
+<div class="to-desc">真实调用平台工具（HTTP），不消耗 LLM</div>
+</div>
 <div class="type-option" data-type="input" onclick="selectNodeType('input')">
 <div class="to-title"><svg aria-hidden="true" class="icon icon-sm"><use href="vendor/icons.svg#download"></use></svg> 输入节点</div>
 <div class="to-desc">从上传文件读取全文（每个工作流只能有 1 个）</div>
@@ -2523,14 +2527,15 @@ let currentConfigName = loadStoredConfigName();
 
 // 与引擎 workflow_engine.NODE_TYPE_SPECS 对齐的类型清单（X5 一致性测试守着）
 const NODE_TYPE_NAMES = ['input', 'retrieval', 'process', 'terminal', 'aggregate',
-                         'extract', 'analyze'];
+                         'extract', 'analyze', 'tool'];
 
 // 与引擎 workflow_engine.NODE_FIELD_SPECS 对齐的可选字段白名单。
 // 有 X5 一致性测试守着：这里漏字段会被测试发现。
 const NODE_OPTIONAL_FIELDS = [
     'output_format', 'chunk_size', 'chunk_overlap', 'chunk_workers', 'cache',
     'max_tokens', 'temperature', 'retry', 'retry_delay', 'timeout', 'on_error',
-    'min_score', 'w', 'h', 'kb_write' ];
+    'min_score', 'w', 'h', 'kb_write',
+    'tool', 'tool_args', 'tool_timeout' ];
 
 // 从 prompt 里的 {节点id} / {节点id.字段} 反推依赖，避免 Agent 建出孤立节点
 function inferInputFrom(prompt, knownIds) {
@@ -2827,11 +2832,13 @@ function migrateConfigToNewFormat(config) {
 function getNodeType(node) { return node.type || 'process'; }
 function getNodeTypeLabel(type) {
     return {
-        input: '<svg aria-hidden="true" class="icon icon-sm"><use href="vendor/icons.svg#download"></use></svg> 输入', process: '<svg aria-hidden="true" class="icon icon-sm"><use href="vendor/icons.svg#settings"></use></svg>️ 中间', terminal: '<svg aria-hidden="true" class="icon icon-sm"><use href="vendor/icons.svg#chart-column"></use></svg> 终端',
+        input: '<svg aria-hidden="true" class="icon icon-sm"><use href="vendor/icons.svg#download"></use></svg> 输入', process: '<svg aria-hidden="true" class="icon icon-sm"><use href="vendor/icons.svg#settings"></use></svg> 中间', terminal: '<svg aria-hidden="true" class="icon icon-sm"><use href="vendor/icons.svg#chart-column"></use></svg> 终端',
         aggregate: '<svg aria-hidden="true" class="icon icon-sm"><use href="vendor/icons.svg#package"></use></svg> 整合', retrieval: '<svg aria-hidden="true" class="icon icon-sm"><use href="vendor/icons.svg#library"></use></svg> 检索',
-        extract: '<svg aria-hidden="true" class="icon icon-sm"><use href="vendor/icons.svg#puzzle"></use></svg> 抽取', analyze: '<svg aria-hidden="true" class="icon icon-sm"><use href="vendor/icons.svg#microscope"></use></svg> 分析'
+        extract: '<svg aria-hidden="true" class="icon icon-sm"><use href="vendor/icons.svg#puzzle"></use></svg> 抽取', analyze: '<svg aria-hidden="true" class="icon icon-sm"><use href="vendor/icons.svg#microscope"></use></svg> 分析',
+        tool: '<svg aria-hidden="true" class="icon icon-sm"><use href="vendor/icons.svg#settings"></use></svg> 工具'
     }[type] || type;
 }
+
 
 function parseUpstreamIds(node) {
     const deps = [];
@@ -3424,7 +3431,8 @@ let ENGINE_TYPES = null;       // NODE_TYPE_SPECS（含 ignored_fields / default
 // 前端不渲染的字段。⚠️ 与后端 TestFrontendFieldConsistency 的例外名单一一对应，
 // 改这里必须同步改那条测试（否则它会在后端红）。
 const UI_HIDDEN_FIELDS = ['id', 'type', 'position', 'description', 'input_from'];
-const UI_AGENT_ONLY_FIELDS = ['retry', 'retry_delay', 'timeout', 'on_error', 'kb_write'];
+const UI_AGENT_ONLY_FIELDS = ['retry', 'retry_delay', 'timeout', 'on_error', 'kb_write',
+                              'tool', 'tool_args', 'tool_timeout'];
 // 有专属控件、不走通用渲染的字段
 const UI_CUSTOM_FIELDS = ['lora', 'prompt', 'provider', 'model_override',
                           'kb_name', 'top_k', 'min_score', 'query_template'];

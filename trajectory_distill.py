@@ -243,11 +243,16 @@ def _wf_id(record):
 
 
 def workflow_from_record(record, name=None):
-    """轨迹 → workflow_engine 配置（线性：input → process… → aggregate）"""
+    """轨迹 → workflow_engine 配置（v2：工具步骤映射为真实 tool 节点）
+
+    · 轨迹里的工具若在 workflow_engine.TOOL_NODE_SUPPORTED 中 → type="tool"（真实 HTTP 调用）
+    · 其余步骤 → process（LLM）；末尾追加 aggregate 汇总节点
+    """
     import workflow_engine as we
     steps = decompose(record)
     if len(steps) > 12:
         steps = steps[:12]
+    supported = getattr(we, "TOOL_NODE_SUPPORTED", {}) or {}
     wfid = _wf_id(record)
     task = _tidy(record.get("task"), 120)
     nodes = [{
@@ -256,35 +261,56 @@ def workflow_from_record(record, name=None):
         "provider": None, "model_override": None,
     }]
     prev = "n0"
+    n_tool = 0
     for i, st in enumerate(steps, 1):
         nid = "n%d" % i
-        last = (i == len(steps))
-        ntype = "aggregate" if last else "process"
-        if st["kind"] == "tool":
+        if st["kind"] == "tool" and st.get("tool") in supported:
+            # ★ B014：真实工具节点（不再 LLM 模拟）
+            try:
+                args = st.get("input") or {}
+                if not isinstance(args, dict):
+                    args = {"input": str(args)[:500]}
+            except Exception:
+                args = {}
+            nodes.append({
+                "id": nid, "type": "tool", "description": "真实工具：%s" % st.get("tool"),
+                "input_from": [prev], "tool": st.get("tool"), "tool_args": args,
+                "tool_timeout": 60, "position": {"x": 240 * i, "y": 0},
+            })
+            n_tool += 1
+        else:
             prompt = ("步骤 %d（原轨迹工具：%s）。工具输入：%s\n上游结果：\n{%s}\n"
                       "请模拟执行该工具步骤并给出结果；若无法真实调用工具，请如实说明这是近似模拟。"
-                      % (i, st.get("tool"), json.dumps(st.get("input"), ensure_ascii=False)[:300], prev))
-            desc = "工具步骤：%s" % st.get("tool")
-        else:
-            prompt = ("步骤 %d：%s\n上游结果：\n{%s}\n请执行该步骤并给出结果。"
+                      % (i, st.get("tool"), json.dumps(st.get("input"), ensure_ascii=False)[:300], prev)
+                      if st["kind"] == "tool" else
+                      "步骤 %d：%s\n上游结果：\n{%s}\n请执行该步骤并给出结果。"
                       % (i, _tidy(st.get("text"), 400), prev))
-            desc = "LLM 步骤 %d" % i
-        nodes.append({
-            "id": nid, "type": ntype, "description": desc, "input_from": [prev],
-            "prompt": prompt, "provider": "vllm", "output_format": "text",
-            "max_tokens": 1200, "temperature": 0.2, "cache": False,
-            "position": {"x": 240 * i, "y": 0}, "model_override": None,
-        })
+            nodes.append({
+                "id": nid, "type": "process", "description": "LLM 步骤 %d" % i,
+                "input_from": [prev], "prompt": prompt, "provider": "vllm",
+                "output_format": "text", "max_tokens": 1200, "temperature": 0.2,
+                "cache": False, "position": {"x": 240 * i, "y": 0}, "model_override": None,
+            })
         prev = nid
+    # 末尾汇总（aggregate）：把结果整理成最终报告
+    fin = "n%d" % (len(steps) + 1)
+    nodes.append({
+        "id": fin, "type": "aggregate", "description": "汇总最终报告",
+        "input_from": [prev],
+        "prompt": "以下是执行过程与结果：\n{%s}\n\n请基于以上内容输出最终报告（结构化、可读）。" % prev,
+        "provider": "vllm", "output_format": "text", "max_tokens": 1500,
+        "temperature": 0.2, "cache": False, "position": {"x": 240 * (len(steps) + 1), "y": 0},
+        "model_override": None,
+    })
     cfg = {
         "workflow_name": name or ("蒸馏工作流 · %s" % task[:40]),
-        "description": "由轨迹蒸馏自动生成（S4 v1）：%s" % task[:160],
+        "description": "由轨迹蒸馏自动生成（B014：工具步骤真实调用）：%s" % task[:160],
         "author": "trajectory_distill",
-        "tags": ["distilled", "trajectory"],
+        "tags": ["distilled", "trajectory", "tool_node"],
         "required_loras": [],
         "required_providers": ["vllm"],
         "source": {"trajectory_index": record.get("_index"), "source_file": record.get("_source"),
-                   "task": task, "steps": len(steps)},
+                   "task": task, "steps": len(steps), "tool_nodes": n_tool},
         "nodes": nodes,
     }
     errors, warnings = we.lint_config(cfg)
@@ -293,13 +319,14 @@ def workflow_from_record(record, name=None):
     path.write_text(json.dumps(cfg, ensure_ascii=False, indent=2), encoding="utf-8")
     idx = _index_append({
         "wf_id": wfid, "task": task, "path": str(path), "nodes": len(nodes),
-        "steps": len(steps), "workflow_name": cfg["workflow_name"],
-        "created_at": _now(), "lint_errors": errors, "lint_warnings": warnings[:5],
+        "steps": len(steps), "tool_nodes": n_tool,
+        "workflow_name": cfg["workflow_name"], "created_at": _now(),
+        "lint_errors": errors, "lint_warnings": warnings[:5],
         "source_file": record.get("_source"), "trajectory_index": record.get("_index"),
     })
     return {"wf_id": wfid, "path": str(path), "nodes": len(nodes), "steps": len(steps),
-            "lint": {"errors": errors, "warnings": warnings}, "workflow_name": cfg["workflow_name"],
-            "config": cfg}
+            "tool_nodes": n_tool, "lint": {"errors": errors, "warnings": warnings},
+            "workflow_name": cfg["workflow_name"], "config": cfg}
 
 
 # ───────────────────── 轨迹 → 单步 LoRA 数据集 ─────────────────────

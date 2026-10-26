@@ -16,7 +16,7 @@
 | B010 | P2 | parked | data | 模型磁盘占用约 80GB、KB 含 34 个测试库未清理 | P0 |
 | B011 | P2 | parked | cloud | Kimi 云调用 RPM=3，批量任务需排队 | P6 |
 | B013 | P2 | parked | distill | 轨迹拆步 v1 按工具调用/轮次计数，语义拆步未做 | S4 |
-| B014 | P2 | parked | distill | 蒸馏工作流 v1 把工具步骤近似为 LLM 模拟（未真实调用工具） | S4 |
+| B014 | P2 | fixed | distill | 蒸馏工作流 v1 把工具步骤近似为 LLM 模拟（未真实调用工具） | S4 |
 | B021 | P2 | wontfix | chimera | Docling 全量依赖过大（torch 2.14 + CUDA13 全家桶），本机直装不可行 | S6 |
 | B024 | P2 | parked | model | 模型导入只下载原格式，未做量化转换（评估建议 int4/int8 但未落地） | S7 |
 | B029 | P2 | parked | chimera | 代码重建 v1：适配器用模板/可选14B生成，未做真实源码级移植与自动测试集 | S8 |
@@ -89,7 +89,7 @@
 - 详情：decompose 以 tool_call/文本轮为原子步；同一工具内的多语义步骤未拆；后续可上语义拆步
 
 ### B014 · 蒸馏工作流 v1 把工具步骤近似为 LLM 模拟（未真实调用工具）
-- 区域：distill ｜ 严重度：P2 ｜ 状态：parked
+- 区域：distill ｜ 严重度：P2 ｜ 状态：fixed
 - 发现于：S4 ｜ 登记：2026-10-26T21:03:48
 - 详情：workflow_engine 无 tool 节点类型；v1 用 process 节点近似；需扩展 tool 节点或 MCP
 

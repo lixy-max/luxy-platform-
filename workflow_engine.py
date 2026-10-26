@@ -774,6 +774,11 @@ NODE_TYPE_SPECS = {
         "ignored_fields": set(),
         "defaults": {},
     },
+    "tool": {
+        "label": "🔧 工具", "kind": "tool", "output": "text",
+        "purpose": "真实调用平台工具（HTTP 到后端），替代 LLM 模拟工具步骤",
+        "defaults": {"output_format": "text", "temperature": 0.0},
+    },
 }
 NODE_TYPES = tuple(NODE_TYPE_SPECS)
 
@@ -835,6 +840,10 @@ NODE_FIELD_SPECS = {
     #   不注册的话，配置里带 kb_write 会被判为未知字段而拒绝 ✗
     #   为什么默认关: 冒然入库会把 KB 撑爆；且 agent_use 是宝贵资产，默认拒写（见 workflow_learn.py）
     "kb_write": _f("dict", None),
+    # ★ B014: tool 节点字段（真实调用平台工具）
+    "tool": _f("str", ""),
+    "tool_args": _f("dict", None),
+    "tool_timeout": _f("int", 60, min=5),
 }
 
 _KIND_CHECK = {
@@ -845,6 +854,90 @@ _KIND_CHECK = {
     "list": lambda v: isinstance(v, list),
     "dict": lambda v: isinstance(v, dict),
 }
+
+
+# ══════════════════════════════════════════════════════════
+# ★ B014（2026-10-26）：tool 节点 —— 真实调用平台工具
+#   轨迹蒸馏出的工具步骤不再用 LLM 模拟，而是 HTTP 调后端真实工具。
+#   工具名 → 平台端点映射（覆盖历史轨迹高频工具）；未注册工具会显式失败。
+# ══════════════════════════════════════════════════════════
+TOOL_NODE_SUPPORTED = {
+    "paper_lora_list_loras": {"method": "GET", "path": "/loras"},
+    "paper_lora_train_list": {"method": "GET", "path": "/training/list"},
+    "paper_lora_status": {"method": "GET", "path": "/vllm/status"},
+    "paper_lora_vllm_status": {"method": "GET", "path": "/vllm/status"},
+    "paper_lora_tool_list": {"method": "GET", "path": "/agent/tools"},
+    "paper_lora_list_datasets": {"method": "GET", "path": "/training/available_datasets"},
+    "paper_lora_workflow_list": {"method": "GET", "path": "/workflow/list"},
+    "paper_lora_kb_info": {"method": "GET", "path": "/kb/list"},
+    "paper_lora_kb_query": {"method": "POST", "path": "/kb/{kb_name}/query",
+                            "body": {"query": "{query}", "top_k": "{top_k}"}},
+}
+
+
+def _render_tool_value(v, context):
+    """把 {node_id}/{full_text} 占位符替换成上游输出（截断防爆炸）"""
+    if isinstance(v, dict):
+        return {k: _render_tool_value(x, context) for k, x in v.items()}
+    if isinstance(v, list):
+        return [_render_tool_value(x, context) for x in v]
+    if not isinstance(v, str):
+        return v
+    nodes = (context or {}).get("nodes") or {}
+    import re as _re
+
+    def _repl(m):
+        k = m.group(1)
+        if k == "full_text":
+            return str((context or {}).get("full_text") or "")[:2000]
+        val = nodes.get(k)
+        if val is None:
+            return ""
+        if isinstance(val, (dict, list)):
+            import json as _json
+            return _json.dumps(val, ensure_ascii=False)[:2000]
+        return str(val)[:2000]
+
+    return _re.sub(r"\{(\w+)\}", _repl, v)
+
+
+def call_platform_tool(name, args=None, context=None, timeout=60):
+    """真实调用平台工具（HTTP 到后端）；返回输出文本（JSON 美化）。"""
+    import json as _json
+    spec = TOOL_NODE_SUPPORTED.get(str(name))
+    if not spec:
+        raise ValueError("工具未注册为 tool 节点: %s（支持: %s）" % (
+            name, ", ".join(sorted(TOOL_NODE_SUPPORTED))))
+    base = os.environ.get("WORKBENCH_URL", "http://127.0.0.1:8001").rstrip("/")
+    args = _render_tool_value(args or {}, context)
+    path = str(spec.get("path") or "")
+    import re as _re
+    for key in _re.findall(r"\{(\w+)\}", path):
+        path = path.replace("{%s}" % key, str(args.get(key, "")))
+    url = base + path
+    method = str(spec.get("method") or "GET").upper()
+    t = int(timeout or 60)
+    if method == "GET":
+        params = {k: v for k, v in args.items() if k not in ("kb_name", "query", "top_k")
+                  and not isinstance(v, (dict, list))}
+        resp = requests.get(url, params=params or None, timeout=t)
+    else:
+        body = {}
+        for k, tpl in (spec.get("body") or {}).items():
+            if isinstance(tpl, str) and tpl.startswith("{") and tpl.endswith("}"):
+                body[k] = args.get(tpl[1:-1])
+            else:
+                body[k] = tpl
+        if not body:
+            body = args
+        resp = requests.post(url, json=body, timeout=t)
+    resp.raise_for_status()
+    try:
+        data = resp.json()
+        text = _json.dumps(data, ensure_ascii=False, indent=2)
+    except Exception:
+        text = resp.text
+    return text[:6000]
 
 
 def lint_config(cfg):
@@ -1604,6 +1697,36 @@ def run_workflow(file_path, config_path=None):
                 if policy["on_error"] == "fail_fast":
                     log(f"  ⛔ on_error=fail_fast，中止工作流")
                     return ("abort", str(e))
+            return None
+
+        # ★ B014：tool 节点 —— 真实调用平台工具（不走 LLM）
+        if ntype == "tool":
+            policy = node_policy(node, config)
+            tool_name = str(node.get("tool") or "").strip()
+            if not tool_name:
+                err = "tool 节点缺少 tool 字段"
+                log("  ❌ " + err)
+                context["nodes"][nid] = {"_error": err, "_failed": True}
+                failures.append({"node": nid, "stage": "tool", "error": err, "attempts": 1})
+                log_list.append("[%s] 失败: %s" % (nid, err))
+                if policy["on_error"] == "fail_fast":
+                    return ("abort", err)
+                return None
+            try:
+                out = call_platform_tool(tool_name, node.get("tool_args") or {}, context,
+                                         timeout=int(node.get("tool_timeout") or 60))
+                context["nodes"][nid] = out
+                log("  ✅ 工具 %s 调用完成，输出 %d 字符" % (tool_name, len(out)))
+                log_list.append("[%s] 工具 %s 输出 %d 字符" % (nid, tool_name, len(out)))
+            except Exception as e:
+                err = "工具 %s 调用失败: %s" % (tool_name, str(e)[:200])
+                log("  ❌ " + err)
+                context["nodes"][nid] = {"_error": err, "_failed": True}
+                failures.append({"node": nid, "stage": "tool", "error": err, "attempts": 1})
+                log_list.append("[%s] 失败: %s" % (nid, err))
+                if policy["on_error"] == "fail_fast":
+                    log("  ⛔ on_error=fail_fast，中止工作流")
+                    return ("abort", err)
             return None
 
         policy = node_policy(node, config)

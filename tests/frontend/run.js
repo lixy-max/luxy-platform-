@@ -111,7 +111,7 @@ let selectValue = '';
 const NODE_TYPES_FIXTURE = {
   "fields": {
     "id": {"type": "str", "default": null, "required": true},
-    "type": {"type": "str", "default": "process", "choices": ["input", "retrieval", "process", "terminal", "aggregate", "extract", "analyze"]},
+    "type": {"type": "str", "default": "process", "choices": ["input", "retrieval", "process", "terminal", "aggregate", "extract", "analyze", "tool"]},
     "description": {"type": "str", "default": ""},
     "input_from": {"type": "list", "default": []},
     "prompt": {"type": "str", "default": ""},
@@ -137,6 +137,9 @@ const NODE_TYPES_FIXTURE = {
     "min_score": {"type": "float", "default": 0.1, "min": -1.0, "max": 1.0},
     "query_template": {"type": "str", "default": ""},
     "kb_write": {"type": "dict", "default": null},
+    "tool": {"type": "str", "default": ""},
+    "tool_args": {"type": "dict", "default": null},
+    "tool_timeout": {"type": "int", "default": 60, "min": 5},
   },
   "types": [
     {"type": "input", "label": "📥 输入", "kind": "source", "output": "text", "ignored_fields": ["cache", "chunk_size", "lora", "output_format", "prompt"]},
@@ -146,6 +149,7 @@ const NODE_TYPES_FIXTURE = {
     {"type": "aggregate", "label": "📦 整合", "kind": "llm", "output": "text", "ignored_fields": []},
     {"type": "extract", "label": "🧩 抽取", "kind": "llm", "output": "text", "ignored_fields": []},
     {"type": "analyze", "label": "🔬 分析", "kind": "llm", "output": "json", "ignored_fields": []},
+    {"type": "tool", "label": "🔧 工具", "kind": "tool", "output": "text", "ignored_fields": []},
   ],
 };
 

@@ -1635,7 +1635,8 @@ class TestFrontendFieldConsistency(unittest.TestCase):
     AGENT_SPECIAL = {"lora", "prompt", "provider", "model_override", "input_from",
                      "description", "kb_name", "top_k", "query_template"}
     # 刻意只暴露给 Agent / 配置文件，UI 不做控件（运维级参数，日常不需要改）
-    UI_AGENT_ONLY = {"retry", "retry_delay", "timeout", "on_error", "kb_write"}
+    UI_AGENT_ONLY = {"retry", "retry_delay", "timeout", "on_error", "kb_write",
+                       "tool", "tool_args", "tool_timeout"}
 
     _UI_ALIAS = {"input": "input_from", "kb-name": "kb_name", "kb-topk": "top_k",
                  "kb-query": "query_template", "model-override": "model_override",
