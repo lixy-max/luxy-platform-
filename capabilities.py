@@ -60,7 +60,20 @@ def list_capabilities(status=None):
 
 
 def get_capability(cap_id):
-    return _load()["capabilities"].get(str(cap_id))
+    """按 cap_id 查能力；容忍裸名（如 t1_law_lora_v1 → lora:t1_law_lora_v1）"""
+    caps = _load()["capabilities"]
+    cid = str(cap_id or "").strip()
+    if cid in caps:
+        return caps[cid]
+    if ("lora:" + cid) in caps:
+        return caps["lora:" + cid]
+    low = cid.lower()
+    for k, v in caps.items():
+        if k.lower() == low or str(v.get("name") or "").lower() == low:
+            return v
+        if k.lower() == ("lora:" + low):
+            return v
+    return None
 
 
 def _slug(s):

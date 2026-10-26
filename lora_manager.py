@@ -5443,6 +5443,8 @@ def capabilities_activate(cap_id: str):
     cap = _caps.get_capability(cap_id)
     if not cap:
         raise HTTPException(404, "capability 不存在: %s" % cap_id)
+    cap_id = cap["cap_id"]   # ★ P2.4: 裸名归一化（模型可能只给 lora 名）
+    cap_id = cap["cap_id"]   # ★ P2.4: 裸名归一化（模型可能只给 lora 名）
     port = int(cap.get("worker_port") or 8002)
     base = "http://127.0.0.1:%d" % port
     try:
