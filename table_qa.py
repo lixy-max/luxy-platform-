@@ -108,6 +108,22 @@ def try_answer(kb_name, query):
                     "answer": "\n".join(lines),
                     "evidence": {"column": headers[price_i], "rows": [r["seq"] for _, r in top]}}
 
+    # ── 3.5) 列表：列出 N 个产品（字段可含编号/名称/价格）──
+    _fields = sum(1 for k in ("编号", "名称", "价格", "市场价", "安装培训")
+                  if k in q)
+    # "列出 5 个产品"也算列表意图（不强制要求字段词）；有 2 个字段词时更确定
+    _list_intent = bool(re.search(r"(列出|列举|给我|显示|前\d+个|几个|看看)", nq))
+    _wants_products = bool(re.search(r"(产品|行|条|项|清单)", nq))
+    if _list_intent and (_fields >= 2 or (_fields >= 1 and _wants_products)
+                         or (_wants_products and re.search(r"\d+", q))):
+        n = _num_from_text(q) or 5
+        n = max(1, min(n, 50))
+        lines = ["表格前 %d 行（共 %d 行数据）：" % (n, meta["n_rows"])]
+        for r in rows[:n]:
+            lines.append("- " + _fmt_row(meta, r))
+        return {"mode": "structured", "confidence": 0.85, "verified": True,
+                "answer": "\n".join(lines), "evidence": {"rows": [r["seq"] for r in rows[:n]]}}
+
     # ── 4) 精确查找：编号/名称命中查询 ──
     qn = _norm(q)
     hits = []

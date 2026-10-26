@@ -89,6 +89,19 @@ class TestTableStoreAndQA(unittest.TestCase):
         r = tqa.try_answer("test_kb", "跑酷")
         self.assertIn("BFB899a", r["answer"])
 
+
+    def test_list_products(self):
+        r = tqa.try_answer("test_kb", "列出 3 个产品的编号、名称和市场价")
+        self.assertIsNotNone(r)
+        self.assertIn("BFB899a", r["answer"])
+        self.assertIn("数据第 1 行", r["answer"])
+        self.assertEqual(len(r["evidence"]["rows"]), 3)
+
+    def test_list_count_respects_n(self):
+        r = tqa.try_answer("test_kb", "列出 5 个产品")
+        self.assertIsNotNone(r)
+        self.assertEqual(len(r["evidence"]["rows"]), 5)
+
     def test_unmatched_returns_none(self):
         self.assertIsNone(tqa.try_answer("test_kb", "帮我写一段周报"))
 
