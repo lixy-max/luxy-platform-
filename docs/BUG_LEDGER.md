@@ -20,6 +20,7 @@
 | B021 | P2 | wontfix | chimera | Docling 全量依赖过大（torch 2.14 + CUDA13 全家桶），本机直装不可行 | S6 |
 | B024 | P2 | parked | model | 模型导入只下载原格式，未做量化转换（评估建议 int4/int8 但未落地） | S7 |
 | B029 | P2 | parked | chimera | 代码重建 v1：适配器用模板/可选14B生成，未做真实源码级移植与自动测试集 | S8 |
+| B030 | P2 | parked | cloud | 视觉/音频/视频云端 provider 未配置（路由接口已留，检测到多模态会明确 blocked） | S12 |
 | B001 | P3 | fixed | frontend | 前端任务表无自动轮询，执行后需手动刷新 | S2 |
 | B008 | P3 | parked | security | vLLM 未启用 api-key（仅绑定回环） | P0 |
 | B009 | P3 | wontfix | infra | /vllm/start 冷启动 26–28s（未优化） | P7 |
@@ -107,6 +108,11 @@
 - 区域：chimera ｜ 严重度：P2 ｜ 状态：parked
 - 发现于：S8 ｜ 登记：2026-10-26T21:57:43
 - 详情：当前只借逻辑、本地独立重写最小实现（模板）；LLM 生成适配器为可选且未强制验证；无自动测试生成/回归。
+
+### B030 · 视觉/音频/视频云端 provider 未配置（路由接口已留，检测到多模态会明确 blocked）
+- 区域：cloud ｜ 严重度：P2 ｜ 状态：parked
+- 发现于：S12 ｜ 登记：2026-10-26T22:52:55
+- 详情：modality_router 已实现图谱/多模态检测与云端路由：图谱走文本云模型（Kimi 可用）；视觉/音频/视频需要 provider 配置 modalities（如 vision）。当前仅 Kimi 文本 provider，检测到视觉/音频/视频任务会返回 blocked + 配置指引，不会静默用文本模型假装处理。解锁方式：在 settings.json providers 增加支持对应 modality 的 provider（如 Qwen-VL/GLM-4V），或设置 CLOUD_MODALITIES 环境变量。
 
 ### B001 · 前端任务表无自动轮询，执行后需手动刷新
 - 区域：frontend ｜ 严重度：P3 ｜ 状态：fixed

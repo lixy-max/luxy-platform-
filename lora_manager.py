@@ -6300,6 +6300,41 @@ def evolution_summary():
     return {"ok": True, "text": _em.summary_text()}
 
 
+# ══════════════════════════════════════════════════════════
+# S12（2026-10-26）图谱/多模态云端路由 + 总架构自检
+# ══════════════════════════════════════════════════════════
+@app.post("/route/modality")
+def route_modality(payload: dict = None):
+    """检测任务是否含图谱/多模态需求并给出云端路由决策"""
+    import modality_router as _mr
+    text = str((payload or {}).get("text") or (payload or {}).get("request") or "")
+    if not text:
+        raise HTTPException(400, "text 必填")
+    return {"ok": True, "decision": _mr.route(text), "detect": _mr.detect(text)}
+
+
+@app.get("/cloud/providers")
+def cloud_providers():
+    """云端 provider 能力清单（key 打码）"""
+    import modality_router as _mr
+    return {"ok": True, **_mr.summary()}
+
+
+@app.get("/architecture/status")
+def architecture_status(checks: str = ""):
+    """总架构完成度自检（9 项：主脑路由/任务表/蒸馏/奇美拉/云/多模态/KB/指标/治理）"""
+    import architecture_status as _as
+    want = [c.strip() for c in str(checks or "").split(",") if c.strip()]
+    st = _as.status(want or None)
+    return {"ok": True, **st}
+
+
+@app.get("/architecture/summary")
+def architecture_summary():
+    import architecture_status as _as
+    return {"ok": True, "text": _as.summary_text()}
+
+
 @app.post("/orchestrate")
 def orchestrate_ep(req: OrchestrateRequest):
     """★ DSH 调这个 ⇒ 拿执行计划 ✓

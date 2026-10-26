@@ -199,8 +199,19 @@ def _normalize_item(it, seq=1):
         target = "cloud"
     if cat == "transplant" and not target:
         target = "chimera"
+    _reason = str(it.get("reason") or "")
+    # ★ S12：图谱/多模态检测 → 强制云端（架构 D 项）
+    try:
+        import modality_router as _mr
+        _d = _mr.detect(content + " " + target)
+        if _d.get("kinds"):
+            cat = "cloud"
+            target = "cloud:" + "+".join(_d["kinds"])
+            _reason = (_reason + "；" if _reason else "") + "检测到%s需求→云端" % "/".join(_d["kinds"])
+    except Exception:
+        pass
     return {"content": content[:300], "category": cat, "target": target[:120],
-            "reason": str(it.get("reason") or "")[:200],
+            "reason": _reason[:200],
             "depends_on": _norm_depends(it.get("depends_on") or it.get("deps"), seq)}
 
 

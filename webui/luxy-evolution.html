@@ -71,6 +71,10 @@
       <div id="caps"></div>
     </div>
     <div class="card">
+      <h2>总架构完成度（9 项自检）</h2>
+      <div id="arch"></div>
+    </div>
+    <div class="card">
       <h2>Bug 台账</h2>
       <div id="bugs"></div>
     </div>
@@ -133,6 +137,17 @@ async function load(){
     document.getElementById('bugs').innerHTML =
       `<div>总数 <b>${esc(b.total)}</b> ｜ fixed <b>${esc(b.fixed)}</b> ｜ 修复率 <b>${pct(b.fixed_rate)}</b></div>
        <div style="margin-top:6px">状态：<span class="pill">${esc(JSON.stringify(b.by_status||{}))}</span></div>`;
+
+    try{
+      const a = await api('/architecture/status');
+      const o = a.overall || {};
+      const rows = (a.checks||[]).map(c=>{
+        const icon = c.status==='pass'?'✅':(c.status==='partial'?'⚠️':'❌');
+        return `<div style="margin:3px 0">${icon} ${esc(c.name)}${c.gap?` <span class="pill">${esc(c.gap)}</span>`:''}</div>`;
+      }).join('');
+      document.getElementById('arch').innerHTML =
+        `<div style="margin-bottom:6px">得分 <b>${Math.round((o.score||0)*100)}%</b> ｜ pass ${esc(o.pass)} / partial ${esc(o.partial)} / missing ${esc(o.missing)}</div>` + rows;
+    }catch(e){ document.getElementById('arch').textContent = '自检失败: '+e.message; }
 
     const tr = await api('/evolution/trend?limit=8');
     const rows = (tr.trend||[]);
