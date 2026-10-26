@@ -5834,6 +5834,35 @@ def route_table_similar(table_id: str, limit: int = 5):
 # ══════════════════════════════════════════════════════════
 # S1（2026-10-26）：表格→知识库标准链路 + 奇美拉兼容性/三档移植判定
 # ══════════════════════════════════════════════════════════
+@app.post("/kb/table_query")
+def kb_table_query(payload: dict = None):
+    """S3 表格答案模式：结构化问答（带数据行号 + 数字校验）"""
+    import table_qa as _tqa
+    p = payload or {}
+    kb_name = str(p.get("kb_name") or "").strip()
+    query = str(p.get("query") or "").strip()
+    if not kb_name or not query:
+        raise HTTPException(400, "kb_name 与 query 必填")
+    if not _tqa.ts.has_table(kb_name):
+        raise HTTPException(404, "该 KB 没有结构化表格（先用 /kb/table_ingest 入库）")
+    r = _tqa.try_answer(kb_name, query)
+    if not r:
+        return {"ok": True, "mode": "llm_fallback", "answer": None,
+                "hint": "规则未覆盖，请走 /chat 或 kb 路由由主脑回答（会带结构化行上下文）"}
+    return {"ok": True, **_tqa_dump(r)}
+
+
+def _tqa_dump(r):
+    return {"mode": r.get("mode"), "answer": r.get("answer"), "verified": r.get("verified"),
+            "confidence": r.get("confidence"), "evidence": r.get("evidence")}
+
+
+@app.get("/kb/table_list")
+def kb_table_list():
+    import table_store as _ts
+    return {"ok": True, "tables": _ts.list_tables()}
+
+
 @app.post("/kb/table_ingest")
 def kb_table_ingest(payload: dict = None):
     """xls/xlsx → 结构化文档 → 知识库（表格类知识库链路）"""

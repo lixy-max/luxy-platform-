@@ -370,6 +370,30 @@ def execute(dec, task, kb_entries=None):
     if route == "kb":
         kbs = [str(x) for x in (dec.get("kb_names") or [])][:2]
         _q = _clean_kb_query(task, kbs)
+        # ★ S3 表格答案模式：表格 KB 优先走确定性结构化问答（带行号引用）
+        struct_answers = []
+        table_kbs = []
+        try:
+            import table_qa as _tqa
+            for kbn in kbs:
+                try:
+                    _has = _tqa.ts.has_table(kbn)
+                except Exception:
+                    _has = False
+                if not _has:
+                    continue
+                table_kbs.append(kbn)
+                _r = _tqa.try_answer(kbn, _q)
+                if _r:
+                    struct_answers.append((kbn, _r))
+        except Exception:
+            pass
+        if struct_answers:
+            content = "\n\n".join("[%s] %s" % (kbn, r["answer"]) for kbn, r in struct_answers)
+            meta.update({"kb_names": kbs, "table_mode": True,
+                         "modes": [r["mode"] for _, r in struct_answers],
+                         "verified": all(r.get("verified") for _, r in struct_answers)})
+            return {"ok": True, "content": content, "route": route, "meta": meta}
         texts = []
         for kbn in kbs:
             try:
@@ -377,13 +401,34 @@ def execute(dec, task, kb_entries=None):
                     texts.append("[%s] %s" % (kbn, str(r.get("text") or "")[:900]))
             except Exception:
                 continue
+        # 表格 KB：LLM 兜底时补"结构化行上下文"（带行号，减少串位）
+        try:
+            import table_qa as _tqa2
+            for kbn in table_kbs:
+                _rows_ctx = _tqa2.search_rows_text(kbn, _q, limit=8)
+                if _rows_ctx:
+                    texts.append("[%s·结构化行]\n%s" % (kbn, _rows_ctx))
+        except Exception:
+            pass
         ans = main_answer(
             _q,
             "\n---\n".join(texts)[:5200]
             + "\n\n【回答要求】只依据以上参考资料回答；资料中没有的信息不要编造，"
-              "直接说明未找到；引用的编号/名称/价格必须与资料一致。")
-        meta.update({"kb_names": kbs, "hits": len(texts)})
-        return {"ok": bool(ans), "content": ans, "route": route, "meta": meta}
+              "直接说明未找到；引用的编号/名称/价格必须与资料一致，并尽量标注数据行号。")
+        # 数字交叉校验（表格 KB 才做）
+        warn = ""
+        try:
+            import table_qa as _tqa3
+            for kbn in table_kbs:
+                _chk = _tqa3.check_numbers(ans, kbn)
+                if not _chk.get("ok"):
+                    warn = "\n\n⚠ 数字校验：以下数字未在表格中找到 %s，请人工核对。" % _chk.get("missing")
+                    break
+        except Exception:
+            pass
+        meta.update({"kb_names": kbs, "hits": len(texts), "table_mode": False,
+                     "number_check_failed": bool(warn)})
+        return {"ok": bool(ans), "content": ans + warn, "route": route, "meta": meta}
     if route in ("capability", "kb+capability"):
         cap_id = dec.get("capability_id")
         # ★ P4：外部工具能力 → 走沙箱执行器（不用工蜂 LoRA）

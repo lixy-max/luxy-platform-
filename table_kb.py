@@ -174,9 +174,16 @@ def ingest_table(path, kb_name, batch_size=10, description="", source_note=""):
     except Exception:
         pass
     info = kb.ingest_folder(kb_name, str(out_dir), extensions=[".md"])
+    # ★ S3 表格答案模式：同时注册结构化行（供确定性问答/数字校验）
+    _store = {}
+    try:
+        import table_store
+        _store = table_store.register_table(kb_name, parsed)
+    except Exception as _e:
+        _store = {"error": str(_e)[:200]}
     return {"file": parsed["file"], "sheets": [s["name"] for s in parsed["sheets"]],
             "total_rows": parsed["total_rows"], "docs_dir": str(out_dir),
-            "docs": len(docs), "ingest": info, "kb": kb_name}
+            "docs": len(docs), "ingest": info, "kb": kb_name, "table_store": _store}
 
 
 def table_stats(path):
