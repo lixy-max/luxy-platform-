@@ -5789,15 +5789,46 @@ def route_table_check(table_id: str, payload: dict = None):
 
 @app.post("/route/table/{table_id}/execute")
 def route_table_execute(table_id: str, payload: dict = None):
+    """执行任务表：依赖拓扑 + 参数传递 + 可选失败升级（cloud/transplant）"""
     import route_table as _rt
     p = payload or {}
     try:
         r = _rt.execute_table(table_id, run_cloud=bool(p.get("run_cloud")),
                               run_transplant=bool(p.get("run_transplant")),
+                              escalate_cloud=bool(p.get("escalate_cloud")),
+                              escalate_transplant=bool(p.get("escalate_transplant")),
                               max_items=p.get("max_items"))
     except ValueError as e:
         raise HTTPException(400, str(e))
     return {"ok": True, **r}
+
+
+@app.post("/route/table/{table_id}/clone")
+def route_table_clone(table_id: str, payload: dict = None):
+    """复用：克隆历史任务表（状态重置）"""
+    import route_table as _rt
+    p = payload or {}
+    try:
+        t = _rt.clone_table(table_id, request=p.get("request"))
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+    return {"ok": True, "table": t}
+
+
+@app.get("/route/table/{table_id}/artifact")
+def route_table_artifact(table_id: str):
+    """任务表产物（全部完成后生成的 markdown）"""
+    import route_table as _rt
+    try:
+        return {"ok": True, **_rt.get_artifact(table_id)}
+    except ValueError as e:
+        raise HTTPException(404, str(e))
+
+
+@app.get("/route/table/{table_id}/similar")
+def route_table_similar(table_id: str, limit: int = 5):
+    import route_table as _rt
+    return {"ok": True, "similar": _rt.similar(table_id, limit=limit)}
 
 
 # ══════════════════════════════════════════════════════════

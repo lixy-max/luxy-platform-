@@ -105,9 +105,14 @@
         <div class="toolbar">
           <button class="primary" id="btnExec">执行本地项</button>
           <button class="ghost" id="btnExecCloud">执行本地+云端</button>
+          <label class="pill"><input type="checkbox" id="escCloud"> 失败升级云端</label>
+          <label class="pill"><input type="checkbox" id="escTrans"> 升级移植</label>
+          <button class="ghost" id="btnArtifact">查看产物</button>
+          <button class="ghost" id="btnClone">复用此表</button>
           <button class="ghost" id="btnRefresh">刷新</button>
           <span class="pill" id="dCount"></span>
         </div>
+        <pre id="artifactBox" style="display:none;max-height:240px;overflow:auto;background:#F8F5F0;border:1px solid #E7DED2;border-radius:8px;padding:10px;white-space:pre-wrap;font-size:12px"></pre>
         <div style="overflow:auto">
           <table>
             <thead><tr><th style="width:34px">#</th><th>子任务</th><th style="width:78px">类型</th><th style="width:120px">执行体</th><th style="width:74px">状态</th><th style="width:90px">操作</th><th>结果</th></tr></thead>
@@ -171,7 +176,11 @@ async function openTable(id){
       const done = it.status==='done';
       return `<tr>
         <td>${it.seq}</td>
-        <td>${esc(it.content)}<div class="muted">${esc(it.reason||'')}</div></td>
+        <td>${esc(it.content)}
+          <div class="muted">${esc(it.reason||'')}</div>
+          ${(it.depends_on&&it.depends_on.length)?'<div class="muted">依赖 #'+it.depends_on.join(', #')+'</div>':''}
+          ${(it.attempts&&it.attempts.length>1)?'<div class="muted">升级：'+it.attempts.map(a=>a.try+(a.ok?'✓':'✗')).join(' → ')+'</div>':''}
+        </td>
         <td><span class="cat ${esc(it.category)}">${esc(it.category)}</span></td>
         <td class="muted">${esc(it.target)}</td>
         <td><span class="st ${esc(it.status)}">${esc(it.status)}</span></td>
@@ -195,7 +204,9 @@ async function execTable(runCloud){
   const btn = document.getElementById(runCloud?'btnExecCloud':'btnExec');
   btn.disabled = true; btn.textContent = '执行中…';
   try{
-    const d = await api('/route/table/'+currentId+'/execute',{method:'POST',body:JSON.stringify({run_cloud:!!runCloud})});
+    const escCloud = document.getElementById('escCloud').checked;
+    const escTrans = document.getElementById('escTrans').checked;
+    const d = await api('/route/table/'+currentId+'/execute',{method:'POST',body:JSON.stringify({run_cloud:!!runCloud, escalate_cloud:escCloud, escalate_transplant:escTrans})});
     await openTable(currentId);
     const n = (d.executed||[]).filter(x=>x.ok).length;
     setErr('');
@@ -233,6 +244,22 @@ document.getElementById('btnSearch').onclick = async ()=>{
 document.getElementById('btnExec').onclick = ()=>execTable(false);
 document.getElementById('btnExecCloud').onclick = ()=>execTable(true);
 document.getElementById('btnRefresh').onclick = ()=>{ if(currentId) openTable(currentId); else loadTables(); };
+document.getElementById('btnArtifact').onclick = async ()=>{
+  if(!currentId) return;
+  const box = document.getElementById('artifactBox');
+  try{
+    const d = await api('/route/table/'+currentId+'/artifact');
+    box.style.display = 'block';
+    box.textContent = d.exists ? d.content : '还没有产物（任务表全部完成后自动生成）';
+  }catch(e){ alert('读取产物失败：'+e.message); }
+};
+document.getElementById('btnClone').onclick = async ()=>{
+  if(!currentId) return;
+  try{
+    const d = await api('/route/table/'+currentId+'/clone',{method:'POST',body:JSON.stringify({})});
+    await loadTables(); await openTable(d.table.id);
+  }catch(e){ alert('复用失败：'+e.message); }
+};
 
 loadTables(); refreshStats();
 </script>

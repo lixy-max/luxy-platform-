@@ -244,5 +244,16 @@ class TestExternalCapability(unittest.TestCase):
         self.assertIn("capability_input", p)
 
 
+class TestKbQueryClean(unittest.TestCase):
+    def test_strip_kb_name(self):
+        self.assertEqual(swarm._clean_kb_query("从知识库 bcpcn 路由器是什么", ["bcpcn"]), "路由器是什么")
+
+    def test_strip_kb_prefix(self):
+        self.assertEqual(swarm._clean_kb_query("知识库：bcpcn 里的 Hub", ["bcpcn"]), "里的 Hub")
+
+    def test_keep_normal(self):
+        self.assertEqual(swarm._clean_kb_query("路由器是什么", ["bcpcn"]), "路由器是什么")
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

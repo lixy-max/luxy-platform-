@@ -124,6 +124,23 @@ def select_caps(task, caps, limit=14):
     return [c for _, _, c in scored[:max(1, int(limit))]]
 
 
+def _clean_kb_query(text, kb_names=None):
+    """修（2026-10-26）：查询里带"从知识库 xxx"会污染检索并诱发编造。
+    实测：'从知识库 qiaojiao_toys_2025_v2 列出 5 个产品...' → 检索到无关片段（编造玩具剑等）；
+          去掉库名/引导词后 → 回答与资料一致。
+    """
+    t = str(text or "")
+    for n in (kb_names or []):
+        t = t.replace("从知识库 " + n, "")
+        t = t.replace("从知识库" + n, "")
+        t = t.replace("知识库 " + n, "")
+        t = t.replace("知识库" + n, "")
+        t = t.replace(n, "")
+    t = re.sub(r"从?(该|这个)?知识库[\s：:]*", "", t)
+    t = re.sub(r"\s{2,}", " ", t).strip(" ，,：:")
+    return t or str(text or "")
+
+
 def build_prompt(caps, kb_entries, task=None):
     if task:
         caps = select_caps(task, caps)
@@ -352,14 +369,19 @@ def execute(dec, task, kb_entries=None):
         return {"ok": bool(ans), "content": ans, "route": route, "meta": meta}
     if route == "kb":
         kbs = [str(x) for x in (dec.get("kb_names") or [])][:2]
+        _q = _clean_kb_query(task, kbs)
         texts = []
         for kbn in kbs:
             try:
-                for r in kb_query(kbn, task, 5):
-                    texts.append("[%s] %s" % (kbn, str(r.get("text") or "")))
+                for r in kb_query(kbn, _q, 5):
+                    texts.append("[%s] %s" % (kbn, str(r.get("text") or "")[:900]))
             except Exception:
                 continue
-        ans = main_answer(task, "\n---\n".join(texts)[:4000])
+        ans = main_answer(
+            _q,
+            "\n---\n".join(texts)[:5200]
+            + "\n\n【回答要求】只依据以上参考资料回答；资料中没有的信息不要编造，"
+              "直接说明未找到；引用的编号/名称/价格必须与资料一致。")
         meta.update({"kb_names": kbs, "hits": len(texts)})
         return {"ok": bool(ans), "content": ans, "route": route, "meta": meta}
     if route in ("capability", "kb+capability"):
@@ -395,7 +417,7 @@ def execute(dec, task, kb_entries=None):
             texts = []
             for kbn in kbs:
                 try:
-                    for r in kb_query(kbn, task, 2):
+                    for r in kb_query(kbn, _clean_kb_query(task, kbs), 2):
                         texts.append("[%s] %s" % (kbn, str(r.get("text") or "")))
                 except Exception:
                     continue
