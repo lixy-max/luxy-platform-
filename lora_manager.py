@@ -6101,6 +6101,54 @@ def chimera_deps_installed(limit: int = 50):
     return {"ok": True, "installs": rows, "count": len(rows)}
 
 
+# ══════════════════════════════════════════════════════════
+# S7（2026-10-26）奇美拉 V2 第三档：模型下载（先设备评估）
+# ══════════════════════════════════════════════════════════
+@app.post("/chimera/model_assess")
+def chimera_model_assess(payload: dict = None):
+    """下载前评估设备能力：参数量/权重体积 → fp16/int8/int4 显存需求 → 单卡/双卡/云端"""
+    import model_import as _mi
+    p = payload or {}
+    repo_id = str(p.get("repo_id") or p.get("model") or "").strip()
+    if not repo_id:
+        raise HTTPException(400, "repo_id 必填（如 Qwen/Qwen2.5-1.5B-Instruct）")
+    source = str(p.get("source") or "modelscope").lower()
+    if source not in ("modelscope", "hf"):
+        raise HTTPException(400, "source 只支持 modelscope/hf")
+    try:
+        return {"ok": True, "assessment": _mi.assess(repo_id, source=source)}
+    except Exception as e:
+        raise HTTPException(500, "%s: %s" % (type(e).__name__, str(e)[:300]))
+
+
+@app.post("/chimera/model_import")
+def chimera_model_import(payload: dict = None):
+    """评估 →（通过且 approve）下载 → 校验 → 注册到模型基准库"""
+    import model_import as _mi
+    p = payload or {}
+    repo_id = str(p.get("repo_id") or p.get("model") or "").strip()
+    if not repo_id:
+        raise HTTPException(400, "repo_id 必填")
+    if not p.get("approve"):
+        raise HTTPException(400, "下载模型需要显式 approve=true")
+    source = str(p.get("source") or "modelscope").lower()
+    try:
+        r = _mi.import_model(repo_id, source=source, approve=True,
+                             role=str(p.get("role") or "candidate_worker"),
+                             local_dir=p.get("local_dir"),
+                             timeout=int(p.get("timeout") or 3600))
+        return {"ok": bool(r.get("ok")), **r}
+    except Exception as e:
+        raise HTTPException(500, "%s: %s" % (type(e).__name__, str(e)[:300]))
+
+
+@app.get("/chimera/model_imports")
+def chimera_model_imports(limit: int = 30):
+    import model_import as _mi
+    rows = _mi.list_imports(limit=limit)
+    return {"ok": True, "imports": rows, "count": len(rows)}
+
+
 @app.post("/orchestrate")
 def orchestrate_ep(req: OrchestrateRequest):
     """★ DSH 调这个 ⇒ 拿执行计划 ✓
