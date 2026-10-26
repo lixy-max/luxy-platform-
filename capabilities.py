@@ -231,6 +231,46 @@ def register_from_loras(worker_port=None, overwrite=False):
     return {"added": added, "updated": updated, "total": len(caps)}
 
 
+def register_proposed_capability(cand, gap="", plan_id=""):
+    """奇美拉闭环：把外部候选自动入库为能力（status=proposed，不参与路由）
+
+    等 P3 沙箱安装 + 影子验证后，再晋级 shadow/active。
+    """
+    reg = _load()
+    caps = reg["capabilities"]
+    src = str(cand.get("source") or "?")
+    cid = "ext:%s:%s" % (src, _slug(cand.get("id") or ""))
+    now = _now()
+    if cid in caps:
+        caps[cid].update({"last_seen": now, "gap": str(gap)[:120],
+                          "plan_id": str(plan_id), "gate": str(cand.get("gate") or "")})
+        _save(reg)
+        return caps[cid]
+    entry = {
+        "cap_id": cid,
+        "name": str(cand.get("id") or ""),
+        "description": "外部候选（奇美拉）：%s；⭐%s；许可=%s；缺口=%s" % (
+            str(cand.get("desc") or "")[:100], cand.get("stars"),
+            cand.get("license") or "unknown", str(gap)[:60]),
+        "kind": "external",
+        "lora": None, "lora_path": None, "base_model": None, "rank": None,
+        "worker_port": 0,
+        "io": {"input": "text", "output": "text"},
+        "tags": ["external", "chimera", "proposed"],
+        "status": "proposed",
+        "compatible": False,
+        "success_rate": None, "uses": 0, "last_used": None,
+        "created_at": now, "source": "chimera",
+        "source_kind": src, "url": cand.get("url") or "",
+        "stars": cand.get("stars"), "license": cand.get("license") or "",
+        "gap": str(gap)[:120], "plan_id": str(plan_id),
+        "gate": str(cand.get("gate") or ""),
+    }
+    caps[cid] = entry
+    _save(reg)
+    return entry
+
+
 def _tokens(s):
     s = str(s or "").lower()
     toks = set(re.findall(r"[a-z0-9_]{2,}", s))
@@ -245,7 +285,8 @@ def match(query, top_k=3, only_active=False):
         return []
     caps = list_capabilities(status="active" if only_active else None)
     if not only_active:
-        caps = [c for c in caps if c.get("status") != "disabled"]
+        # 只路由 active/shadow；proposed（外部候选）与 disabled 一律不参与 ✓
+        caps = [c for c in caps if c.get("status") in ("active", "shadow")]
     scored = []
     for c in caps:
         text = " ".join([str(c.get("name") or ""), str(c.get("description") or ""),
@@ -272,8 +313,8 @@ def set_status(cap_id, status):
     c = reg["capabilities"].get(str(cap_id))
     if not c:
         raise ValueError("capability 不存在: %s" % cap_id)
-    if status not in ("active", "shadow", "disabled"):
-        raise ValueError("status 必须是 active|shadow|disabled")
+    if status not in ("proposed", "approved_pending_install", "shadow", "active", "disabled"):
+        raise ValueError("status 必须是 proposed|approved_pending_install|shadow|active|disabled")
     c["status"] = status
     c["updated_at"] = _now()
     _save(reg)

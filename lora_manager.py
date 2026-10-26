@@ -5376,6 +5376,55 @@ class OrchestrateRequest(BaseModel):
 #   设计：一个 LoRA = 一个单步能力；多步任务由主脑编排
 #   注册表：data/capabilities/registry.json（capabilities.py）
 # ══════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════
+# 主脑基准库（P2.7）：模型清单 / 能力界限 / 可挂载 LoRA
+# ══════════════════════════════════════════════════════════
+@app.get("/models/registry")
+def models_registry():
+    """主脑基准库：全部模型 + 能力界限 + 可挂 LoRA + 可调配模型"""
+    import model_registry as _mr
+    try:
+        models = _mr.list_models()
+        return {"ok": True, "models": models,
+                "summary": _mr.summary(),
+                "dispatchable": _mr.dispatchable()}
+    except Exception as e:
+        raise HTTPException(500, "%s: %s" % (type(e).__name__, str(e)[:200]))
+
+
+@app.get("/models/registry/summary")
+def models_registry_summary():
+    import model_registry as _mr
+    return {"ok": True, **_mr.summary()}
+
+
+@app.post("/models/registry/scan")
+def models_registry_scan():
+    """扫描模型目录 + 端口，刷新基准库状态"""
+    import model_registry as _mr
+    try:
+        reg = _mr.scan()
+        return {"ok": True, "models": len(reg.get("models") or {}),
+                "summary": _mr.summary()}
+    except Exception as e:
+        raise HTTPException(500, "%s: %s" % (type(e).__name__, str(e)[:200]))
+
+
+@app.get("/models/registry/{model_id}")
+def models_registry_get(model_id: str):
+    import model_registry as _mr
+    m = _mr.get_model(model_id)
+    if not m:
+        raise HTTPException(404, "模型不存在: %s" % model_id)
+    return {"ok": True, "model": m, "loras": _mr.lora_mountable(model_id)}
+
+
+@app.get("/models/registry/{model_id}/loras")
+def models_registry_loras(model_id: str):
+    import model_registry as _mr
+    return {"ok": True, "model_id": model_id, "loras": _mr.lora_mountable(model_id)}
+
+
 @app.get("/capabilities")
 def capabilities_list(status: str = ""):
     """列出能力（可按 status 过滤：active|shadow|disabled）"""

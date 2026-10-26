@@ -56,6 +56,11 @@ class TestPlan(unittest.TestCase):
         self.addCleanup(shutil.rmtree, self.tmp, True)
         self.addCleanup(setattr, chimera, "CHIMERA_DIR", self._orig[0])
         self.addCleanup(setattr, chimera, "CANDIDATES_FILE", self._orig[1])
+        self._cap_patch = mock.patch(
+            "capabilities.register_proposed_capability",
+            side_effect=lambda c, gap="", plan_id="": {"cap_id": chimera.candidate_capability_id(c)})
+        self._cap_patch.start()
+        self.addCleanup(self._cap_patch.stop)
 
     def test_plan_structure_and_gate(self):
         fake = [CAND_ALLOW, CAND_COPYLEFT, CAND_UNKNOWN, CAND_LOWSTARS]
@@ -68,6 +73,7 @@ class TestPlan(unittest.TestCase):
         self.assertIn(p["candidates"][0]["id"], ("jsvine/pdfplumber",))
         self.assertEqual(len(p["auto_approved"]), 1)
         self.assertEqual(len(p["needs_review"]), 3)
+        self.assertEqual(len(p.get("capabilities_registered") or []), 4)
         self.assertEqual(p["plan_ir"]["steps"][0]["step"], "discover")
         self.assertIn("不自动安装", p["plan_ir"]["approval"])
         # 落库

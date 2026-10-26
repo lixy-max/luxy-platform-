@@ -77,6 +77,15 @@ def load_assets():
     return caps, kb_entries
 
 
+def _models_text():
+    """模型基准库文本（主脑调度依据）；失败返回空"""
+    try:
+        import model_registry as _mr
+        return _mr.prompt_text()
+    except Exception:
+        return ""
+
+
 def build_prompt(caps, kb_entries):
     cap_lines = []
     for c in caps:
@@ -109,9 +118,16 @@ def build_prompt(caps, kb_entries):
         '用户：先查 BCPCN 路由器内容，再用农学模型总结，最后写成给领导的摘要\n{"route":"multi","steps":[{"route":"kb","kb_names":["bcpcn"],"instruction":"查 BCPCN 路由器资料"},{"route":"capability","capability_id":"lora:agri_expert_v1","instruction":"用农学模型总结"},{"route":"direct","instruction":"写成给领导的摘要"}],"reason":"多步任务"}\n'
         '\n可用能力清单（__NCAP__ 个）：\n__CAPS__\n'
         '\n可用知识库清单（__MKB__ 个）：\n__KBS__\n'
+        '\n__MODELS__\n'
+        '\n调度规则（模型基准）：\n'
+        '- 主脑（main_brain）不挂 LoRA，只做编排/判断/知识库路由；\n'
+        '- 单步专业能力只能派发给 worker（工蜂，可挂 LoRA）；\n'
+        '- quality_mode 模型占双卡，不能与工蜂同时用；unavailable 模型不得选择；\n'
+        '- 若所需能力不在能力清单 → route=chimera（让奇美拉找开源/外部能力）。\n'
         '\n输出 JSON 字段：route, kb_names, capability_id, need_worker, load_lora, reason。'
     )
-    return (system.replace("__NCAP__", str(len(cap_lines)))
+    return (system.replace("__MODELS__", _models_text())
+                  .replace("__NCAP__", str(len(cap_lines)))
                   .replace("__CAPS__", "\n".join(cap_lines))
                   .replace("__MKB__", str(len(kb_entries)))
                   .replace("__KBS__", "\n".join(kb_lines)))

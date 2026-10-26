@@ -239,6 +239,8 @@ def plan(gap, top_k=5):
         scored.append(c)
     scored.sort(key=lambda x: (x["gate"] != "auto_approved", -int(x.get("stars") or 0)))
     review = cloud_review(gap, scored)
+    import hashlib as _hl
+    plan_id = _hl.sha1(("%s|%s" % (gap, _now())).encode()).hexdigest()[:12]
     plan_obj = {
         "chimera_version": "v1",
         "created_at": _now(),
@@ -258,7 +260,18 @@ def plan(gap, top_k=5):
         "auto_approved": [c["candidate_id"] for c in scored if c["gate"] == "auto_approved"],
         "needs_review": [c["candidate_id"] for c in scored if c["gate"] == "needs_review"],
         "next_action": "对 auto_approved 候选走沙箱 dry-run（P3），needs_review 需人工/云审通过",
+        "plan_id": plan_id,
     }
+    # ★ 奇美拉闭环（P2.7）：新能力自动入库（proposed；不参与路由，待 P3 安装后晋级）
+    auto_registered = []
+    try:
+        import capabilities as _caps
+        for c in scored:
+            e = _caps.register_proposed_capability(c, gap=gap, plan_id=plan_id)
+            auto_registered.append(e.get("cap_id"))
+    except Exception:
+        pass
+    plan_obj["capabilities_registered"] = auto_registered
     # 落库（追加）
     try:
         _ensure_dir()
@@ -313,6 +326,13 @@ def get_candidate(candidate_id):
     return None
 
 
+def candidate_capability_id(cand):
+    """候选 → 能力注册表里的 cap_id（与 capabilities.register_proposed_capability 一致）"""
+    import re as _re
+    slug = _re.sub(r"[^0-9A-Za-z_\-]+", "-", str(cand.get("id") or "")).strip("-")[:64]
+    return "ext:%s:%s" % (str(cand.get("source") or "?"), slug)
+
+
 def approve_candidate(candidate_id, approved_by="policy"):
     """把候选标记为 approved（写回 jsonl 末尾追加一条 approve 记录）"""
     c = get_candidate(candidate_id)
@@ -322,4 +342,13 @@ def approve_candidate(candidate_id, approved_by="policy"):
     rec = {"candidate_id": candidate_id, "action": "approve", "by": approved_by, "at": _now()}
     with open(CANDIDATES_FILE, "a", encoding="utf-8") as f:
         f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+    # ★ 同步能力注册表：proposed → approved_pending_install（等 P3 安装）
+    try:
+        import capabilities as _caps
+        _cid = candidate_capability_id(c)
+        if _caps.get_capability(_cid):
+            _caps.set_status(_cid, "approved_pending_install")
+            rec["capability_id"] = _cid
+    except Exception:
+        pass
     return rec

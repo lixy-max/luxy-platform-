@@ -21,11 +21,13 @@ KBS = [("bcpcn", "BCPCN 协议知识"), ("kb_toolchain", "平台工具链")]
 
 class TestPrompt(unittest.TestCase):
     def test_build_prompt_contains_assets(self):
-        p = swarm.build_prompt(CAPS, KBS)
+        with mock.patch.object(swarm, "_models_text", return_value="模型基准库测试文本"):
+            p = swarm.build_prompt(CAPS, KBS)
         self.assertIn("lora:agri_expert_v1", p)
         self.assertIn("bcpcn", p)
         self.assertIn("capability_id", p)
         self.assertIn("chimera", p)
+        self.assertIn("模型基准库测试文本", p)
 
     def test_kb_allow_default(self):
         self.assertIn("bcpcn", swarm.KB_ALLOW)
