@@ -39,6 +39,10 @@
 | B047 | P2 | fixed | training | PEFT + gradient_checkpointing 冲突：'tensor does not require grad'，训练首步崩溃 | S17 |
 | B048 | P2 | fixed | training | 工作流作者训练/推理 prompt 不同构：v1 基座与 LoRA 输出的 workflow JSON 均过不了 lint（0%） | S17 |
 | B049 | P2 | fixed | training | DeepSeek 生成作者数据时多数 JSON 解析失败（初始 prompt 过松/输出含解释） | S17 |
+| B050 | P2 | parked | runtime | SGLang 0.5.22 在 5060Ti(sm_120) 上 DeepGEMM JIT 初始化崩溃 | S18-eval |
+| B051 | P2 | parked | runtime | SGLang 0.5.22 加载 Qwen3.8-27B AWQ-INT4 失败：marlin repack size_n=96 非 64 倍数 | S18-eval |
+| B052 | P2 | parked | runtime | SGLang 0.5.22 `--cpu-offload-gb` 加载 Qwen3.8 报 device mismatch（cuda:0 vs cpu） | S18-eval |
+| B053 | P2 | parked | runtime | SGLang 0.5.22 GGUF 加载器不认识 qwen3_5_text（Qwen3.8 架构） | S18-eval |
 | B001 | P3 | fixed | frontend | 前端任务表无自动轮询，执行后需手动刷新 | S2 |
 | B008 | P3 | parked | security | vLLM 未启用 api-key（仅绑定回环） | P0 |
 | B009 | P3 | wontfix | infra | /vllm/start 冷启动 26–28s（未优化） | P7 |
@@ -222,6 +226,26 @@
 - 区域：training ｜ 严重度：P2 ｜ 状态：fixed
 - 发现于：S17 ｜ 登记：2026-10-27T00:54:47
 - 详情：初次 12 任务仅 2 条解析成功；已修：prompt 加严格 JSON 格式示例 + max_tokens 4096 + 失败重试；复跑 12/12 成功。
+
+### B050 · SGLang 0.5.22 在 5060Ti(sm_120) 上 DeepGEMM JIT 初始化崩溃
+- 区域：runtime ｜ 严重度：P2 ｜ 状态：parked
+- 发现于：S18-eval ｜ 登记：2026-10-27T09:19:59
+- 详情：实测 `deep_gemm::init_jit` SIGQUIT；需 SGLANG_ENABLE_JIT_DEEPGEMM=0 等规避。属外部框架兼容问题。
+
+### B051 · SGLang 0.5.22 加载 Qwen3.8-27B AWQ-INT4 失败：marlin repack size_n=96 非 64 倍数
+- 区域：runtime ｜ 严重度：P2 ｜ 状态：parked
+- 发现于：S18-eval ｜ 登记：2026-10-27T09:19:59
+- 详情：`gptq_marlin_repack: size_n = 96 is not divisible by tile_n_size = 64`；Qwen3.8 96 维投影与 marlin kernel 不兼容。
+
+### B052 · SGLang 0.5.22 `--cpu-offload-gb` 加载 Qwen3.8 报 device mismatch（cuda:0 vs cpu）
+- 区域：runtime ｜ 严重度：P2 ｜ 状态：parked
+- 发现于：S18-eval ｜ 登记：2026-10-27T09:19:59
+- 详情：GemmaNorm 权重加载器 torch.add 跨设备；offload 路径不可用。
+
+### B053 · SGLang 0.5.22 GGUF 加载器不认识 qwen3_5_text（Qwen3.8 架构）
+- 区域：runtime ｜ 严重度：P2 ｜ 状态：parked
+- 发现于：S18-eval ｜ 登记：2026-10-27T09:19:59
+- 详情：`Unknown gguf model_type: qwen3_5_text`；SGLang GGUF 路径暂不支持 Qwen3.8。
 
 ### B001 · 前端任务表无自动轮询，执行后需手动刷新
 - 区域：frontend ｜ 严重度：P3 ｜ 状态：fixed
