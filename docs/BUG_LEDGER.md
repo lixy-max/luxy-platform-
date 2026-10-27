@@ -66,6 +66,7 @@
 | B028 | P3 | fixed | chimera | GitHub raw 抓取不稳定（60s 超时）：已加 jsDelivr/GitHub API 镜像回退 | S8 |
 | B032 | P3 | parked | route_table | 任务表对话隔离是组织级（conversation_id 由客户端 URL/localStorage 指定），非服务端鉴权隔离 | S14 |
 | B057 | P3 | fixed | hive_pool | S19 卸载计数未累计（stats.unloads 恒为 0） | S19 |
+| B061 | P3 | fixed | hive_sim | 仿真压测流量刷爆决策审计日志（2525 行，最近 200 行全是 sim） | S22 |
 
 ## 详细说明
 
@@ -368,3 +369,8 @@
 - 区域：hive_pool ｜ 严重度：P3 ｜ 状态：fixed
 - 发现于：S19 ｜ 登记：2026-10-27T09:45:00
 - 详情：LRU 卸载成功但未计入 unloads；已修。
+
+### B061 · 仿真压测流量刷爆决策审计日志（2525 行，最近 200 行全是 sim）
+- 区域：hive_sim ｜ 严重度：P3 ｜ 状态：fixed
+- 发现于：S22 ｜ 登记：2026-10-27T10:20:13
+- 详情：S22 仿真节点 1257 请求全部走 /hive/decide S1 规则并写审计 → 审计日志被 sim 刷满，导致架构检查（最近 200 行需 ≥2 类 target）误判 partial。已修：S1 规则决策审计按每 50 条采样一次；架构检查窗口扩到最近 2000 行。

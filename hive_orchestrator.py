@@ -26,6 +26,9 @@ LLM_MODEL = os.environ.get("HIVE_MODEL", "")
 LLM_TIMEOUT = float(os.environ.get("HIVE_LLM_TIMEOUT_S", "180"))
 MAX_RETRIES = int(os.environ.get("HIVE_MAX_RETRIES", "2"))
 MAX_TOKENS = int(os.environ.get("HIVE_MAX_TOKENS", "1200"))
+# 仿真压测会高频走 S1 规则 → 审计按 N 条采样一次，避免日志刷爆
+_AUDIT_SIM_N = max(1, int(os.environ.get("HIVE_SIM_AUDIT_EVERY", "50")))
+_audit_sim_counter = 0
 
 # Sim 关键词（政策 S1：命中即 sim，不交给 LLM 猜）
 SIM_KEYWORDS = [
@@ -599,9 +602,13 @@ def decide(request, context="", use_llm=True, max_retries=MAX_RETRIES):
         d["confidence"] = 0.95
         d["reason_trace"] = ["S1: 请求含压测/并发/模拟/合成/脏数据关键词 → sim"]
         meta.update({"fallback": False, "rule": "S1", "latency_ms": round((time.time() - t0) * 1000)})
-        rec = {"at": time.strftime("%Y-%m-%dT%H:%M:%S"), "request": request[:500],
-               "context": str(context or "")[:300], "decision": d, "meta": meta}
-        _audit(rec)
+        global _audit_sim_counter
+        _audit_sim_counter += 1
+        if _audit_sim_counter % _AUDIT_SIM_N == 1:
+            meta["audit_sampled"] = "1/%d" % _AUDIT_SIM_N
+            rec = {"at": time.strftime("%Y-%m-%dT%H:%M:%S"), "request": request[:500],
+                   "context": str(context or "")[:300], "decision": d, "meta": meta}
+            _audit(rec)
         return {"ok": True, "decision": d, "meta": meta, "inventory_digest": inv_digest}
 
     errors = []
