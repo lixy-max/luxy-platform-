@@ -602,6 +602,15 @@ def decide(request, context="", use_llm=True, max_retries=MAX_RETRIES):
     request = str(request or "").strip()
     t0 = time.time()
     inventory = build_inventory()
+    _cap_plan = {}
+    _cap_ctx = ""
+    try:
+        import capability_registry as _cr
+        import kb_layers as _kbl
+        _cap_plan = _cr.plan_for_task(request)
+        _cap_ctx = _kbl.mandatory_context()
+    except Exception:
+        _cap_plan, _cap_ctx = {}, ""
     _mem_ctx = ""
     try:
         import hive_memory as _mem2
@@ -618,7 +627,10 @@ def decide(request, context="", use_llm=True, max_retries=MAX_RETRIES):
     meta = {"attempts": 0, "llm_used": False, "fallback": False,
             "validation_errors": [], "repaired": False,
             "llm": {}, "model": _model_name(),
-            "memory_used": bool(_mem_ctx), "memory_chars": len(_mem_ctx)}
+            "memory_used": bool(_mem_ctx), "memory_chars": len(_mem_ctx),
+            "capability_verdict": _cap_plan.get("verdict"),
+            "capability_coverage": _cap_plan.get("coverage"),
+            "gap_tags": _cap_plan.get("gap_tags")}
     if not request:
         return {"ok": False, "error": "request 必填", "meta": meta}
 
@@ -648,9 +660,10 @@ def decide(request, context="", use_llm=True, max_retries=MAX_RETRIES):
                     .replace("{inventory}", json.dumps(inventory, ensure_ascii=False)))
             messages = [
                 {"role": "system", "content": _sys},
-                {"role": "user", "content": "请求：%s%s%s" % (
+                {"role": "user", "content": "请求：%s%s%s%s" % (
                     request,
                     ("\n\n补充背景：\n" + str(context)[:2000]) if context else "",
+                    ("\n\n" + _cap_ctx) if _cap_ctx else "",
                     ("\n\n" + _mem_ctx) if _mem_ctx else "")},
             ]
             if errors:
@@ -683,7 +696,7 @@ def decide(request, context="", use_llm=True, max_retries=MAX_RETRIES):
                        "meta": meta}
                 _audit(rec)
                 return {"ok": True, "decision": normalized, "meta": meta,
-                        "inventory_digest": inv_digest}
+                        "capability_plan": _cap_plan, "inventory_digest": inv_digest}
             errors = errs
         meta["validation_errors"] = last_errors
 
@@ -697,7 +710,7 @@ def decide(request, context="", use_llm=True, max_retries=MAX_RETRIES):
     rec = {"at": time.strftime("%Y-%m-%dT%H:%M:%S"), "request": request[:500],
            "context": str(context or "")[:300], "decision": d, "meta": meta}
     _audit(rec)
-    return {"ok": True, "decision": d, "meta": meta,
+    return {"ok": True, "decision": d, "meta": meta, "capability_plan": _cap_plan,
             "inventory_digest": inv_digest, "warning": "LLM 决策失败，已规则兜底"}
 
 

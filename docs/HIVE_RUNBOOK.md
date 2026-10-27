@@ -101,3 +101,18 @@ setsid nohup env VLLM_USE_FLASHINFER_SAMPLER=0 /home/luxy/.venv/bin/python -c \
 - [x] 仿真压测 + 脏数据隔离（KB 零写入）
 - [x] 主脑路由临时知识库（语义检索 + 上下文注入 + TTL）
 - [x] 全量测试 1242 OK（S23 时点）
+
+
+## 7. L2 能力体系（S24 起）
+
+| 端点 | 方法 | 说明 |
+|---|---|---|
+| `/hive/capability/seed` | POST | 登记 LoRA/工具/KB/工作流/云端模型/数据源到能力基线库 |
+| `/hive/capability/stats|list|query?task=` | GET | 统计/列表/任务能力判定（local/cloud/sim/unknown + gap_tags） |
+| `/hive/capability/register` | POST | 手动登记能力（evidence/mount/ACL） |
+| `/hive/kb/context?task=&worker=` | GET | 分层上下文（L0/L0.5 必读 + L1/L2 挂载 + L3 数据源 + ACL 过滤） |
+| `/hive/kb/data_sources` | GET/POST | L3 数据源注册（schema/ACL/敏感度；不 embed 原始数据） |
+| `/hive/manifest/validate|absorb` | POST | 云端能力包校验/评分（direct/rebuild/train/deny）/吸收注册 shadow |
+| `/hive/manifest/list` | GET | 已落盘 Manifest |
+
+数据：`data/hive/capability.db` · `data/hive/data_sources.json` · `data/hive/manifests/` · `data/hive/s24_acceptance.json`

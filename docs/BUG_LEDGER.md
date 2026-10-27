@@ -50,6 +50,7 @@
 | B059 | P2 | fixed | hive_hotload | S22 热加载 register 未校验坏 adapter/家族不匹配（坏路径也能 shadow） | S22 |
 | B060 | P2 | parked | hive_autotune | S21 自动训练默认 1.5B adapter 无法热加载到 7B 工蜂（训练与工蜂基座不一致） | S22 |
 | B062 | P2 | fixed | hive_memory | 临时知识库记忆实现问题：语义检索返回 tuple 误当 dict + 并发建库竞态 + 中文整句 LIKE 不命中 | S23 |
+| B063 | P2 | fixed | hive_capability | S24 能力判定初版规则问题：token 匹配缺失 / sim 未优先 / 硬缺口未强制云端 | S24 |
 | B001 | P3 | fixed | frontend | 前端任务表无自动轮询，执行后需手动刷新 | S2 |
 | B008 | P3 | parked | security | vLLM 未启用 api-key（仅绑定回环） | P0 |
 | B009 | P3 | wontfix | infra | /vllm/start 冷启动 26–28s（未优化） | P7 |
@@ -290,6 +291,11 @@
 - 区域：hive_memory ｜ 严重度：P2 ｜ 状态：fixed
 - 发现于：S23 ｜ 登记：2026-10-27T10:28:06
 - 详情：1) kb.query_kb_detailed 返回 (results, diag)，初版按 dict 取 results → 'tuple' has no attr get；2) 3 条决策并发异步写动态 KB → create_kb 竞态报已存在；3) 中文关键词检索用整句 LIKE（'表格 排序'匹配不到'把表格按单价排序'）。已修：适配 tuple 返回、KB 写入加锁、token 重叠打分检索（中英 2-gram）。
+
+### B063 · S24 能力判定初版规则问题：token 匹配缺失 / sim 未优先 / 硬缺口未强制云端
+- 区域：hive_capability ｜ 严重度：P2 ｜ 状态：fixed
+- 发现于：S24 ｜ 登记：2026-10-27T10:57:46
+- 详情：初版 20 任务判定仅 17/20（85%）：① skill.sheet_ops 等抽象能力无法用整串匹配 tags；② 脏数据任务因同时命中 knowledge 规则被误判 local；③ 合同/法规知识型缺口只判 partial。已修：token 重叠匹配、sim 需求优先、knowledge/model/data 硬缺口→cloud、scope 感知。复测 20/20=100%。
 
 ### B001 · 前端任务表无自动轮询，执行后需手动刷新
 - 区域：frontend ｜ 严重度：P3 ｜ 状态：fixed

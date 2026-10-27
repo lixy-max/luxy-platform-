@@ -501,6 +501,44 @@ def _check_hive_memory():
         return "missing", {"error": str(e)[:200]}
 
 
+
+def _check_hive_capability():
+    """S24：能力基线库 + KB 分层 + 云端 Manifest（L2 地基）"""
+    try:
+        cr = PROJECT_DIR / "capability_registry.py"
+        kbl = PROJECT_DIR / "kb_layers.py"
+        cm = PROJECT_DIR / "capability_manifest.py"
+        lm = (PROJECT_DIR / "lora_manager.py").read_text(encoding="utf-8", errors="ignore")
+        ev = {"registry": cr.exists(), "kb_layers": kbl.exists(),
+              "manifest": cm.exists(),
+              "api": "/hive/capability/query" in lm and "/hive/manifest/absorb" in lm
+                     and "/hive/kb/context" in lm}
+        live = PROJECT_DIR / "data" / "hive" / "s24_acceptance.json"
+        if live.exists():
+            d = json.loads(live.read_text(encoding="utf-8"))
+            ev["capabilities"] = (d.get("stats") or {}).get("total")
+            ev["classification_accuracy"] = d.get("accuracy")
+            kc = d.get("kb_context") or {}
+            ev["must_read"] = ((kc.get("w1") or {}).get("mount") or {}).get("must_read")
+            ev["acl_dropped"] = bool(((kc.get("no_worker") or {}).get("mount") or {})
+                                     .get("dropped_by_acl"))
+            ev["manifest_absorbed"] = bool(((d.get("manifest") or {}).get("absorb") or {})
+                                          .get("ok"))
+        ok = ev["registry"] and ev["kb_layers"] and ev["manifest"] and ev["api"]
+        if ok and (ev.get("capabilities") or 0) >= 80 and \
+                (ev.get("classification_accuracy") or 0) >= 0.85 and \
+                "L0" in (ev.get("must_read") or []) and ev.get("acl_dropped") and \
+                ev.get("manifest_absorbed"):
+            return "pass", ev
+        if ok:
+            ev["gap"] = "L2 模块/接口就绪，但缺少 20 任务判定/KB 挂载/Manifest 吸收实测证据"
+            return "partial", ev
+        ev["gap"] = "S24 能力基线库/KB 分层/Manifest 未就绪"
+        return "missing", ev
+    except Exception as e:
+        return "missing", {"error": str(e)[:200]}
+
+
 CHECKS = [
     ("brain", "主脑路由（14B 可用）", _check_brain),
     ("route_table", "级联路由任务表（本地/云端/移植）", _check_route_table),
@@ -520,6 +558,7 @@ CHECKS = [
     ("hive_hotload", "热加载流水线（S22：shadow/灰度/回滚）", _check_hive_hotload),
     ("hive_sim", "仿真节点（S22：压测/合成数据/脏数据隔离）", _check_hive_sim),
     ("hive_memory", "主脑路由临时知识库（S23：上下文记录/语义检索/TTL）", _check_hive_memory),
+    ("hive_capability", "能力基线库 + KB 分层 + 云端 Manifest（S24 · L2 地基）", _check_hive_capability),
 ]
 
 

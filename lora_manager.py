@@ -6891,6 +6891,92 @@ def hive_memory_clear():
     return _mem.clear()
 
 
+# ── S24：能力基线库 / KB 分层 / 云端 Manifest ──
+class HiveCapRegisterRequest(BaseModel):
+    capability: dict
+
+
+class HiveManifestRequest(BaseModel):
+    manifest: dict
+    dry_run: bool = True
+
+
+class HiveDataSourceRequest(BaseModel):
+    source: dict
+
+
+@app.post("/hive/capability/seed")
+def hive_capability_seed():
+    import capability_registry as _cr
+    return _cr.seed_from_platform()
+
+
+@app.get("/hive/capability/stats")
+def hive_capability_stats():
+    import capability_registry as _cr
+    return {"ok": True, **_cr.stats()}
+
+
+@app.get("/hive/capability/list")
+def hive_capability_list(kind: str = "", status: str = "", tag: str = "", limit: int = 200):
+    import capability_registry as _cr
+    return {"ok": True, "capabilities": _cr.list_caps(
+        kind=kind or None, status=status or None, tag=tag or None, limit=limit)}
+
+
+@app.get("/hive/capability/query")
+def hive_capability_query(task: str):
+    import capability_registry as _cr
+    return {"ok": True, **_cr.plan_for_task(task)}
+
+
+@app.post("/hive/capability/register")
+def hive_capability_register(req: HiveCapRegisterRequest):
+    import capability_registry as _cr
+    return _cr.register(req.capability)
+
+
+@app.get("/hive/kb/context")
+def hive_kb_context(task: str, worker: str = "w1"):
+    import capability_registry as _cr
+    import kb_layers as _kbl
+    plan = _cr.plan_for_task(task)
+    return {"ok": True, "plan": plan,
+            "context": _kbl.context_bundle(task, plan, worker=worker)}
+
+
+@app.get("/hive/kb/data_sources")
+def hive_kb_data_sources(worker: str = ""):
+    import kb_layers as _kbl
+    return {"ok": True, "sources": _kbl.data_sources(worker or None),
+            "stats": _kbl.stats()}
+
+
+@app.post("/hive/kb/data_sources")
+def hive_kb_data_source_register(req: HiveDataSourceRequest):
+    import kb_layers as _kbl
+    return _kbl.register_data_source(req.source)
+
+
+@app.get("/hive/manifest/list")
+def hive_manifest_list(limit: int = 20):
+    import capability_manifest as _cm
+    return {"ok": True, "manifests": _cm.list_manifests(limit), "stats": _cm.stats()}
+
+
+@app.post("/hive/manifest/validate")
+def hive_manifest_validate(req: HiveManifestRequest):
+    import capability_manifest as _cm
+    return {"ok": True, "errors": _cm.validate_manifest(req.manifest),
+            "score": _cm.score_compat(req.manifest)}
+
+
+@app.post("/hive/manifest/absorb")
+def hive_manifest_absorb(req: HiveManifestRequest):
+    import capability_manifest as _cm
+    return _cm.absorb(req.manifest, dry_run=req.dry_run)
+
+
 @app.get("/orchestrate/capabilities")
 def orchestrate_capabilities():
     """★ 平台能力清单（DSH 用来自我发现 ✓）
