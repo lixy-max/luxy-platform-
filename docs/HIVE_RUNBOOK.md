@@ -116,3 +116,16 @@ setsid nohup env VLLM_USE_FLASHINFER_SAMPLER=0 /home/luxy/.venv/bin/python -c \
 | `/hive/manifest/list` | GET | 已落盘 Manifest |
 
 数据：`data/hive/capability.db` · `data/hive/data_sources.json` · `data/hive/manifests/` · `data/hive/s24_acceptance.json`
+
+
+## 8. L2 能力吸收（S25 起）
+
+| 端点 | 方法 | 说明 |
+|---|---|---|
+| `/hive/manifest/import` | POST | 吸收能力包：auto/direct/rebuild/train；沙箱验证 + 门禁（smoke/eval/延迟/安全） |
+| `/hive/imports` | GET | 吸收记录（状态/门禁/证据/训练计划） |
+| `/hive/imports/run` | POST | 执行已吸收的 direct 能力（沙箱内真实运行） |
+| `/hive/imports/stats` | GET | 沙箱/吸收统计 |
+
+状态语义：`active`（direct 通过，可直接调用）· `shadow`（rebuild 骨架待开发+评测）· `pending_training`（train 计划待训练）· `rejected`（门禁/安全/评分拒绝，注册 broken 留痕）。
+数据：`data/hive/sandbox/<capability_id>/`（代码/workflow/运行环境）· `data/hive/imports/<capability_id>.json`（门禁证据）。

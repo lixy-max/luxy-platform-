@@ -539,6 +539,43 @@ def _check_hive_capability():
         return "missing", {"error": str(e)[:200]}
 
 
+
+def _check_hive_importer():
+    """S25：Manifest importer + 沙箱验证 + 三种吸收模式"""
+    try:
+        mod = PROJECT_DIR / "capability_importer.py"
+        sandbox = PROJECT_DIR / "data" / "hive" / "sandbox"
+        imports = PROJECT_DIR / "data" / "hive" / "imports"
+        lm = (PROJECT_DIR / "lora_manager.py").read_text(encoding="utf-8", errors="ignore")
+        ev = {"module": mod.exists(),
+              "sandbox_dir": sandbox.exists(),
+              "import_dir": imports.exists(),
+              "api": "/hive/manifest/import" in lm and "/hive/imports/run" in lm}
+        live = PROJECT_DIR / "data" / "hive" / "s25_acceptance.json"
+        if live.exists():
+            d = json.loads(live.read_text(encoding="utf-8"))
+            direct = d.get("direct") or {}
+            dr = direct.get("run") or {}
+            ev["direct_active"] = (direct.get("import") or {}).get("status") == "active"
+            ev["direct_runs"] = bool(dr.get("ok"))
+            ev["rebuild_shadow"] = (d.get("rebuild") or {}).get("status") == "shadow"
+            ev["train_pending"] = (d.get("train") or {}).get("status") == "pending_training"
+            ev["reject_blocked"] = (d.get("reject") or {}).get("status") == "rejected"
+            ev["imports"] = len((d.get("imports") or {}).get("imports") or [])
+        ok = ev["module"] and ev["api"]
+        if ok and ev.get("direct_active") and ev.get("direct_runs") and \
+                ev.get("rebuild_shadow") and ev.get("train_pending") and \
+                ev.get("reject_blocked") and (ev.get("imports") or 0) >= 4:
+            return "pass", ev
+        if ok:
+            ev["gap"] = "importer 就绪，但缺少三种吸收模式/沙箱执行/安全拒绝实测证据"
+            return "partial", ev
+        ev["gap"] = "S25 Manifest importer 未就绪"
+        return "missing", ev
+    except Exception as e:
+        return "missing", {"error": str(e)[:200]}
+
+
 CHECKS = [
     ("brain", "主脑路由（14B 可用）", _check_brain),
     ("route_table", "级联路由任务表（本地/云端/移植）", _check_route_table),
@@ -559,6 +596,7 @@ CHECKS = [
     ("hive_sim", "仿真节点（S22：压测/合成数据/脏数据隔离）", _check_hive_sim),
     ("hive_memory", "主脑路由临时知识库（S23：上下文记录/语义检索/TTL）", _check_hive_memory),
     ("hive_capability", "能力基线库 + KB 分层 + 云端 Manifest（S24 · L2 地基）", _check_hive_capability),
+    ("hive_importer", "Manifest 吸收 + 沙箱门禁 + 三种模式（S25）", _check_hive_importer),
 ]
 
 

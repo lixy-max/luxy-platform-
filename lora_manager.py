@@ -6977,6 +6977,42 @@ def hive_manifest_absorb(req: HiveManifestRequest):
     return _cm.absorb(req.manifest, dry_run=req.dry_run)
 
 
+# ── S25：Manifest importer + 沙箱验证 + 三种吸收模式 ──
+class HiveManifestImportRequest(BaseModel):
+    manifest: dict
+    mode: str = "auto"
+    dry_run: bool = False
+
+
+class HiveImportRunRequest(BaseModel):
+    capability_id: str
+    payload: dict = {}
+
+
+@app.post("/hive/manifest/import")
+def hive_manifest_import(req: HiveManifestImportRequest):
+    import capability_importer as _imp
+    return _imp.import_manifest(req.manifest, mode=req.mode, dry_run=req.dry_run)
+
+
+@app.get("/hive/imports")
+def hive_imports(limit: int = 20):
+    import capability_importer as _imp
+    return {"ok": True, "imports": _imp.list_imports(limit), "stats": _imp.stats()}
+
+
+@app.get("/hive/imports/stats")
+def hive_imports_stats():
+    import capability_importer as _imp
+    return {"ok": True, **_imp.stats()}
+
+
+@app.post("/hive/imports/run")
+def hive_imports_run(req: HiveImportRunRequest):
+    import capability_importer as _imp
+    return _imp.run_absorbed(req.capability_id, req.payload)
+
+
 @app.get("/orchestrate/capabilities")
 def orchestrate_capabilities():
     """★ 平台能力清单（DSH 用来自我发现 ✓）
