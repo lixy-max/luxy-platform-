@@ -404,6 +404,68 @@ def _check_hive_autotune():
         return "missing", {"error": str(e)[:200]}
 
 
+
+def _check_hive_hotload():
+    """S22：热加载流水线（shadow/灰度/回滚）"""
+    try:
+        hl = PROJECT_DIR / "hive_hotload.py"
+        lm = (PROJECT_DIR / "lora_manager.py").read_text(encoding="utf-8", errors="ignore")
+        ev = {"module": hl.exists(),
+              "api": "/hive/hotload/register" in lm and "/hive/hotload/rollback" in lm}
+        live = PROJECT_DIR / "data" / "hive" / "s22_live_test.json"
+        if live.exists():
+            d = json.loads(live.read_text(encoding="utf-8"))
+            ev["eval_passed"] = (d.get("evaluate") or {}).get("passed")
+            cr = d.get("canary_route") or {}
+            ev["canary_ratio"] = cr.get("ratio")
+            ev["promote_active"] = ((d.get("promote_active") or {}).get("candidate") or {}).get("status")
+            ev["rollback"] = ((d.get("rollback") or {}).get("candidate") or {}).get("status")
+            ev["rejected_broken"] = (d.get("register_broken") or {}).get("ok") is False
+        if ev["module"] and ev["api"]:
+            if ev.get("eval_passed") and ev.get("promote_active") == "active" \
+                    and ev.get("rollback") == "rolled_back" and ev.get("rejected_broken"):
+                return "pass", ev
+            ev["gap"] = "热加载模块/接口就绪，但缺少 shadow→灰度→晋级→回滚完整实测证据"
+            return "partial", ev
+        ev["gap"] = "S22 热加载流水线未就绪"
+        return "missing", ev
+    except Exception as e:
+        return "missing", {"error": str(e)[:200]}
+
+
+def _check_hive_sim():
+    """S22：仿真节点（压测/合成数据/脏数据隔离）"""
+    try:
+        mod = PROJECT_DIR / "hive_sim.py"
+        lm = (PROJECT_DIR / "lora_manager.py").read_text(encoding="utf-8", errors="ignore")
+        ev = {"module": mod.exists(),
+              "api": "/hive/sim/run" in lm and "/hive/sim/reports" in lm}
+        live = PROJECT_DIR / "data" / "hive" / "s22_live_test.json"
+        if live.exists():
+            d = json.loads(live.read_text(encoding="utf-8"))
+            tr = (d.get("traffic") or {}).get("traffic") or {}
+            ev["qps"] = tr.get("qps")
+            ev["requests"] = tr.get("requests")
+            ev["error_rate"] = tr.get("error_rate")
+            dr = (d.get("dirty") or {}).get("dirty") or {}
+            ev["dirty_injected"] = dr.get("injected")
+            ev["dirty_quarantined"] = dr.get("quarantined")
+            ev["kb_written"] = dr.get("kb_written")
+        if ev["module"] and ev["api"]:
+            ok_dirty = ev.get("dirty_injected") and \
+                ev.get("dirty_quarantined") == ev.get("dirty_injected") and \
+                ev.get("kb_written") is False
+            ok_traffic = (ev.get("requests") or 0) > 100 and (ev.get("error_rate") or 0) == 0
+            if ok_dirty and ok_traffic:
+                return "pass", ev
+            ev["gap"] = "仿真模块/接口就绪，但缺少压测/脏数据隔离合格证据"
+            return "partial", ev
+        ev["gap"] = "S22 仿真节点未就绪"
+        return "missing", ev
+    except Exception as e:
+        return "missing", {"error": str(e)[:200]}
+
+
 CHECKS = [
     ("brain", "主脑路由（14B 可用）", _check_brain),
     ("route_table", "级联路由任务表（本地/云端/移植）", _check_route_table),
@@ -420,6 +482,8 @@ CHECKS = [
     ("hive_pool", "Worker Pool + LoRA Router（S19：热加载/LRU/能力路由）", _check_hive_pool),
     ("hive_failover", "Failover 阈值 + 云端教师 + 轨迹回收（S20）", _check_hive_failover),
     ("hive_autotune", "轨迹质检 + 训练调度 + 阈值自动训练（S21）", _check_hive_autotune),
+    ("hive_hotload", "热加载流水线（S22：shadow/灰度/回滚）", _check_hive_hotload),
+    ("hive_sim", "仿真节点（S22：压测/合成数据/脏数据隔离）", _check_hive_sim),
 ]
 
 

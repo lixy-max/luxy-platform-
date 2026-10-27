@@ -6751,6 +6751,102 @@ def hive_train_jobs(limit: int = 10):
     return {"ok": True, "jobs": _tr.list_jobs(limit)}
 
 
+# ── S22：热加载流水线（shadow/灰度/回滚） + 仿真节点 ──
+class HiveHotloadRequest(BaseModel):
+    lora_id: str
+    ratio: float = 0.05
+
+
+class HiveHotloadEvalRequest(BaseModel):
+    lora_id: str
+    max_tokens: int = 64
+    min_quality: float = 0.0
+
+
+class HiveCanaryRouteRequest(BaseModel):
+    active_lora: str = "base"
+    request: str = ""
+
+
+class HiveSimRequest(BaseModel):
+    scenario: str = "http_concurrent"
+    users: int = 0
+    duration_s: int = 0
+    n: int = 0
+    dirty_policy: str = "quarantine"
+    target: str = ""
+    use_llm: bool = False
+
+
+@app.post("/hive/hotload/register")
+def hive_hotload_register(req: HiveHotloadRequest):
+    import hive_hotload as _hl
+    return _hl.register_candidate(req.lora_id)
+
+
+@app.post("/hive/hotload/evaluate")
+def hive_hotload_evaluate(req: HiveHotloadEvalRequest):
+    import hive_hotload as _hl
+    return _hl.evaluate(req.lora_id, max_tokens=req.max_tokens,
+                        min_quality=req.min_quality or None)
+
+
+@app.post("/hive/hotload/promote")
+def hive_hotload_promote(req: HiveHotloadRequest):
+    import hive_hotload as _hl
+    return _hl.promote(req.lora_id, ratio=req.ratio)
+
+
+@app.post("/hive/hotload/promote_active")
+def hive_hotload_promote_active(req: HiveHotloadRequest):
+    import hive_hotload as _hl
+    return _hl.promote_active(req.lora_id)
+
+
+@app.post("/hive/hotload/rollback")
+def hive_hotload_rollback(req: HiveHotloadRequest):
+    import hive_hotload as _hl
+    return _hl.rollback(req.lora_id, reason="api")
+
+
+@app.get("/hive/hotload/status")
+def hive_hotload_status():
+    import hive_hotload as _hl
+    return _hl.status()
+
+
+@app.post("/hive/hotload/route")
+def hive_hotload_route(req: HiveCanaryRouteRequest):
+    import hive_hotload as _hl
+    return _hl.route_with_canary(req.active_lora, req.request)
+
+
+@app.post("/hive/hotload/pipeline")
+def hive_hotload_pipeline(req: HiveHotloadRequest):
+    import hive_hotload as _hl
+    return _hl.pipeline(req.lora_id, ratio=req.ratio)
+
+
+@app.post("/hive/sim/run")
+def hive_sim_run(req: HiveSimRequest):
+    import hive_sim as _sim
+    return _sim.run(req.scenario, users=req.users, duration_s=req.duration_s,
+                    n=req.n, dirty_policy=req.dirty_policy, target=req.target,
+                    use_llm=req.use_llm)
+
+
+@app.get("/hive/sim/reports")
+def hive_sim_reports(limit: int = 10):
+    import hive_sim as _sim
+    return {"ok": True, "reports": _sim.list_reports(limit)}
+
+
+@app.get("/hive/sim/stats")
+def hive_sim_stats():
+    import hive_sim as _sim
+    return {"ok": True, **_sim.stats()}
+
+
 @app.get("/orchestrate/capabilities")
 def orchestrate_capabilities():
     """★ 平台能力清单（DSH 用来自我发现 ✓）

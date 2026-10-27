@@ -47,6 +47,8 @@
 | B053 | P2 | parked | runtime | SGLang 0.5.22 GGUF 加载器不认识 qwen3_5_text（Qwen3.8 架构） | S18-eval |
 | B054 | P2 | fixed | hive_router | S18 三路由初版把高风险/时效任务误判为 local（应为 cloud） | S18 |
 | B056 | P2 | fixed | hive_pool | S19 LRU 驱逐 in-flight LoRA 导致 chat 404（model does not exist） | S19 |
+| B059 | P2 | fixed | hive_hotload | S22 热加载 register 未校验坏 adapter/家族不匹配（坏路径也能 shadow） | S22 |
+| B060 | P2 | parked | hive_autotune | S21 自动训练默认 1.5B adapter 无法热加载到 7B 工蜂（训练与工蜂基座不一致） | S22 |
 | B001 | P3 | fixed | frontend | 前端任务表无自动轮询，执行后需手动刷新 | S2 |
 | B008 | P3 | parked | security | vLLM 未启用 api-key（仅绑定回环） | P0 |
 | B009 | P3 | wontfix | infra | /vllm/start 冷启动 26–28s（未优化） | P7 |
@@ -271,6 +273,16 @@
 - 区域：hive_pool ｜ 严重度：P2 ｜ 状态：fixed
 - 发现于：S19 ｜ 登记：2026-10-27T09:45:00
 - 详情：并发时 ensure_loaded 返回后、chat 前被其他线程卸载；已修：pin + 重试 + 写锁串行化加载。
+
+### B059 · S22 热加载 register 未校验坏 adapter/家族不匹配（坏路径也能 shadow）
+- 区域：hive_hotload ｜ 严重度：P2 ｜ 状态：fixed
+- 发现于：S22 ｜ 登记：2026-10-27T10:19:03
+- 详情：实测 swk_persona_v1（路径缺失）注册成功 → 进入 shadow 后评测会失败。已修：register_candidate 校验 path_exists/has_adapter_config + base 家族匹配（不匹配拒绝，可 allow_mismatch 绕过）。
+
+### B060 · S21 自动训练默认 1.5B adapter 无法热加载到 7B 工蜂（训练与工蜂基座不一致）
+- 区域：hive_autotune ｜ 严重度：P2 ｜ 状态：parked
+- 发现于：S22 ｜ 登记：2026-10-27T10:19:03
+- 详情：HIVE_AUTOTUNE_BASE_MODEL 默认 Qwen2.5-1.5B，而工蜂 base=7B AWQ → 家族不匹配，S22 热加载会拒绝。S22 实测改用 7B 兼容 adapter（agri_expert_v1）完成流水线验证。
 
 ### B001 · 前端任务表无自动轮询，执行后需手动刷新
 - 区域：frontend ｜ 严重度：P3 ｜ 状态：fixed
