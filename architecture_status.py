@@ -264,6 +264,43 @@ def _check_cloud_build_distill():
         return "missing", {"error": str(e)[:200]}
 
 
+
+def _check_hive_router():
+    """S18：蜂巢中枢三路由（/hive/decide + JSON 决策审计）"""
+    try:
+        mod = PROJECT_DIR / "hive_orchestrator.py"
+        lm = (PROJECT_DIR / "lora_manager.py").read_text(encoding="utf-8", errors="ignore")
+        audit = PROJECT_DIR / "data" / "hive" / "decisions.jsonl"
+        ev = {"module": mod.exists(), "api": ('"/hive/decide"' in lm) or ("/hive/decide" in lm),
+              "audit_exists": audit.exists()}
+        targets = []
+        decisions = 0
+        if audit.exists():
+            import json as _j
+            for ln in audit.read_text(encoding="utf-8", errors="ignore").splitlines()[-200:]:
+                try:
+                    d = _j.loads(ln)
+                except Exception:
+                    continue
+                decisions += 1
+                t = ((d.get("decision") or {}).get("target"))
+                if t:
+                    targets.append(t)
+        ev["decisions"] = decisions
+        ev["targets"] = sorted(set(targets))
+        ev["sim_rules"] = ("SIM_KEYWORDS" in (mod.read_text(encoding="utf-8", errors="ignore")
+                                             if mod.exists() else ""))
+        if ev["module"] and ev["api"] and decisions >= 3 and len(set(targets)) >= 2:
+            return "pass", ev
+        if ev["module"] and ev["api"]:
+            ev["gap"] = "已有 /hive/decide，但决策审计样本不足（需 ≥3 条且覆盖 ≥2 类 target）"
+            return "partial", ev
+        ev["gap"] = "S18 中枢模块或接口未就绪"
+        return "missing", ev
+    except Exception as e:
+        return "missing", {"error": str(e)[:200]}
+
+
 CHECKS = [
     ("brain", "主脑路由（14B 可用）", _check_brain),
     ("route_table", "级联路由任务表（本地/云端/移植）", _check_route_table),
@@ -276,6 +313,7 @@ CHECKS = [
     ("governance", "治理与台账", _check_governance),
     ("conversation", "任务表对话隔离", _check_conversation_isolation),
     ("cloud_build", "缺失工作流→云端搭建→本地沉淀", _check_cloud_build_distill),
+    ("hive_router", "蜂巢中枢三路由（S18：Local/Cloud/Sim JSON 决策）", _check_hive_router),
 ]
 
 

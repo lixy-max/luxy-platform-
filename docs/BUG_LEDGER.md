@@ -43,6 +43,7 @@
 | B051 | P2 | parked | runtime | SGLang 0.5.22 加载 Qwen3.8-27B AWQ-INT4 失败：marlin repack size_n=96 非 64 倍数 | S18-eval |
 | B052 | P2 | parked | runtime | SGLang 0.5.22 `--cpu-offload-gb` 加载 Qwen3.8 报 device mismatch（cuda:0 vs cpu） | S18-eval |
 | B053 | P2 | parked | runtime | SGLang 0.5.22 GGUF 加载器不认识 qwen3_5_text（Qwen3.8 架构） | S18-eval |
+| B054 | P2 | fixed | hive_router | S18 三路由初版把高风险/时效任务误判为 local（应为 cloud） | S18 |
 | B001 | P3 | fixed | frontend | 前端任务表无自动轮询，执行后需手动刷新 | S2 |
 | B008 | P3 | parked | security | vLLM 未启用 api-key（仅绑定回环） | P0 |
 | B009 | P3 | wontfix | infra | /vllm/start 冷启动 26–28s（未优化） | P7 |
@@ -246,6 +247,11 @@
 - 区域：runtime ｜ 严重度：P2 ｜ 状态：parked
 - 发现于：S18-eval ｜ 登记：2026-10-27T09:19:59
 - 详情：`Unknown gguf model_type: qwen3_5_text`；SGLang GGUF 路径暂不支持 Qwen3.8。
+
+### B054 · S18 三路由初版把高风险/时效任务误判为 local（应为 cloud）
+- 区域：hive_router ｜ 严重度：P2 ｜ 状态：fixed
+- 发现于：S18 ｜ 登记：2026-10-27T09:34:07
+- 详情：首轮实测 9 例中 2 例误判：合同/法规审查、2026 最新论文 → local。已修：S3 后置规则（HIGH_RISK_RE 高风险审查 / TIME_SENSITIVE_RE 时效联网）强制 cloud；复测 9/9 正确、0 兜底。
 
 ### B001 · 前端任务表无自动轮询，执行后需手动刷新
 - 区域：frontend ｜ 严重度：P3 ｜ 状态：fixed

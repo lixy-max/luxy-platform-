@@ -6523,6 +6523,46 @@ def orchestrate_ep(req: OrchestrateRequest, execute: bool = False):
                 "hint": "orchestrator.py 需在项目根目录 ✓"}
 
 
+# ══════════════════════════════════════════════════════════
+# ★ S18：蜂巢中枢调度器（三路由 JSON 决策 / Local · Cloud · Sim）
+# ══════════════════════════════════════════════════════════
+class HiveDecideRequest(BaseModel):
+    request: str
+    context: str = ""
+    use_llm: bool = True
+
+
+class HiveDispatchRequest(BaseModel):
+    decision: dict = {}
+    context: str = ""
+
+
+@app.post("/hive/decide")
+def hive_decide(req: HiveDecideRequest):
+    """三路由决策：返回严格 JSON（local/cloud/sim）+ 校验/兜底/审计"""
+    import hive_orchestrator as _h
+    return _h.decide(req.request, req.context, use_llm=req.use_llm)
+
+
+@app.post("/hive/dispatch")
+def hive_dispatch(req: HiveDispatchRequest):
+    """执行入口（S18 为决策阶段；S19/S20/S22 接入执行）"""
+    import hive_orchestrator as _h
+    return _h.dispatch(req.decision, req.context)
+
+
+@app.get("/hive/decisions")
+def hive_decisions(limit: int = 50):
+    import hive_orchestrator as _h
+    return {"ok": True, "decisions": _h.list_decisions(limit)}
+
+
+@app.get("/hive/status")
+def hive_status():
+    import hive_orchestrator as _h
+    return {"ok": True, **_h.summary()}
+
+
 @app.get("/orchestrate/capabilities")
 def orchestrate_capabilities():
     """★ 平台能力清单（DSH 用来自我发现 ✓）
