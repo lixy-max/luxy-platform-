@@ -365,6 +365,45 @@ def _check_hive_failover():
         return "missing", {"error": str(e)[:200]}
 
 
+
+def _check_hive_autotune():
+    """S21：轨迹质检 + 训练调度（3060→5060 回退）+ 阈值自动训练"""
+    try:
+        qa = PROJECT_DIR / "hive_quality.py"
+        tr = PROJECT_DIR / "hive_trainer.py"
+        au = PROJECT_DIR / "hive_autotune.py"
+        lm = (PROJECT_DIR / "lora_manager.py").read_text(encoding="utf-8", errors="ignore")
+        ev = {"quality": qa.exists(), "trainer": tr.exists(), "autotune": au.exists(),
+              "api": "/hive/autotune/trigger" in lm and "/hive/train/plan" in lm}
+        live = PROJECT_DIR / "data" / "hive" / "s21_live_test.json"
+        if live.exists():
+            d = json.loads(live.read_text(encoding="utf-8"))
+            q = d.get("quality") or {}
+            ev["quality_passed"] = q.get("passed")
+            ev["quality_total"] = q.get("total")
+            c = d.get("autotune_check") or {}
+            ev["eligible"] = [x.get("task_type") for x in (c.get("eligible") or [])]
+            ev["plan_3060"] = (c.get("plan") or {}).get("action")
+            fb = (d.get("plan_5060_fallback") or {}).get("plan") or {}
+            ev["plan_5060"] = fb.get("action")
+            ev["fallback_used"] = fb.get("fallback_used")
+            j = d.get("autotune_trigger") or {}
+            ev["train_status"] = j.get("status")
+            ev["adapter_exists"] = (j.get("trainer") or {}).get("adapter_exists")
+            ev["worker_restored"] = ((d.get("after") or {}).get("worker_http") == 200)
+        ok = ev["quality"] and ev["trainer"] and ev["autotune"] and ev["api"]
+        if ok and (ev.get("train_status") == "done") and ev.get("adapter_exists") \
+                and ev.get("worker_restored"):
+            return "pass", ev
+        if ok:
+            ev["gap"] = "模块/接口就绪，但缺少自动训练+恢复的实测证据"
+            return "partial", ev
+        ev["gap"] = "S21 质检/训练调度未就绪"
+        return "missing", ev
+    except Exception as e:
+        return "missing", {"error": str(e)[:200]}
+
+
 CHECKS = [
     ("brain", "主脑路由（14B 可用）", _check_brain),
     ("route_table", "级联路由任务表（本地/云端/移植）", _check_route_table),
@@ -380,6 +419,7 @@ CHECKS = [
     ("hive_router", "蜂巢中枢三路由（S18：Local/Cloud/Sim JSON 决策）", _check_hive_router),
     ("hive_pool", "Worker Pool + LoRA Router（S19：热加载/LRU/能力路由）", _check_hive_pool),
     ("hive_failover", "Failover 阈值 + 云端教师 + 轨迹回收（S20）", _check_hive_failover),
+    ("hive_autotune", "轨迹质检 + 训练调度 + 阈值自动训练（S21）", _check_hive_autotune),
 ]
 
 

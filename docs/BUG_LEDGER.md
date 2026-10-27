@@ -8,6 +8,7 @@
 |---|---|---|---|---|---|
 | B027 | P1 | fixed | repo | 事故：git sparse-checkout 误作用于主仓库，导致 tests/ 等跟踪文件被移除（已恢复） | S8 |
 | B055 | P1 | fixed | hive_pool | S19 并发下 vLLM load/unload LoRA 与 in-flight 推理竞态 → 404/EngineDeadError | S19 |
+| B058 | P1 | fixed | hive_trainer | 3060 同时承担工蜂+训练可能 OOM（用户指出的资源冲突） | S21 |
 | B002 | P2 | fixed | kb/table | 表格结构化存储只取第一个 sheet；多 sheet/多表关联未做 | S3 |
 | B003 | P2 | parked | kb/qa | LLM 兜底路径非数字实体仍可能误差（校验只覆盖数字） | S3 |
 | B004 | P2 | fixed | worker | LoRA 工蜂能力可能返回 <tool_call> 文本而非执行结果 | S2 |
@@ -75,6 +76,11 @@
 - 区域：hive_pool ｜ 严重度：P1 ｜ 状态：fixed
 - 发现于：S19 ｜ 登记：2026-10-27T09:45:00
 - 详情：并发 4 类能力>2 槽位时，ensure_loaded 与 chat 之间 LRU 驱逐导致 model 404；更严重时 vLLM 0.11 punica adapter mapping 崩（ValueError: np.int32(x) is not in list → EngineDeadError）。已修：in-flight pin（执行中的 LoRA 不驱逐）+ 读写锁（load/unload 独占等待推理结束）+ 404 重试一次。
+
+### B058 · 3060 同时承担工蜂+训练可能 OOM（用户指出的资源冲突）
+- 区域：hive_trainer ｜ 严重度：P1 ｜ 状态：fixed
+- 发现于：S21 ｜ 登记：2026-10-27T10:07:49
+- 详情：GPU1(3060 12G) 日常跑工蜂 7B(~9.9GB)，训练时若并发/显存不足会 OOM。已实现：资源感知调度（空闲显存+5%余量）→ 3060 优先（必要时停工蜂、训后恢复）→ **回退 5060**（必要时停主脑、训后恢复）→ 都不可行则 defer（不强上）；训练进程若真 OOM 自动换卡重试一次。实测：3060 停工蜂→训练 10.1s→恢复工蜂 35.7s 全流程成功；5060 回退计划（stop_main_brain, fallback=true）已验证。
 
 ### B002 · 表格结构化存储只取第一个 sheet；多 sheet/多表关联未做
 - 区域：kb/table ｜ 严重度：P2 ｜ 状态：fixed

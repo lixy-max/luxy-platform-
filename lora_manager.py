@@ -6668,6 +6668,89 @@ def hive_trajectORIES_stats():
     return {"ok": True, **_tj.stats()}
 
 
+# ── S21：轨迹质检 + 训练调度（3060→5060 回退）+ 阈值自动训练 ──
+class HiveQualityRequest(BaseModel):
+    limit: int = 5000
+
+
+class HiveAutoCheckRequest(BaseModel):
+    dry_run: bool = True
+    required_gb: float = 0.0
+    allow_stop_worker: bool = True
+    allow_stop_main: bool = True
+    allow_gpu0: bool = True
+
+
+class HiveAutoTriggerRequest(BaseModel):
+    task_type: str = ""
+    lora_name: str = ""
+    dry_run: bool = True
+    required_gb: float = 0.0
+    epochs: int = 2
+    max_len: int = 1024
+    allow_stop_worker: bool = True
+    allow_stop_main: bool = True
+    allow_gpu0: bool = True
+
+
+class HiveTrainPlanRequest(BaseModel):
+    required_gb: float = 0.0
+    allow_stop_worker: bool = True
+    allow_stop_main: bool = True
+    allow_gpu0: bool = True
+
+
+@app.post("/hive/quality/run")
+def hive_quality_run(req: HiveQualityRequest):
+    import hive_quality as _qa
+    return {"ok": True, **_qa.run_qa(limit=req.limit or None)}
+
+
+@app.get("/hive/quality/stats")
+def hive_quality_stats():
+    import hive_quality as _qa
+    return {"ok": True, **_qa.stats()}
+
+
+@app.post("/hive/autotune/check")
+def hive_autotune_check(req: HiveAutoCheckRequest):
+    import hive_autotune as _at
+    return _at.check(dry_run=req.dry_run, required_gb=req.required_gb or None,
+                     allow_stop_worker=req.allow_stop_worker,
+                     allow_stop_main=req.allow_stop_main,
+                     allow_gpu0=req.allow_gpu0)
+
+
+@app.post("/hive/autotune/trigger")
+def hive_autotune_trigger(req: HiveAutoTriggerRequest):
+    import hive_autotune as _at
+    return _at.trigger(task_type=req.task_type or None,
+                       lora_name=req.lora_name or None, dry_run=req.dry_run,
+                       required_gb=req.required_gb or None, epochs=req.epochs,
+                       max_len=req.max_len, allow_stop_worker=req.allow_stop_worker,
+                       allow_stop_main=req.allow_stop_main, allow_gpu0=req.allow_gpu0)
+
+
+@app.get("/hive/autotune/jobs")
+def hive_autotune_jobs(limit: int = 10):
+    import hive_autotune as _at
+    return {"ok": True, "jobs": _at.list_jobs(limit)}
+
+
+@app.post("/hive/train/plan")
+def hive_train_plan(req: HiveTrainPlanRequest):
+    import hive_trainer as _tr
+    return {"ok": True, "plan": _tr.plan_training(
+        req.required_gb or None, req.allow_stop_worker, req.allow_stop_main, req.allow_gpu0),
+        "gpus": _tr.gpu_status(), "services": _tr.services()}
+
+
+@app.get("/hive/train/jobs")
+def hive_train_jobs(limit: int = 10):
+    import hive_trainer as _tr
+    return {"ok": True, "jobs": _tr.list_jobs(limit)}
+
+
 @app.get("/orchestrate/capabilities")
 def orchestrate_capabilities():
     """★ 平台能力清单（DSH 用来自我发现 ✓）
