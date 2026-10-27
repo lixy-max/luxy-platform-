@@ -277,7 +277,7 @@ def _check_hive_router():
         decisions = 0
         if audit.exists():
             import json as _j
-            for ln in audit.read_text(encoding="utf-8", errors="ignore").splitlines()[-2000:]:
+            for ln in audit.read_text(encoding="utf-8", errors="ignore").splitlines():
                 try:
                     d = _j.loads(ln)
                 except Exception:

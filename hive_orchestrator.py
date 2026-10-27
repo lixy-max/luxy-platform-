@@ -574,6 +574,13 @@ def validate_decision(d, request, inventory=None):
 def _audit(rec):
     try:
         HIVE_DIR.mkdir(parents=True, exist_ok=True)
+        # 审计文件轮转：超过 ~6000 行保留最近 3000 行（防无限增长）
+        try:
+            if DECISIONS_FILE.exists() and DECISIONS_FILE.stat().st_size > 4 * 1024 * 1024:
+                lines = DECISIONS_FILE.read_text(encoding="utf-8", errors="ignore").splitlines()
+                DECISIONS_FILE.write_text("\n".join(lines[-3000:]) + "\n", encoding="utf-8")
+        except Exception:
+            pass
         with open(DECISIONS_FILE, "a", encoding="utf-8") as f:
             f.write(json.dumps(rec, ensure_ascii=False) + "\n")
     except Exception:
