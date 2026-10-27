@@ -6563,6 +6563,63 @@ def hive_status():
     return {"ok": True, **_h.summary()}
 
 
+# ── S19：Worker Pool + LoRA Router ──
+class HiveRouteLocalRequest(BaseModel):
+    request: str
+    capabilities: list[str] = []
+
+
+class HiveRunLocalRequest(BaseModel):
+    request: str = ""
+    messages: list[dict] = []
+    lora_id: str = ""
+    capabilities: list[str] = []
+    max_tokens: int = 256
+    temperature: float = 0.2
+
+
+@app.get("/hive/pool")
+def hive_pool():
+    import hive_worker_pool as _wp
+    return {"ok": True, **_wp.pool_status()}
+
+
+@app.post("/hive/route_local")
+def hive_route_local(req: HiveRouteLocalRequest):
+    import hive_worker_pool as _wp
+    return _wp.route(req.request, capabilities=req.capabilities or None)
+
+
+@app.post("/hive/run_local")
+def hive_run_local(req: HiveRunLocalRequest):
+    import hive_worker_pool as _wp
+    return _wp.run(request=req.request or None,
+                   messages=req.messages or None,
+                   lora_id=req.lora_id or None,
+                   capabilities=req.capabilities or None,
+                   max_tokens=req.max_tokens,
+                   temperature=req.temperature)
+
+
+@app.post("/hive/lora/load")
+def hive_lora_load(lora_name: str):
+    import hive_worker_pool as _wp
+    return _wp.ensure_loaded(lora_name)
+
+
+@app.post("/hive/lora/unload")
+def hive_lora_unload(lora_name: str):
+    import hive_worker_pool as _wp
+    ok, err, lat = _wp._unload(lora_name)
+    return {"ok": ok, "error": err, "latency_s": lat}
+
+
+@app.get("/hive/loras")
+def hive_loras(worker_base: str = ""):
+    import hive_lora_registry as _lr
+    return {"ok": True, "summary": _lr.summary(worker_base=worker_base or None)}
+
+
 @app.get("/orchestrate/capabilities")
 def orchestrate_capabilities():
     """★ 平台能力清单（DSH 用来自我发现 ✓）

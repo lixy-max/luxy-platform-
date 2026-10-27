@@ -7,6 +7,7 @@
 | ID | 严重度 | 状态 | 区域 | 标题 | 发现于 |
 |---|---|---|---|---|---|
 | B027 | P1 | fixed | repo | 事故：git sparse-checkout 误作用于主仓库，导致 tests/ 等跟踪文件被移除（已恢复） | S8 |
+| B055 | P1 | fixed | hive_pool | S19 并发下 vLLM load/unload LoRA 与 in-flight 推理竞态 → 404/EngineDeadError | S19 |
 | B002 | P2 | fixed | kb/table | 表格结构化存储只取第一个 sheet；多 sheet/多表关联未做 | S3 |
 | B003 | P2 | parked | kb/qa | LLM 兜底路径非数字实体仍可能误差（校验只覆盖数字） | S3 |
 | B004 | P2 | fixed | worker | LoRA 工蜂能力可能返回 <tool_call> 文本而非执行结果 | S2 |
@@ -44,6 +45,7 @@
 | B052 | P2 | parked | runtime | SGLang 0.5.22 `--cpu-offload-gb` 加载 Qwen3.8 报 device mismatch（cuda:0 vs cpu） | S18-eval |
 | B053 | P2 | parked | runtime | SGLang 0.5.22 GGUF 加载器不认识 qwen3_5_text（Qwen3.8 架构） | S18-eval |
 | B054 | P2 | fixed | hive_router | S18 三路由初版把高风险/时效任务误判为 local（应为 cloud） | S18 |
+| B056 | P2 | fixed | hive_pool | S19 LRU 驱逐 in-flight LoRA 导致 chat 404（model does not exist） | S19 |
 | B001 | P3 | fixed | frontend | 前端任务表无自动轮询，执行后需手动刷新 | S2 |
 | B008 | P3 | parked | security | vLLM 未启用 api-key（仅绑定回环） | P0 |
 | B009 | P3 | wontfix | infra | /vllm/start 冷启动 26–28s（未优化） | P7 |
@@ -60,6 +62,7 @@
 | B026 | P3 | parked | model | 模型下载无断点续传/进度上报 API（长下载只能等，UI 不可见） | S7 |
 | B028 | P3 | fixed | chimera | GitHub raw 抓取不稳定（60s 超时）：已加 jsDelivr/GitHub API 镜像回退 | S8 |
 | B032 | P3 | parked | route_table | 任务表对话隔离是组织级（conversation_id 由客户端 URL/localStorage 指定），非服务端鉴权隔离 | S14 |
+| B057 | P3 | fixed | hive_pool | S19 卸载计数未累计（stats.unloads 恒为 0） | S19 |
 
 ## 详细说明
 
@@ -67,6 +70,11 @@
 - 区域：repo ｜ 严重度：P1 ｜ 状态：fixed
 - 发现于：S8 ｜ 登记：2026-10-26T21:57:43
 - 详情：S8 探测 RAGFlow 克隆时，克隆失败后在 data/chimera/repos 子目录执行 git sparse-checkout set rag LICENSE NOTICE，因该目录在主仓库工作区内，sparse-checkout 被应用到主仓库，tests/ 等 6 个路径被移除。已通过 git sparse-checkout disable 恢复（494 跟踪文件 0 缺失），未提交改动备份后回填。教训：在仓库子目录做 git 操作前先确认 GIT_DIR；脚本需 set -e 并在 cd 失败时中止。
+
+### B055 · S19 并发下 vLLM load/unload LoRA 与 in-flight 推理竞态 → 404/EngineDeadError
+- 区域：hive_pool ｜ 严重度：P1 ｜ 状态：fixed
+- 发现于：S19 ｜ 登记：2026-10-27T09:45:00
+- 详情：并发 4 类能力>2 槽位时，ensure_loaded 与 chat 之间 LRU 驱逐导致 model 404；更严重时 vLLM 0.11 punica adapter mapping 崩（ValueError: np.int32(x) is not in list → EngineDeadError）。已修：in-flight pin（执行中的 LoRA 不驱逐）+ 读写锁（load/unload 独占等待推理结束）+ 404 重试一次。
 
 ### B002 · 表格结构化存储只取第一个 sheet；多 sheet/多表关联未做
 - 区域：kb/table ｜ 严重度：P2 ｜ 状态：fixed
@@ -253,6 +261,11 @@
 - 发现于：S18 ｜ 登记：2026-10-27T09:34:07
 - 详情：首轮实测 9 例中 2 例误判：合同/法规审查、2026 最新论文 → local。已修：S3 后置规则（HIGH_RISK_RE 高风险审查 / TIME_SENSITIVE_RE 时效联网）强制 cloud；复测 9/9 正确、0 兜底。
 
+### B056 · S19 LRU 驱逐 in-flight LoRA 导致 chat 404（model does not exist）
+- 区域：hive_pool ｜ 严重度：P2 ｜ 状态：fixed
+- 发现于：S19 ｜ 登记：2026-10-27T09:45:00
+- 详情：并发时 ensure_loaded 返回后、chat 前被其他线程卸载；已修：pin + 重试 + 写锁串行化加载。
+
 ### B001 · 前端任务表无自动轮询，执行后需手动刷新
 - 区域：frontend ｜ 严重度：P3 ｜ 状态：fixed
 - 发现于：S2 ｜ 登记：2026-10-26T21:03:48
@@ -332,3 +345,8 @@
 - 区域：route_table ｜ 严重度：P3 ｜ 状态：parked
 - 发现于：S14 ｜ 登记：2026-10-26T23:42:05
 - 详情：S14 已实现任务表按对话隔离（DB conversation_id + API 过滤 + 前端对话切换），但 conversation_id 由前端（?conv= 或 localStorage）传入，服务端不校验归属；同一局域网/同机其他客户端只要知道 conv id 仍可读该对话任务表。当前为单机本地平台（回环地址），风险低；若将来多用户/暴露公网，需要加会话鉴权（token/会话绑定）。
+
+### B057 · S19 卸载计数未累计（stats.unloads 恒为 0）
+- 区域：hive_pool ｜ 严重度：P3 ｜ 状态：fixed
+- 发现于：S19 ｜ 登记：2026-10-27T09:45:00
+- 详情：LRU 卸载成功但未计入 unloads；已修。

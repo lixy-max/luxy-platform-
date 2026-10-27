@@ -301,6 +301,37 @@ def _check_hive_router():
         return "missing", {"error": str(e)[:200]}
 
 
+
+def _check_hive_pool():
+    """S19：Worker Pool + LoRA Router（热加载/LRU/能力路由）"""
+    try:
+        pool = PROJECT_DIR / "hive_worker_pool.py"
+        reg = PROJECT_DIR / "hive_lora_registry.py"
+        lm = (PROJECT_DIR / "lora_manager.py").read_text(encoding="utf-8", errors="ignore")
+        ev = {"pool_module": pool.exists(), "registry_module": reg.exists(),
+              "api": "/hive/route_local" in lm and "/hive/pool" in lm}
+        live = PROJECT_DIR / "data" / "hive" / "s19_live_test.json"
+        if live.exists():
+            d = json.loads(live.read_text(encoding="utf-8"))
+            con = d.get("concurrency") or {}
+            ev["concurrency_ok"] = con.get("ok")
+            ev["concurrency_total"] = con.get("total")
+            ev["hot_load_s"] = [c.get("decision", {}).get("load_latency_s")
+                                for c in (d.get("cases") or [])]
+            post = d.get("pool_after") or {}
+            ev["evictions"] = (post.get("stats") or {}).get("evictions")
+        if ev["pool_module"] and ev["registry_module"] and ev["api"]:
+            if ev.get("concurrency_ok") and ev.get("concurrency_total") and \
+                    ev["concurrency_ok"] >= max(10, int(ev["concurrency_total"] * 0.9)):
+                return "pass", ev
+            ev["gap"] = "模块/接口已就绪，但缺少 20 并发实测证据（或成功率<90%）"
+            return "partial", ev
+        ev["gap"] = "S19 Worker Pool/LoRA Router 未就绪"
+        return "missing", ev
+    except Exception as e:
+        return "missing", {"error": str(e)[:200]}
+
+
 CHECKS = [
     ("brain", "主脑路由（14B 可用）", _check_brain),
     ("route_table", "级联路由任务表（本地/云端/移植）", _check_route_table),
@@ -314,6 +345,7 @@ CHECKS = [
     ("conversation", "任务表对话隔离", _check_conversation_isolation),
     ("cloud_build", "缺失工作流→云端搭建→本地沉淀", _check_cloud_build_distill),
     ("hive_router", "蜂巢中枢三路由（S18：Local/Cloud/Sim JSON 决策）", _check_hive_router),
+    ("hive_pool", "Worker Pool + LoRA Router（S19：热加载/LRU/能力路由）", _check_hive_pool),
 ]
 
 
