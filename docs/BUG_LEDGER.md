@@ -11,6 +11,7 @@
 | B058 | P1 | fixed | hive_trainer | 3060 同时承担工蜂+训练可能 OOM（用户指出的资源冲突） | S21 |
 | B066 | P1 | fixed | hive_nodepool | S26 priority=0 被 `or` 吞掉 → latency/cost 策略排序失效（故障转移测不出来） | S26 |
 | B067 | P1 | fixed | hive_trainer | S27 QLoRA 训练脚本缺失：S21 脚本只支持全量 LoRA（无 4-bit/步数控制） | S27 |
+| B068 | P1 | fixed | hive_governance | S28 classify_risk 初版把工具导入判为 medium → 受控自主全部卡审批 | S28 |
 | B002 | P2 | fixed | kb/table | 表格结构化存储只取第一个 sheet；多 sheet/多表关联未做 | S3 |
 | B003 | P2 | parked | kb/qa | LLM 兜底路径非数字实体仍可能误差（校验只覆盖数字） | S3 |
 | B004 | P2 | fixed | worker | LoRA 工蜂能力可能返回 <tool_call> 文本而非执行结果 | S2 |
@@ -55,6 +56,7 @@
 | B063 | P2 | fixed | hive_capability | S24 能力判定初版规则问题：token 匹配缺失 / sim 未优先 / 硬缺口未强制云端 | S24 |
 | B064 | P2 | fixed | hive_importer | S25 importer rebuild 生成器 str().get() 优先级错误（rebuild 模式直接崩） | S25 |
 | B065 | P2 | fixed | hive_nodepool | S26 节点健康检查路径顺序错误（vLLM 应优先 /v1/models，mock 优先 /health） | S26 |
+| B069 | P2 | fixed | hive_governance | S28 审批通过后同内容再次申请仍重复弹审批（无审批复用） | S28 |
 | B001 | P3 | fixed | frontend | 前端任务表无自动轮询，执行后需手动刷新 | S2 |
 | B008 | P3 | parked | security | vLLM 未启用 api-key（仅绑定回环） | P0 |
 | B009 | P3 | wontfix | infra | /vllm/start 冷启动 26–28s（未优化） | P7 |
@@ -100,6 +102,11 @@
 - 区域：hive_trainer ｜ 严重度：P1 ｜ 状态：fixed
 - 发现于：S27 ｜ 登记：2026-10-27T11:14:32
 - 详情：S21 的 scripts/train_hive_lora.py 直接用 fp16 全量加载 base（7B 需 >15GB），无法在 3060 12GB 上训练；且无 max_steps 小步数验证能力。S27 已加 --qlora（BitsAndBytes nf4 4-bit + prepare_model_for_kbit_training + paged_adamw_8bit + grad checkpointing）与 --max-steps，实测 7B QLoRA 8 步 27s、VRAM 峰值 8791MB。
+
+### B068 · S28 classify_risk 初版把工具导入判为 medium → 受控自主全部卡审批
+- 区域：hive_governance ｜ 严重度：P1 ｜ 状态：fixed
+- 发现于：S28 ｜ 登记：2026-10-27T11:19:13
+- 详情：风险分级只按 action 判断（capability_import→medium），低风险纯工具能力也被要求人工审批，导致'无人值守 10 次'不可行。已修：结合 manifest.type + data.sensitivity，tool/workflow+low → low（策略自动批准），high sensitivity/敏感词 → high（人工审批）。
 
 ### B002 · 表格结构化存储只取第一个 sheet；多 sheet/多表关联未做
 - 区域：kb/table ｜ 严重度：P2 ｜ 状态：fixed
@@ -320,6 +327,11 @@
 - 区域：hive_nodepool ｜ 严重度：P2 ｜ 状态：fixed
 - 发现于：S26 ｜ 登记：2026-10-27T11:08:21
 - 详情：健康检查统一 /health→/v1/models，导致 vLLM 节点 served_model 探测不到/mock 探测口径不一致；已改为按节点类型选择探测顺序。
+
+### B069 · S28 审批通过后同内容再次申请仍重复弹审批（无审批复用）
+- 区域：hive_governance ｜ 严重度：P2 ｜ 状态：fixed
+- 发现于：S28 ｜ 登记：2026-10-27T11:19:13
+- 详情：gov.request 每次生成新审批，编排层重试/重复导入会反复要求人工。已修：按 action+payload_digest 查找已批准记录 → approved_reuse 直接放行。
 
 ### B001 · 前端任务表无自动轮询，执行后需手动刷新
 - 区域：frontend ｜ 严重度：P3 ｜ 状态：fixed

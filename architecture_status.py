@@ -661,6 +661,48 @@ def _check_hive_canary():
         return "missing", {"error": str(e)[:200]}
 
 
+
+def _check_hive_governance():
+    """S28：治理（审批/预算/熔断/审计）+ 受控自主 10 次闭环"""
+    try:
+        gov = PROJECT_DIR / "hive_gov.py"
+        au = PROJECT_DIR / "hive_autonomy.py"
+        lm = (PROJECT_DIR / "lora_manager.py").read_text(encoding="utf-8", errors="ignore")
+        ev = {"gov_module": gov.exists(), "autonomy_module": au.exists(),
+              "api": "/hive/gov/stats" in lm and "/hive/autonomy/run" in lm,
+              "import_gated": "_gov.request(\"capability_import\"" in lm}
+        live = PROJECT_DIR / "data" / "hive" / "s28_acceptance.json"
+        if live.exists():
+            d = json.loads(live.read_text(encoding="utf-8"))
+            loop = d.get("loop") or {}
+            ev["loops_passed"] = loop.get("passed")
+            ev["loops_total"] = loop.get("total")
+            ev["gate_modes"] = loop.get("gate_modes")
+            hr = d.get("high_risk") or {}
+            ev["high_risk_pending"] = (hr.get("first") or {}).get("status") == "pending_approval"
+            ev["high_risk_absorbed"] = (hr.get("second") or {}).get("status") in ("active", "shadow")
+            ev["reject_ok"] = ((d.get("reject") or {}).get("reject") or {}).get("ok")
+            ks = d.get("kill_switch") or {}
+            ev["kill_blocked"] = (ks.get("blocked") or {}).get("status") == "blocked_kill_switch"
+            ev["kill_restored"] = (ks.get("restored") or {}).get("status") == "active"
+            ev["budget_blocked"] = (d.get("budget") or {}).get("allowed") is False
+            ev["audit_entries"] = (d.get("audit") or {}).get("count")
+            ev["approvals"] = ((d.get("gov_stats") or {}).get("approvals") or {})
+        ok = ev["gov_module"] and ev["autonomy_module"] and ev["api"]
+        if ok and (ev.get("loops_passed") or 0) >= 10 and ev.get("high_risk_pending") and \
+                ev.get("high_risk_absorbed") and ev.get("reject_ok") and \
+                ev.get("kill_blocked") and ev.get("kill_restored") and \
+                ev.get("budget_blocked") and (ev.get("audit_entries") or 0) >= 15:
+            return "pass", ev
+        if ok:
+            ev["gap"] = "S28 模块/接口就绪，但缺少 10 次闭环/审批/熔断/预算实测证据"
+            return "partial", ev
+        ev["gap"] = "S28 治理层/受控自主未就绪"
+        return "missing", ev
+    except Exception as e:
+        return "missing", {"error": str(e)[:200]}
+
+
 CHECKS = [
     ("brain", "主脑路由（14B 可用）", _check_brain),
     ("route_table", "级联路由任务表（本地/云端/移植）", _check_route_table),
@@ -684,6 +726,7 @@ CHECKS = [
     ("hive_importer", "Manifest 吸收 + 沙箱门禁 + 三种模式（S25）", _check_hive_importer),
     ("hive_nodepool", "多节点工蜂 + 容量/成本调度 + 故障转移（S26）", _check_hive_nodepool),
     ("hive_canary", "7B QLoRA 训练闭环 + 灰度自动回滚 + 持久队列（S27）", _check_hive_canary),
+    ("hive_governance", "治理（审批/预算/熔断/审计）+ 受控自主 10 次（S28）", _check_hive_governance),
 ]
 
 

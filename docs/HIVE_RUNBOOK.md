@@ -174,3 +174,27 @@ CUDA_VISIBLE_DEVICES=1 /home/luxy/.venv/bin/python scripts/train_hive_lora.py \
 
 阈值环境变量：`HIVE_CANARY_MIN_SAMPLES=5`、`HIVE_CANARY_MAX_ERROR_RATE=0.2`、`HIVE_CANARY_MIN_QUALITY=0.5`、`HIVE_CANARY_MAX_P95_MS=5000`、`HIVE_CANARY_AUTO_PROMOTE=1`。
 数据：`data/hive/train_queue.json` · `data/hive/canary_state.json` · `training_data/*.jsonl` · `logs/s27_qlora_7b.log`。
+
+
+## 11. 治理与受控自主（S28 起）
+
+**治理策略**：`data/hive/gov/policy.json`
+- `kill_switch`：熔断/杀开关（开启后禁止自修改/能力导入等动作）
+- `require_approval`：受审批动作（capability_import / promote_active / train_enqueue / node_register ...）
+- `auto_approve_risk`：低风险自动批准（默认 low）
+- `daily_budget`：云端调用/训练分钟日预算
+- 审计：`data/hive/gov/audit.jsonl`；审批：`data/hive/gov/approvals.json`；预算：`data/hive/gov/budget.json`
+
+| 端点 | 方法 | 说明 |
+|---|---|---|
+| `/hive/gov/stats` | GET | 策略/预算/审批/审计统计 |
+| `/hive/gov/policy` | GET/POST | 查看/更新策略 |
+| `/hive/gov/kill` | POST | `{on:true/false}` 熔断/恢复 |
+| `/hive/gov/approvals` | GET | 待审批列表 |
+| `/hive/gov/approve` / `reject` | POST | 人工批准/拒绝 |
+| `/hive/gov/budget/check|record` | POST | 预算检查/记账 |
+| `/hive/gov/audit` | GET | 审计日志尾部 |
+| `/hive/autonomy/run` | POST | 受控自主闭环（`n` 次：缺口→获取→验证→部署） |
+| `/hive/autonomy/high_risk` / `kill_demo` / `budget_demo` | POST | 演示/验收用 |
+
+**注意**：`/hive/manifest/import` 已接入治理门禁（熔断拦截 / 高风险转审批 / 低风险自动批准）。

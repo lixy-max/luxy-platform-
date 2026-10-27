@@ -6992,7 +6992,17 @@ class HiveImportRunRequest(BaseModel):
 @app.post("/hive/manifest/import")
 def hive_manifest_import(req: HiveManifestImportRequest):
     import capability_importer as _imp
-    return _imp.import_manifest(req.manifest, mode=req.mode, dry_run=req.dry_run)
+    import hive_gov as _gov
+    gate = _gov.request("capability_import",
+                        {"manifest": req.manifest,
+                         "data": (req.manifest or {}).get("data") or {}},
+                        actor="api")
+    if not gate.get("allowed"):
+        return {"ok": False, "status": gate.get("status"),
+                "approval_id": gate.get("approval_id"), "gate": gate}
+    res = _imp.import_manifest(req.manifest, mode=req.mode, dry_run=req.dry_run)
+    res["governance"] = {"status": gate.get("status"), "risk": gate.get("risk")}
+    return res
 
 
 @app.get("/hive/imports")
@@ -7153,6 +7163,119 @@ def hive_canary_auto(req: HiveCanaryAutoRequest):
 def hive_canary_clear(lora_id: str = ""):
     import hive_canary as _cn
     return _cn.clear(lora_id or None)
+
+
+# ── S28：治理（审批/预算/熔断/审计）+ 受控自主 ──
+class HiveGovKillRequest(BaseModel):
+    on: bool = True
+
+
+class HiveGovApproveRequest(BaseModel):
+    approval_id: str
+    approver: str = "human"
+    note: str = ""
+
+
+class HiveGovBudgetRequest(BaseModel):
+    kind: str = "cloud_calls"
+    amount: float = 1
+
+
+class HiveAutonomyRunRequest(BaseModel):
+    n: int = 10
+
+
+@app.get("/hive/gov/stats")
+def hive_gov_stats():
+    import hive_gov as _gov
+    return {"ok": True, **_gov.stats()}
+
+
+@app.get("/hive/gov/policy")
+def hive_gov_policy_get():
+    import hive_gov as _gov
+    return {"ok": True, "policy": _gov.load_policy()}
+
+
+@app.post("/hive/gov/policy")
+def hive_gov_policy_set(policy: dict):
+    import hive_gov as _gov
+    return _gov.save_policy(policy)
+
+
+@app.post("/hive/gov/kill")
+def hive_gov_kill(req: HiveGovKillRequest):
+    import hive_gov as _gov
+    return _gov.kill_switch(req.on)
+
+
+@app.get("/hive/gov/approvals")
+def hive_gov_approvals():
+    import hive_gov as _gov
+    return {"ok": True, "pending": _gov.pending(), "stats": _gov.stats()["approvals"]}
+
+
+@app.post("/hive/gov/approve")
+def hive_gov_approve(req: HiveGovApproveRequest):
+    import hive_gov as _gov
+    return _gov.approve(req.approval_id, approver=req.approver, note=req.note)
+
+
+@app.post("/hive/gov/reject")
+def hive_gov_reject(req: HiveGovApproveRequest):
+    import hive_gov as _gov
+    return _gov.reject(req.approval_id, approver=req.approver, note=req.note)
+
+
+@app.post("/hive/gov/budget/check")
+def hive_gov_budget_check(req: HiveGovBudgetRequest):
+    import hive_gov as _gov
+    return _gov.check_budget(req.kind, req.amount)
+
+
+@app.post("/hive/gov/budget/record")
+def hive_gov_budget_record(req: HiveGovBudgetRequest):
+    import hive_gov as _gov
+    return _gov.record_spend(req.kind, req.amount)
+
+
+@app.get("/hive/gov/audit")
+def hive_gov_audit(limit: int = 30):
+    import json as _json
+    import hive_gov as _gov
+    rows = []
+    try:
+        if _gov.AUDIT_FILE.exists():
+            rows = [ _json.loads(x) for x in
+                     _gov.AUDIT_FILE.read_text(encoding="utf-8").splitlines()[-int(limit):]
+                     if x.strip()]
+    except Exception:
+        rows = []
+    return {"ok": True, "audit": rows, "count": len(rows)}
+
+
+@app.post("/hive/autonomy/run")
+def hive_autonomy_run(req: HiveAutonomyRunRequest):
+    import hive_autonomy as _au
+    return _au.run_loop(req.n)
+
+
+@app.post("/hive/autonomy/high_risk")
+def hive_autonomy_high_risk():
+    import hive_autonomy as _au
+    return _au.demo_high_risk()
+
+
+@app.post("/hive/autonomy/kill_demo")
+def hive_autonomy_kill_demo():
+    import hive_autonomy as _au
+    return _au.demo_kill_switch()
+
+
+@app.post("/hive/autonomy/budget_demo")
+def hive_autonomy_budget_demo():
+    import hive_autonomy as _au
+    return _au.demo_budget()
 
 
 @app.get("/orchestrate/capabilities")
