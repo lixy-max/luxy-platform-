@@ -10,8 +10,8 @@ from pathlib import Path
 
 import torch
 from datasets import Dataset
-from peft import LoraConfig, get_peft_model
-from transformers import (AutoModelForCausalLM, AutoTokenizer,
+from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
+from transformers import (AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig,
                           DataCollatorForSeq2Seq, Trainer, TrainingArguments)
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -60,6 +60,10 @@ def main():
     ap.add_argument("--rank", type=int, default=16)
     ap.add_argument("--batch", type=int, default=1)
     ap.add_argument("--grad-accum", type=int, default=4)
+    ap.add_argument("--qlora", action="store_true",
+                    help="4-bit QLoRA（bitsandbytes nf4；7B 在 12GB 卡上训练用）")
+    ap.add_argument("--max-steps", type=int, default=-1,
+                    help=">0 时覆盖 epochs（用于小步数验证）")
     args = ap.parse_args()
 
     t0 = time.time()
@@ -69,9 +73,19 @@ def main():
     tok = AutoTokenizer.from_pretrained(args.base_model, trust_remote_code=True)
     if tok.pad_token is None:
         tok.pad_token = tok.eos_token
-    model = AutoModelForCausalLM.from_pretrained(
-        args.base_model, torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
-        trust_remote_code=True, device_map={"": 0} if torch.cuda.is_available() else None)
+    if args.qlora and torch.cuda.is_available():
+        log("QLoRA 4-bit 加载 base=%s" % args.base_model)
+        bnb = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4",
+                                 bnb_4bit_compute_dtype=torch.float16,
+                                 bnb_4bit_use_double_quant=True)
+        model = AutoModelForCausalLM.from_pretrained(
+            args.base_model, quantization_config=bnb, torch_dtype=torch.float16,
+            trust_remote_code=True, device_map={"": 0})
+        model = prepare_model_for_kbit_training(model, use_gradient_checkpointing=True)
+    else:
+        model = AutoModelForCausalLM.from_pretrained(
+            args.base_model, torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
+            trust_remote_code=True, device_map={"": 0} if torch.cuda.is_available() else None)
     model.config.use_cache = False
     model = get_peft_model(model, LoraConfig(
         r=args.rank, lora_alpha=args.rank * 2, lora_dropout=0.05,
@@ -97,10 +111,12 @@ def main():
             per_device_train_batch_size=args.batch,
             gradient_accumulation_steps=args.grad_accum,
             num_train_epochs=args.epochs,
+            max_steps=(args.max_steps if args.max_steps and args.max_steps > 0 else -1),
             learning_rate=args.lr,
-            logging_steps=2, save_strategy="no", fp16=torch.cuda.is_available(),
+            logging_steps=1, save_strategy="no", fp16=torch.cuda.is_available(),
             report_to=[], remove_unused_columns=False,
-            gradient_checkpointing=False, optim="adamw_torch",
+            gradient_checkpointing=bool(args.qlora),
+            optim=("paged_adamw_8bit" if args.qlora else "adamw_torch"),
             warmup_ratio=0.05, lr_scheduler_type="cosine"),
         train_dataset=ds, data_collator=collator)
     res = trainer.train()
@@ -111,7 +127,10 @@ def main():
                "train_loss": float(res.training_loss),
                "global_step": getattr(res, "global_step", None),
                "duration_s": round(time.time() - t0, 1),
-               "exp_name": os.environ.get("EXP_NAME", ""),
+               "qlora": bool(args.qlora), "max_steps": args.max_steps,
+            "vram_peak_mb": (torch.cuda.max_memory_allocated() / 2**20
+                             if torch.cuda.is_available() else 0),
+            "exp_name": os.environ.get("EXP_NAME", ""),
                "at": time.strftime("%Y-%m-%dT%H:%M:%S")}
     (out / "train_metrics.json").write_text(json.dumps(metrics, ensure_ascii=False, indent=2),
                                             encoding="utf-8")

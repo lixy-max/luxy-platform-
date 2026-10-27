@@ -145,3 +145,32 @@ setsid nohup env VLLM_USE_FLASHINFER_SAMPLER=0 /home/luxy/.venv/bin/python -c \
 **节点说明**：`w1` = 真实 7B AWQ（:8002，GPU1）；`w2` = **mock 验证节点**（:8003，CPU，非真实模型，仅用于多节点调度/故障转移验证）；`cloud` = 云端兜底。
 **mock 节点启停**：`setsid nohup /home/luxy/.venv/bin/python scripts/mock_worker.py > /tmp/mock.out 2>&1 &`（或 `pkill -f mock_worker.py`）。
 数据：`data/hive/nodes.json`（节点注册表）· `data/hive/s26_acceptance.json`（验收证据）。
+
+
+## 10. 训练闭环与灰度自动回滚（S27 起）
+
+**7B QLoRA 训练（3060，先停工蜂）**：
+```bash
+# 1) 停工蜂释放 GPU1（或由 hive_trainer 调度）
+# 2) 训练（27s/8 步验证；VRAM 峰值 ~8.8GB）
+CUDA_VISIBLE_DEVICES=1 /home/luxy/.venv/bin/python scripts/train_hive_lora.py \
+  --dataset training_data/s27_qlora_7b.jsonl \
+  --base-model /home/luxy/models/Qwen2.5-7B-Instruct \
+  --output /home/luxy/loras/s27_qlora_7b --qlora --max-steps 8 --max-len 512 \
+  --rank 8 --batch 1 --grad-accum 2 --lr 2e-4
+# 3) 恢复工蜂；4) 热加载评测 → 灰度
+```
+
+| 端点 | 方法 | 说明 |
+|---|---|---|
+| `/hive/train/queue` | GET/POST | 持久训练队列（enqueue/list/stats） |
+| `/hive/train/queue/retry` | POST | 重试 deferred（可设 delay_s） |
+| `/hive/train/queue/process` | POST | 取下一个任务执行（dry_run 可预演） |
+| `/hive/canary/start` | POST | 开始灰度监控（内部 promote 到 canary） |
+| `/hive/canary/record` | POST | 记录灰度结果（ok/quality/latency_ms） |
+| `/hive/canary/evaluate` | POST | 阈值判定（observing/healthy/breaching） |
+| `/hive/canary/auto` | POST | **breaching→自动 rollback；healthy→自动 promote_active** |
+| `/hive/canary/status|clear` | GET/POST | 状态/清理 |
+
+阈值环境变量：`HIVE_CANARY_MIN_SAMPLES=5`、`HIVE_CANARY_MAX_ERROR_RATE=0.2`、`HIVE_CANARY_MIN_QUALITY=0.5`、`HIVE_CANARY_MAX_P95_MS=5000`、`HIVE_CANARY_AUTO_PROMOTE=1`。
+数据：`data/hive/train_queue.json` · `data/hive/canary_state.json` · `training_data/*.jsonl` · `logs/s27_qlora_7b.log`。

@@ -10,6 +10,7 @@
 | B055 | P1 | fixed | hive_pool | S19 并发下 vLLM load/unload LoRA 与 in-flight 推理竞态 → 404/EngineDeadError | S19 |
 | B058 | P1 | fixed | hive_trainer | 3060 同时承担工蜂+训练可能 OOM（用户指出的资源冲突） | S21 |
 | B066 | P1 | fixed | hive_nodepool | S26 priority=0 被 `or` 吞掉 → latency/cost 策略排序失效（故障转移测不出来） | S26 |
+| B067 | P1 | fixed | hive_trainer | S27 QLoRA 训练脚本缺失：S21 脚本只支持全量 LoRA（无 4-bit/步数控制） | S27 |
 | B002 | P2 | fixed | kb/table | 表格结构化存储只取第一个 sheet；多 sheet/多表关联未做 | S3 |
 | B003 | P2 | parked | kb/qa | LLM 兜底路径非数字实体仍可能误差（校验只覆盖数字） | S3 |
 | B004 | P2 | fixed | worker | LoRA 工蜂能力可能返回 <tool_call> 文本而非执行结果 | S2 |
@@ -49,7 +50,7 @@
 | B054 | P2 | fixed | hive_router | S18 三路由初版把高风险/时效任务误判为 local（应为 cloud） | S18 |
 | B056 | P2 | fixed | hive_pool | S19 LRU 驱逐 in-flight LoRA 导致 chat 404（model does not exist） | S19 |
 | B059 | P2 | fixed | hive_hotload | S22 热加载 register 未校验坏 adapter/家族不匹配（坏路径也能 shadow） | S22 |
-| B060 | P2 | parked | hive_autotune | S21 自动训练默认 1.5B adapter 无法热加载到 7B 工蜂（训练与工蜂基座不一致） | S22 |
+| B060 | P2 | fixed | hive_autotune | S21 自动训练默认 1.5B adapter 无法热加载到 7B 工蜂（训练与工蜂基座不一致） | S22 |
 | B062 | P2 | fixed | hive_memory | 临时知识库记忆实现问题：语义检索返回 tuple 误当 dict + 并发建库竞态 + 中文整句 LIKE 不命中 | S23 |
 | B063 | P2 | fixed | hive_capability | S24 能力判定初版规则问题：token 匹配缺失 / sim 未优先 / 硬缺口未强制云端 | S24 |
 | B064 | P2 | fixed | hive_importer | S25 importer rebuild 生成器 str().get() 优先级错误（rebuild 模式直接崩） | S25 |
@@ -94,6 +95,11 @@
 - 区域：hive_nodepool ｜ 严重度：P1 ｜ 状态：fixed
 - 发现于：S26 ｜ 登记：2026-10-27T11:08:21
 - 详情：`int(n.get('priority') or 9)` 把 priority=0 变成 9，w2(0) 永远排不到前面；另 available_nodes 用 'text' 兜底放行导致能力过滤失效、degraded/down 未排除。已修：_num() 安全数值、严格能力匹配、状态排除。
+
+### B067 · S27 QLoRA 训练脚本缺失：S21 脚本只支持全量 LoRA（无 4-bit/步数控制）
+- 区域：hive_trainer ｜ 严重度：P1 ｜ 状态：fixed
+- 发现于：S27 ｜ 登记：2026-10-27T11:14:32
+- 详情：S21 的 scripts/train_hive_lora.py 直接用 fp16 全量加载 base（7B 需 >15GB），无法在 3060 12GB 上训练；且无 max_steps 小步数验证能力。S27 已加 --qlora（BitsAndBytes nf4 4-bit + prepare_model_for_kbit_training + paged_adamw_8bit + grad checkpointing）与 --max-steps，实测 7B QLoRA 8 步 27s、VRAM 峰值 8791MB。
 
 ### B002 · 表格结构化存储只取第一个 sheet；多 sheet/多表关联未做
 - 区域：kb/table ｜ 严重度：P2 ｜ 状态：fixed
@@ -291,7 +297,7 @@
 - 详情：实测 swk_persona_v1（路径缺失）注册成功 → 进入 shadow 后评测会失败。已修：register_candidate 校验 path_exists/has_adapter_config + base 家族匹配（不匹配拒绝，可 allow_mismatch 绕过）。
 
 ### B060 · S21 自动训练默认 1.5B adapter 无法热加载到 7B 工蜂（训练与工蜂基座不一致）
-- 区域：hive_autotune ｜ 严重度：P2 ｜ 状态：parked
+- 区域：hive_autotune ｜ 严重度：P2 ｜ 状态：fixed
 - 发现于：S22 ｜ 登记：2026-10-27T10:19:03
 - 详情：HIVE_AUTOTUNE_BASE_MODEL 默认 Qwen2.5-1.5B，而工蜂 base=7B AWQ → 家族不匹配，S22 热加载会拒绝。S22 实测改用 7B 兼容 adapter（agri_expert_v1）完成流水线验证。
 

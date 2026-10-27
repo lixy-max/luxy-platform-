@@ -618,6 +618,49 @@ def _check_hive_nodepool():
         return "missing", {"error": str(e)[:200]}
 
 
+
+def _check_hive_canary():
+    """S27：7B QLoRA 训练闭环 + 灰度自动回滚 + 持久训练队列"""
+    try:
+        tq = PROJECT_DIR / "hive_train_queue.py"
+        cn = PROJECT_DIR / "hive_canary.py"
+        ts = PROJECT_DIR / "scripts" / "train_hive_lora.py"
+        lm = (PROJECT_DIR / "lora_manager.py").read_text(encoding="utf-8", errors="ignore")
+        tsrc = ts.read_text(encoding="utf-8", errors="ignore") if ts.exists() else ""
+        ev = {"queue_module": tq.exists(), "canary_module": cn.exists(),
+              "qlora_support": "--qlora" in tsrc and "BitsAndBytesConfig" in tsrc,
+              "api": "/hive/canary/auto" in lm and "/hive/train/queue" in lm}
+        live = PROJECT_DIR / "data" / "hive" / "s27_acceptance.json"
+        if live.exists():
+            d = json.loads(live.read_text(encoding="utf-8"))
+            tr = d.get("train") or {}
+            met = d.get("metrics") or {}
+            ev["train_ok"] = tr.get("exit_code") == 0
+            ev["train_duration_s"] = tr.get("duration_s")
+            ev["adapter_exists"] = met.get("qlora") is True and met.get("train_loss") is not None
+            ev["vram_peak_mb"] = met.get("vram_peak_mb")
+            hl = d.get("hotload") or {}
+            evq = (hl.get("evaluate") or {}).get("evaluation") or {}
+            ev["eval_quality"] = evq.get("quality")
+            ev["canary_promote"] = ((d.get("canary_promote") or {}).get("auto") or {}).get("action")
+            ev["canary_rollback"] = ((d.get("canary_rollback") or {}).get("auto") or {}).get("action")
+            ev["queue_total"] = (d.get("queue") or {}).get("total")
+        ok = ev["queue_module"] and ev["canary_module"] and ev["qlora_support"] and ev["api"]
+        if ok and ev.get("train_ok") and ev.get("adapter_exists") and \
+                (ev.get("vram_peak_mb") or 0) < 12 * 1024 and \
+                ev.get("eval_quality") is not None and \
+                ev.get("canary_promote") == "promote_active" and \
+                ev.get("canary_rollback") == "rollback":
+            return "pass", ev
+        if ok:
+            ev["gap"] = "S27 模块/接口就绪，但缺少真实 QLoRA 训练/评测/自动晋级/自动回滚证据"
+            return "partial", ev
+        ev["gap"] = "S27 训练队列/灰度监控未就绪"
+        return "missing", ev
+    except Exception as e:
+        return "missing", {"error": str(e)[:200]}
+
+
 CHECKS = [
     ("brain", "主脑路由（14B 可用）", _check_brain),
     ("route_table", "级联路由任务表（本地/云端/移植）", _check_route_table),
@@ -640,6 +683,7 @@ CHECKS = [
     ("hive_capability", "能力基线库 + KB 分层 + 云端 Manifest（S24 · L2 地基）", _check_hive_capability),
     ("hive_importer", "Manifest 吸收 + 沙箱门禁 + 三种模式（S25）", _check_hive_importer),
     ("hive_nodepool", "多节点工蜂 + 容量/成本调度 + 故障转移（S26）", _check_hive_nodepool),
+    ("hive_canary", "7B QLoRA 训练闭环 + 灰度自动回滚 + 持久队列（S27）", _check_hive_canary),
 ]
 
 

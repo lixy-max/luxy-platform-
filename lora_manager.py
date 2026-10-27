@@ -7073,6 +7073,88 @@ def hive_nodes_stats_reset():
     return _mw.reset_stats()
 
 
+# ── S27：训练持久队列 + 灰度自动回滚 ──
+class HiveTrainQueueRequest(BaseModel):
+    task: dict
+
+
+class HiveCanaryStartRequest(BaseModel):
+    lora_id: str
+    ratio: float = 0.05
+    thresholds: dict = {}
+
+
+class HiveCanaryRecordRequest(BaseModel):
+    lora_id: str
+    ok: bool
+    quality: float = None
+    latency_ms: float = None
+
+
+class HiveCanaryAutoRequest(BaseModel):
+    lora_id: str
+
+
+@app.get("/hive/train/queue")
+def hive_train_queue(status: str = "", limit: int = 100):
+    import hive_train_queue as _tq
+    return {"ok": True, "tasks": _tq.list_tasks(status or None, limit), "stats": _tq.stats()}
+
+
+@app.post("/hive/train/queue")
+def hive_train_queue_enqueue(req: HiveTrainQueueRequest):
+    import hive_train_queue as _tq
+    return _tq.enqueue(req.task)
+
+
+@app.post("/hive/train/queue/retry")
+def hive_train_queue_retry(delay_s: int = 0):
+    import hive_train_queue as _tq
+    return _tq.retry_deferred(delay_s)
+
+
+@app.post("/hive/train/queue/process")
+def hive_train_queue_process(dry_run: bool = False):
+    import hive_train_queue as _tq
+    return _tq.process_next(dry_run=dry_run)
+
+
+@app.get("/hive/canary/status")
+def hive_canary_status(lora_id: str = ""):
+    import hive_canary as _cn
+    return {"ok": True, **_cn.status(lora_id or None)}
+
+
+@app.post("/hive/canary/start")
+def hive_canary_start(req: HiveCanaryStartRequest):
+    import hive_canary as _cn
+    return _cn.start_canary(req.lora_id, ratio=req.ratio, thresholds=req.thresholds or None)
+
+
+@app.post("/hive/canary/record")
+def hive_canary_record(req: HiveCanaryRecordRequest):
+    import hive_canary as _cn
+    return _cn.record(req.lora_id, req.ok, quality=req.quality, latency_ms=req.latency_ms)
+
+
+@app.post("/hive/canary/evaluate")
+def hive_canary_evaluate(req: HiveCanaryAutoRequest):
+    import hive_canary as _cn
+    return _cn.evaluate(req.lora_id)
+
+
+@app.post("/hive/canary/auto")
+def hive_canary_auto(req: HiveCanaryAutoRequest):
+    import hive_canary as _cn
+    return _cn.auto(req.lora_id)
+
+
+@app.post("/hive/canary/clear")
+def hive_canary_clear(lora_id: str = ""):
+    import hive_canary as _cn
+    return _cn.clear(lora_id or None)
+
+
 @app.get("/orchestrate/capabilities")
 def orchestrate_capabilities():
     """★ 平台能力清单（DSH 用来自我发现 ✓）
