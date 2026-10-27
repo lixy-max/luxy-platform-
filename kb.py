@@ -3,6 +3,7 @@ import os
 import json
 import shutil
 import hashlib
+import threading
 from pathlib import Path
 from datetime import datetime, timedelta
 import re
@@ -107,9 +108,16 @@ def _get_chroma():
 
 
 _EMBEDDER_CACHE = {}          # model_ref -> SentenceTransformer（★ 按模型缓存 ✓）
+_EMBEDDER_LOCK = threading.RLock()  # 修 meta tensor 并发踩踏
 
 
 def _get_embedder(model_ref=None):
+    """线程安全入口：同一时刻只允许一个模型加载（防 meta tensor 踩踏）"""
+    with _EMBEDDER_LOCK:
+        return _get_embedder_unlocked(model_ref)
+
+
+def _get_embedder_unlocked(model_ref=None):
     """按【模型】缓存 embedding 实例（★ 每个 KB 的模型可以不同 ✓）。
 
     ✗ 原来只缓存一个全局实例 ✓ → 全局环境变量一变，另一批库就报"维度不一致"✗

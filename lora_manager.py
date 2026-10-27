@@ -195,6 +195,75 @@ def _kb_session_mounts(st, session_id=None):
     return [str(x) for x in (st.get("kb_mounted") or []) if str(x).strip()]
 
 
+
+
+def _is_kb_summary_query(text):
+    """判断用户是否在要求「总结/介绍整个知识库」（而非普通检索问答）"""
+    import re as _re
+    t = str(text or "").strip()
+    if not t:
+        return False
+    pats = [r"总结.*知识库", r"知识库.*总结", r"概括.*知识库", r"知识库.*概括",
+            r"概述.*知识库", r"梳理.*知识库", r"归纳.*知识库",
+            r"知识库.*(讲什么|内容是什么|有什么内容|介绍|是干什么|包含什么)",
+            r"这个知识库", r"这些文档.*(总结|概括)"]
+    return any(_re.search(p, t) for p in pats)
+
+
+def _kb_summary_context(kb_name, max_chars=12000, max_chunks=40):
+    """给「总结知识库」构建代表性上下文：文档清单 + 跨文档 chunk 摘录
+
+    普通问答只查 top_k=3 片段，模型看不到全库 ⇒ 无法总结。
+    这里按文档均衡取样，并在 prompt 中明确告知这是总结任务。
+    """
+    import kb as _kb
+    from collections import Counter
+    meta = _kb.get_kb(kb_name)
+    if not meta:
+        raise ValueError("知识库不存在: %s" % kb_name)
+    docs = meta.get("documents") or []
+    items = []
+    doc_lines = []
+    for d in docs[:60]:
+        doc_lines.append("- %s（%s 块 / %s 字）" % (
+            d.get("name", "?"), d.get("chunks", "?"), d.get("chars", "?")))
+    if doc_lines:
+        items.append({"text": "【知识库文档清单】\n" + "\n".join(doc_lines),
+                      "source": "文档清单", "score": 1.0})
+    try:
+        client = _kb._get_chroma()
+        col = client.get_collection(name="kb_%s" % kb_name)
+        r = col.get(limit=max(1, int(max_chunks)), include=["documents", "metadatas"])
+        ds = r.get("documents") or []
+        ms = r.get("metadatas") or [{}] * len(ds)
+        # 先每个文档取第一块，再按顺序补其它块（避免只抽到同一文档）
+        by_src = {}
+        for d, m in zip(ds, ms):
+            src = (m or {}).get("source") or "?"
+            by_src.setdefault(src, []).append(d)
+        ordered = []
+        for src, arr in by_src.items():
+            ordered.append((src, arr[0]))
+        for src, arr in by_src.items():
+            for d in arr[1:]:
+                ordered.append((src, d))
+        used = sum(len(x["text"]) for x in items)
+        for src, d in ordered:
+            if used + len(d or "") > max_chars:
+                break
+            items.append({"text": str(d or ""), "source": src, "score": 1.0})
+            used += len(d or "")
+        if len(ds) > len(ordered):
+            items.append({"text": "【说明】知识库共 %d 块，以上为代表性摘录；总结时请说明是"
+                                   "基于这些代表内容。" % len(ds), "source": "说明"})
+        elif ds:
+            items.append({"text": "【说明】以上覆盖知识库全部 %d 个片段。" % len(ds),
+                          "source": "说明"})
+    except Exception as e:
+        items.append({"text": "【说明】无法读取全部片段（%s），以下仅有文档清单。"
+                              % str(e)[:120], "source": "说明"})
+    return items
+
 def get_lora_dir():
     return Path(load_settings()["lora_dir"])
 
@@ -9824,6 +9893,7 @@ def _learn_handoff(gen, messages, req, _providers):
 def chat_completions_stream(req: ChatRequest):
 
     kb_context = []
+    _kb_summary_requested = False
     # ★ 自动挂载（2026-10-22 空装演练发现）: 普通模式原来**必须手动选库** ✗
     #   Agent 模式已改为自动用 kb_mounted；流式接口这里补上同样的行为 ✓
     _auto_kb_names = []
@@ -9839,6 +9909,7 @@ def chat_completions_stream(req: ChatRequest):
     if req.kb and req.kb.get("name"):
         try:
             query = req.kb.get("query") or (req.messages[-1].content[:200] if req.messages else "")
+            _kb_summary_requested = _is_kb_summary_query(query)
             # ★ 挂 LoRA（角色问答）时用【加主语 + 主语重排】的检索 ✓
             if getattr(req, "lora", None):
                 try:
@@ -9994,15 +10065,33 @@ def chat_completions_stream(req: ChatRequest):
                     print("[sim-router] 参数齐全但节点未返回: %s" % _rr.get("node"), flush=True)
     except Exception as _sre:
         print("[sim-router] 异常(忽略): %s" % _sre, flush=True)
+    # ★ 修（2026-10-27）：用户要求总结知识库时，top_k=3 检索不够 ⇒ 全库代表上下文
+    if _kb_summary_requested and req.kb and req.kb.get("name"):
+        try:
+            _sum_ctx = _kb_summary_context(str(req.kb.get("name")))
+            if _sum_ctx:
+                kb_context = _sum_ctx
+                print("[stream] KB 总结请求 ⇒ 注入代表上下文 %d 项（%d 字）"
+                      % (len(_sum_ctx), sum(len(x.get("text") or "") for x in _sum_ctx)),
+                      flush=True)
+        except Exception as _se:
+            print("[stream] KB 总结上下文构建失败(保留检索结果): %s" % _se, flush=True)
+
     messages = _inject_persona(messages, req)     # ★ 挂 LoRA 时自动给身份 ✓
     _cap_tokens_for_persona(req)                  # ★ L3: 聊天口吻的硬闸 ✓
     if kb_context:
-        # ★ 实测: 原来的"【知识库参考】[片段 n] 来源: 文件名"会诱发【资料整理模式】✗
-        #    → 模型给一大堆分点回答 ✓ 都对但不像聊天 ✓
-        #   改成"你记得的事"+ 明确要求用自己话说 ✗ 去掉来源 ✗ 别把它当参考资料 ✓
-        kb_block = ("\n\n以下是【你记得的事】（凭这些回答，但要用你自己的话讲，"
-                    "不要照读，也不要说\"知识库\"\"资料\"\"片段\"这类词）：\n"
-                    + "\n".join(f"- {str(it['text']).strip()}" for it in kb_context))
+        if _kb_summary_requested:
+            # ★ 修（2026-10-27）：总结知识库是明确任务，不能套普通问答指令
+            kb_block = ("\n\n【用户明确要求：总结该知识库。请直接用中文分点总结："
+                        "①主题与用途 ②主要文档/内容结构 ③关键知识点 ④适合自动化什么任务。"
+                        "必须基于下面提供的文档清单与代表内容，不要回答无法访问/看不到。】\n"
+                        + "\n".join(f"- {str(it['text']).strip()}" for it in kb_context))
+        else:
+            # ★ 实测: 原来的'【知识库参考】'会诱发【资料整理模式】✗
+            #   改成'你记得的事'+ 明确要求用自己话说，去掉来源，别把它当参考资料 ✓
+            kb_block = ("\n\n以下是【你记得的事】（凭这些回答，但要用你自己的话讲，"
+                        "不要照读，也不要说\"知识库\"\"资料\"\"片段\"这类词）：\n"
+                        + "\n".join(f"- {str(it['text']).strip()}" for it in kb_context))
         found = False
         for m in messages:
             if m["role"] == "system":

@@ -4537,7 +4537,9 @@ async function buildUploadContext(userText) {
     // 取**第一个**提到的文件名：取最后一个会被'注意：另一个文件不是目标'这类句子带偏
     // （实测：任务点名 test1.txt，但末尾提到 pdf1.txt，结果注入了 pdf1）
     if (fromText && fromText.length) fn = fromText[0];
-    if (!fn && typeof chatAttached !== 'undefined' && chatAttached) fn = chatAttached;
+    const _attachedName = ((typeof chatAttached !== 'undefined' && chatAttached)
+                          || (window.chatAttached || ''));
+    if (!fn && _attachedName) fn = _attachedName;
     if (!fn) {
         try {
             const _up = await api.tryGet('/uploads');
@@ -4556,7 +4558,7 @@ async function buildUploadContext(userText) {
     }
     if (!fn) return null;
     try {
-        const r = await fetch(`${API_BASE}/uploads/text?filename=${encodeURIComponent(fn)}&max_chars=3000`);
+        const r = await fetch(`${API_BASE}/uploads/text?filename=${encodeURIComponent(fn)}&max_chars=12000`);
         if (!r.ok) {
             const err = await r.json().catch(() => ({}));
             return { role: 'system', content:
@@ -4566,7 +4568,7 @@ async function buildUploadContext(userText) {
         const d = await r.json();
         if (!d || !d.text) return null;
         return { role: 'system', content:
-            `【用户已上传文件：${d.filename}（${d.chars} 字${d.truncated ? '，已截断到 12000 字' : ''}）】\n`
+            `【用户已上传文件：${d.filename}（全文 ${d.chars} 字${d.truncated ? '，本次注入前 ' + d.text.length + ' 字' : '，已完整注入'}）】\n`
             + '以下是该文件正文，请直接基于它回答；不要回答"我看不到文件内容/请把文本发给我"：\n\n'
             + d.text };
     } catch (e) { console.warn('[chat] 注入上传文件失败', e); return null; }
@@ -9285,6 +9287,7 @@ const bubble = createAgentStreamBubble();
     let chatAttached = null;
 
     function setChatAttachChip(name, chars) {
+        try { window.chatAttached = name || null; } catch (e) {}
         chatAttached = name || null;
         const chip = document.getElementById('chat-attach-chip');
         if (!chip) return;
