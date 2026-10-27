@@ -332,6 +332,39 @@ def _check_hive_pool():
         return "missing", {"error": str(e)[:200]}
 
 
+
+def _check_hive_failover():
+    """S20：Failover 阈值 + 云端教师 + 通用轨迹回收"""
+    try:
+        fo = PROJECT_DIR / "hive_failover.py"
+        tj = PROJECT_DIR / "hive_trajectory.py"
+        lm = (PROJECT_DIR / "lora_manager.py").read_text(encoding="utf-8", errors="ignore")
+        ev = {"failover_module": fo.exists(), "trajectory_module": tj.exists(),
+              "api": "/hive/run_failover" in lm and "/hive/trajectories" in lm}
+        live = PROJECT_DIR / "data" / "hive" / "s20_live_test.json"
+        if live.exists():
+            d = json.loads(live.read_text(encoding="utf-8"))
+            cases = d.get("cases") or []
+            ev["cases"] = len(cases)
+            ev["routes"] = sorted({(c.get("result") or {}).get("route") for c in cases})
+            ts = d.get("trajectories_stats") or {}
+            ev["trajectories"] = ts.get("total")
+            ev["providers"] = ts.get("by_provider")
+            fs = d.get("stats_final") or {}
+            ev["escalations"] = fs.get("escalations")
+            ev["cloud_ok"] = fs.get("cloud_ok")
+        ok = (ev["failover_module"] and ev["trajectory_module"] and ev["api"])
+        if ok and (ev.get("trajectories") or 0) >= 1 and ev.get("cloud_ok"):
+            return "pass", ev
+        if ok:
+            ev["gap"] = "模块/接口就绪，但缺少云端教师+轨迹回收实测证据"
+            return "partial", ev
+        ev["gap"] = "S20 Failover/轨迹回收未就绪"
+        return "missing", ev
+    except Exception as e:
+        return "missing", {"error": str(e)[:200]}
+
+
 CHECKS = [
     ("brain", "主脑路由（14B 可用）", _check_brain),
     ("route_table", "级联路由任务表（本地/云端/移植）", _check_route_table),
@@ -346,6 +379,7 @@ CHECKS = [
     ("cloud_build", "缺失工作流→云端搭建→本地沉淀", _check_cloud_build_distill),
     ("hive_router", "蜂巢中枢三路由（S18：Local/Cloud/Sim JSON 决策）", _check_hive_router),
     ("hive_pool", "Worker Pool + LoRA Router（S19：热加载/LRU/能力路由）", _check_hive_pool),
+    ("hive_failover", "Failover 阈值 + 云端教师 + 轨迹回收（S20）", _check_hive_failover),
 ]
 
 

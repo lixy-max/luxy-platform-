@@ -6620,6 +6620,54 @@ def hive_loras(worker_base: str = ""):
     return {"ok": True, "summary": _lr.summary(worker_base=worker_base or None)}
 
 
+# ── S20：Failover + 云端教师 + 轨迹回收 ──
+class HiveFailoverRequest(BaseModel):
+    request: str
+    context: str = ""
+    capabilities: list[str] = []
+    lora_id: str = ""
+    max_tokens: int = 256
+    force_local: bool = False
+    force_cloud: bool = False
+    task_type: str = "other"
+
+
+@app.post("/hive/run_failover")
+def hive_run_failover(req: HiveFailoverRequest):
+    import hive_failover as _fo
+    return _fo.run_with_failover(
+        req.request, context=req.context, capabilities=req.capabilities or None,
+        lora_id=req.lora_id or None, max_tokens=req.max_tokens,
+        force_local=req.force_local, force_cloud=req.force_cloud,
+        task_type=req.task_type)
+
+
+@app.get("/hive/failover/stats")
+def hive_failover_stats():
+    import hive_failover as _fo
+    return {"ok": True, **_fo.stats()}
+
+
+@app.post("/hive/failover/reset")
+def hive_failover_reset():
+    import hive_failover as _fo
+    _fo.reset()
+    return {"ok": True, "reset": True}
+
+
+@app.get("/hive/trajectories")
+def hive_trajectories(limit: int = 20, source: str = "", task_type: str = ""):
+    import hive_trajectory as _tj
+    return {"ok": True, "trajectories": _tj.list_trajectories(
+        limit=limit, source=source or None, task_type=task_type or None)}
+
+
+@app.get("/hive/trajectories/stats")
+def hive_trajectORIES_stats():
+    import hive_trajectory as _tj
+    return {"ok": True, **_tj.stats()}
+
+
 @app.get("/orchestrate/capabilities")
 def orchestrate_capabilities():
     """★ 平台能力清单（DSH 用来自我发现 ✓）
