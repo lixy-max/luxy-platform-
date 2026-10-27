@@ -466,6 +466,41 @@ def _check_hive_sim():
         return "missing", {"error": str(e)[:200]}
 
 
+
+def _check_hive_memory():
+    """S23：主脑路由临时知识库（上下文记录/语义检索/TTL）"""
+    try:
+        mod = PROJECT_DIR / "hive_memory.py"
+        lm = (PROJECT_DIR / "lora_manager.py").read_text(encoding="utf-8", errors="ignore")
+        ev = {"module": mod.exists(),
+              "api": "/hive/memory/search" in lm and "/hive/memory/stats" in lm,
+              "orchestrator_integration": "_mem_record" in
+                  (PROJECT_DIR / "hive_orchestrator.py").read_text(encoding="utf-8",
+                                                                   errors="ignore")}
+        live = PROJECT_DIR / "data" / "hive" / "s23_memory_test.json"
+        if live.exists():
+            d = json.loads(live.read_text(encoding="utf-8"))
+            st = d.get("stats") or {}
+            ev["records"] = st.get("total")
+            ev["targets"] = list((st.get("targets") or {}).keys())
+            sem = d.get("search_semantic") or []
+            ev["semantic_sources"] = sorted({r.get("source")
+                                            for x in sem for r in (x.get("rows") or [])})
+            dm = d.get("decide_with_memory") or {}
+            ev["memory_used"] = (dm.get("meta") or {}).get("memory_used")
+        ok = ev["module"] and ev["api"] and ev["orchestrator_integration"]
+        if ok and (ev.get("records") or 0) >= 3 and ev.get("targets") and \
+                ev.get("semantic_sources") and ev.get("memory_used"):
+            return "pass", ev
+        if ok:
+            ev["gap"] = "记忆模块/接口就绪，但缺少路由记录+语义检索+上下文注入实测证据"
+            return "partial", ev
+        ev["gap"] = "S23 临时知识库记忆未就绪"
+        return "missing", ev
+    except Exception as e:
+        return "missing", {"error": str(e)[:200]}
+
+
 CHECKS = [
     ("brain", "主脑路由（14B 可用）", _check_brain),
     ("route_table", "级联路由任务表（本地/云端/移植）", _check_route_table),
@@ -484,6 +519,7 @@ CHECKS = [
     ("hive_autotune", "轨迹质检 + 训练调度 + 阈值自动训练（S21）", _check_hive_autotune),
     ("hive_hotload", "热加载流水线（S22：shadow/灰度/回滚）", _check_hive_hotload),
     ("hive_sim", "仿真节点（S22：压测/合成数据/脏数据隔离）", _check_hive_sim),
+    ("hive_memory", "主脑路由临时知识库（S23：上下文记录/语义检索/TTL）", _check_hive_memory),
 ]
 
 

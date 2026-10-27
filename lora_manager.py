@@ -6847,6 +6847,50 @@ def hive_sim_stats():
     return {"ok": True, **_sim.stats()}
 
 
+# ── S23：主脑路由临时知识库（上下文记录） ──
+class HiveMemoryRecordRequest(BaseModel):
+    request: str
+    decision: dict = {}
+    answer: str = ""
+    kind: str = "route"
+
+
+@app.get("/hive/memory/search")
+def hive_memory_search(q: str, limit: int = 3, semantic: bool = False):
+    import hive_memory as _mem
+    return {"ok": True, "query": q, "results": _mem.search(q, limit=limit, semantic=semantic)}
+
+
+@app.get("/hive/memory/context")
+def hive_memory_context(q: str, limit: int = 3):
+    import hive_memory as _mem
+    return {"ok": True, "context": _mem.context_for(q, limit=limit)}
+
+
+@app.get("/hive/memory/stats")
+def hive_memory_stats():
+    import hive_memory as _mem
+    return {"ok": True, **_mem.stats()}
+
+
+@app.post("/hive/memory/record")
+def hive_memory_record(req: HiveMemoryRecordRequest):
+    import hive_memory as _mem
+    return _mem.record(req.request, req.decision, answer=req.answer, kind=req.kind)
+
+
+@app.post("/hive/memory/cleanup")
+def hive_memory_cleanup():
+    import hive_memory as _mem
+    return {"ok": True, **_mem.cleanup()}
+
+
+@app.post("/hive/memory/clear")
+def hive_memory_clear():
+    import hive_memory as _mem
+    return _mem.clear()
+
+
 @app.get("/orchestrate/capabilities")
 def orchestrate_capabilities():
     """★ 平台能力清单（DSH 用来自我发现 ✓）

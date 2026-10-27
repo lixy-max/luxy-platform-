@@ -587,18 +587,38 @@ def _audit(rec):
         pass
 
 
+
+def _mem_record(request, decision, answer=""):
+    """记录路由决策到临时知识库（失败不影响主流程）"""
+    try:
+        import hive_memory as _mem
+        return _mem.record(request, decision, answer=answer, kind="route")
+    except Exception:
+        return None
+
+
 def decide(request, context="", use_llm=True, max_retries=MAX_RETRIES):
     """三路由决策主入口；返回 {ok, decision, meta, inventory_digest}"""
     request = str(request or "").strip()
     t0 = time.time()
     inventory = build_inventory()
+    _mem_ctx = ""
+    try:
+        import hive_memory as _mem2
+        # sim 压测走 S1 硬规则：跳过语义记忆检索（避免每请求 embedding + 内存压力）
+        _low_req = request.lower()
+        if not any(k in _low_req for k in [k.lower() for k in SIM_KEYWORDS]):
+            _mem_ctx = _mem2.context_for(request)
+    except Exception:
+        _mem_ctx = ""
     inv_digest = {"workers": [(w.get("id"), w.get("status")) for w in inventory["workers"]],
                   "loras": [l.get("id") for l in inventory["loras"][:8]],
                   "cloud": [c.get("provider") for c in inventory["cloud"]],
                   "sim": [s.get("scenario") for s in inventory["sim"]]}
     meta = {"attempts": 0, "llm_used": False, "fallback": False,
             "validation_errors": [], "repaired": False,
-            "llm": {}, "model": _model_name()}
+            "llm": {}, "model": _model_name(),
+            "memory_used": bool(_mem_ctx), "memory_chars": len(_mem_ctx)}
     if not request:
         return {"ok": False, "error": "request 必填", "meta": meta}
 
@@ -609,6 +629,7 @@ def decide(request, context="", use_llm=True, max_retries=MAX_RETRIES):
         d["confidence"] = 0.95
         d["reason_trace"] = ["S1: 请求含压测/并发/模拟/合成/脏数据关键词 → sim"]
         meta.update({"fallback": False, "rule": "S1", "latency_ms": round((time.time() - t0) * 1000)})
+        _mem_record(request, d)
         global _audit_sim_counter
         _audit_sim_counter += 1
         if _audit_sim_counter % _AUDIT_SIM_N == 1:
@@ -627,9 +648,10 @@ def decide(request, context="", use_llm=True, max_retries=MAX_RETRIES):
                     .replace("{inventory}", json.dumps(inventory, ensure_ascii=False)))
             messages = [
                 {"role": "system", "content": _sys},
-                {"role": "user", "content": "请求：%s%s" % (
+                {"role": "user", "content": "请求：%s%s%s" % (
                     request,
-                    ("\n\n补充背景：\n" + str(context)[:2000]) if context else "")},
+                    ("\n\n补充背景：\n" + str(context)[:2000]) if context else "",
+                    ("\n\n" + _mem_ctx) if _mem_ctx else "")},
             ]
             if errors:
                 messages.append({"role": "user", "content":
@@ -655,6 +677,7 @@ def decide(request, context="", use_llm=True, max_retries=MAX_RETRIES):
                 meta["validation_errors"] = errs
                 meta["normalized_errors"] = errs if errs else []
                 meta["repaired"] = bool(errs) or attempt > 0
+                _mem_record(request, normalized)
                 rec = {"at": time.strftime("%Y-%m-%dT%H:%M:%S"), "request": request[:500],
                        "context": str(context or "")[:300], "decision": normalized,
                        "meta": meta}
@@ -670,6 +693,7 @@ def decide(request, context="", use_llm=True, max_retries=MAX_RETRIES):
                               ("; ".join(last_errors[:3]) if last_errors else "use_llm=False"))
     d["confidence"] = 0.35
     meta.update({"fallback": True, "latency_ms": round((time.time() - t0) * 1000)})
+    _mem_record(request, d)
     rec = {"at": time.strftime("%Y-%m-%dT%H:%M:%S"), "request": request[:500],
            "context": str(context or "")[:300], "decision": d, "meta": meta}
     _audit(rec)
