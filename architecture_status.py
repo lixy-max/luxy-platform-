@@ -576,6 +576,48 @@ def _check_hive_importer():
         return "missing", {"error": str(e)[:200]}
 
 
+
+def _check_hive_nodepool():
+    """S26：多节点工蜂 + 容量/成本调度 + 故障转移"""
+    try:
+        nr = PROJECT_DIR / "hive_node_registry.py"
+        mw = PROJECT_DIR / "hive_multi_worker.py"
+        lm = (PROJECT_DIR / "lora_manager.py").read_text(encoding="utf-8", errors="ignore")
+        ev = {"registry_module": nr.exists(), "multi_worker": mw.exists(),
+              "api": "/hive/nodes/run" in lm and "/hive/nodes/pick" in lm}
+        live = PROJECT_DIR / "data" / "hive" / "s26_acceptance.json"
+        if live.exists():
+            d = json.loads(live.read_text(encoding="utf-8"))
+            health = d.get("health") or {}
+            ev["nodes_healthy"] = sum(1 for v in health.values() if v.get("healthy"))
+            conc = d.get("concurrent") or {}
+            ev["concurrent_ok"] = conc.get("ok")
+            ev["nodes_used"] = conc.get("nodes")
+            fo = d.get("failover") or {}
+            first = fo.get("first") or {}
+            st = d.get("stats") or {}
+            route = st.get("route_stats") or {}
+            ev["failover_attempts"] = [a.get("node") for a in (first.get("attempts") or [])]
+            ev["failovers"] = route.get("failovers")
+            ev["route_total"] = route.get("total")
+            pick = d.get("pick") or {}
+            ev["pick_15b"] = (pick.get("1.5b") or {}).get("node", {}).get("id")
+            ev["pick_cost"] = (pick.get("json_cost") or {}).get("node", {}).get("id")
+        ok = ev["registry_module"] and ev["multi_worker"] and ev["api"]
+        if ok and (ev.get("nodes_healthy") or 0) >= 2 and (ev.get("concurrent_ok") or 0) >= 20 and \
+                set(ev.get("nodes_used") or []) >= {"w1", "w2"} and \
+                set(ev.get("failover_attempts") or []) >= {"w1", "w2"} and \
+                (ev.get("failovers") or 0) >= 1 and (ev.get("route_total") or 0) >= 20:
+            return "pass", ev
+        if ok:
+            ev["gap"] = "多节点模块/接口就绪，但缺少并发跨节点/故障转移/容量调度实测证据"
+            return "partial", ev
+        ev["gap"] = "S26 多节点工蜂未就绪"
+        return "missing", ev
+    except Exception as e:
+        return "missing", {"error": str(e)[:200]}
+
+
 CHECKS = [
     ("brain", "主脑路由（14B 可用）", _check_brain),
     ("route_table", "级联路由任务表（本地/云端/移植）", _check_route_table),
@@ -597,6 +639,7 @@ CHECKS = [
     ("hive_memory", "主脑路由临时知识库（S23：上下文记录/语义检索/TTL）", _check_hive_memory),
     ("hive_capability", "能力基线库 + KB 分层 + 云端 Manifest（S24 · L2 地基）", _check_hive_capability),
     ("hive_importer", "Manifest 吸收 + 沙箱门禁 + 三种模式（S25）", _check_hive_importer),
+    ("hive_nodepool", "多节点工蜂 + 容量/成本调度 + 故障转移（S26）", _check_hive_nodepool),
 ]
 
 

@@ -7013,6 +7013,66 @@ def hive_imports_run(req: HiveImportRunRequest):
     return _imp.run_absorbed(req.capability_id, req.payload)
 
 
+# ── S26：多节点工蜂 + 容量/成本调度 ──
+class HiveNodeRegisterRequest(BaseModel):
+    node: dict
+
+
+class HiveNodeRunRequest(BaseModel):
+    request: str
+    capability: str = ""
+    family: str = ""
+    policy: str = "balanced"
+    max_tokens: int = 256
+    max_attempts: int = 3
+
+
+@app.get("/hive/nodes")
+def hive_nodes():
+    import hive_node_registry as _nr
+    return {"ok": True, "nodes": _nr.list_nodes(), "stats": _nr.stats()}
+
+
+@app.post("/hive/nodes/register")
+def hive_nodes_register(req: HiveNodeRegisterRequest):
+    import hive_node_registry as _nr
+    return _nr.register_node(req.node)
+
+
+@app.post("/hive/nodes/health")
+def hive_nodes_health(refresh: bool = True):
+    import hive_node_registry as _nr
+    res = _nr.check_all(force=bool(refresh))
+    return {"ok": True, "health": res, "stats": _nr.stats()}
+
+
+@app.get("/hive/nodes/pick")
+def hive_nodes_pick(capability: str = "", family: str = "", policy: str = "balanced"):
+    import hive_multi_worker as _mw
+    return {"ok": True, **_mw.pick(capability=capability or None,
+                                   family=family or None, policy=policy)}
+
+
+@app.post("/hive/nodes/run")
+def hive_nodes_run(req: HiveNodeRunRequest):
+    import hive_multi_worker as _mw
+    return _mw.route_run(req.request, capability=req.capability or None,
+                         family=req.family or None, policy=req.policy,
+                         max_tokens=req.max_tokens, max_attempts=req.max_attempts)
+
+
+@app.get("/hive/nodes/stats")
+def hive_nodes_stats():
+    import hive_multi_worker as _mw
+    return {"ok": True, **_mw.node_stats()}
+
+
+@app.post("/hive/nodes/stats/reset")
+def hive_nodes_stats_reset():
+    import hive_multi_worker as _mw
+    return _mw.reset_stats()
+
+
 @app.get("/orchestrate/capabilities")
 def orchestrate_capabilities():
     """★ 平台能力清单（DSH 用来自我发现 ✓）

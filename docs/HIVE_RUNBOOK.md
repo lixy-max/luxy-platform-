@@ -129,3 +129,19 @@ setsid nohup env VLLM_USE_FLASHINFER_SAMPLER=0 /home/luxy/.venv/bin/python -c \
 
 状态语义：`active`（direct 通过，可直接调用）· `shadow`（rebuild 骨架待开发+评测）· `pending_training`（train 计划待训练）· `rejected`（门禁/安全/评分拒绝，注册 broken 留痕）。
 数据：`data/hive/sandbox/<capability_id>/`（代码/workflow/运行环境）· `data/hive/imports/<capability_id>.json`（门禁证据）。
+
+
+## 9. 多节点工蜂（S26 起）
+
+| 端点 | 方法 | 说明 |
+|---|---|---|
+| `/hive/nodes` | GET | 节点列表（类型/基座/GPU/槽位/成本/能力/状态） |
+| `/hive/nodes/register` | POST | 注册/更新节点（含 priority/cost_score/capabilities/loaded_loras） |
+| `/hive/nodes/health?refresh=true` | POST | 健康检查（w1 真实 7B；w2 mock 验证节点；cloud） |
+| `/hive/nodes/pick?capability=&policy=` | GET | 选节点（balanced/cost/latency，能力+容量+成本） |
+| `/hive/nodes/run` | POST | 选节点+执行+故障转移（失败自动换节点，全失败→need_cloud） |
+| `/hive/nodes/stats` | GET | 节点/调度统计（每节点请求/成功/失败/延迟、failovers） |
+
+**节点说明**：`w1` = 真实 7B AWQ（:8002，GPU1）；`w2` = **mock 验证节点**（:8003，CPU，非真实模型，仅用于多节点调度/故障转移验证）；`cloud` = 云端兜底。
+**mock 节点启停**：`setsid nohup /home/luxy/.venv/bin/python scripts/mock_worker.py > /tmp/mock.out 2>&1 &`（或 `pkill -f mock_worker.py`）。
+数据：`data/hive/nodes.json`（节点注册表）· `data/hive/s26_acceptance.json`（验收证据）。

@@ -9,6 +9,7 @@
 | B027 | P1 | fixed | repo | 事故：git sparse-checkout 误作用于主仓库，导致 tests/ 等跟踪文件被移除（已恢复） | S8 |
 | B055 | P1 | fixed | hive_pool | S19 并发下 vLLM load/unload LoRA 与 in-flight 推理竞态 → 404/EngineDeadError | S19 |
 | B058 | P1 | fixed | hive_trainer | 3060 同时承担工蜂+训练可能 OOM（用户指出的资源冲突） | S21 |
+| B066 | P1 | fixed | hive_nodepool | S26 priority=0 被 `or` 吞掉 → latency/cost 策略排序失效（故障转移测不出来） | S26 |
 | B002 | P2 | fixed | kb/table | 表格结构化存储只取第一个 sheet；多 sheet/多表关联未做 | S3 |
 | B003 | P2 | parked | kb/qa | LLM 兜底路径非数字实体仍可能误差（校验只覆盖数字） | S3 |
 | B004 | P2 | fixed | worker | LoRA 工蜂能力可能返回 <tool_call> 文本而非执行结果 | S2 |
@@ -52,6 +53,7 @@
 | B062 | P2 | fixed | hive_memory | 临时知识库记忆实现问题：语义检索返回 tuple 误当 dict + 并发建库竞态 + 中文整句 LIKE 不命中 | S23 |
 | B063 | P2 | fixed | hive_capability | S24 能力判定初版规则问题：token 匹配缺失 / sim 未优先 / 硬缺口未强制云端 | S24 |
 | B064 | P2 | fixed | hive_importer | S25 importer rebuild 生成器 str().get() 优先级错误（rebuild 模式直接崩） | S25 |
+| B065 | P2 | fixed | hive_nodepool | S26 节点健康检查路径顺序错误（vLLM 应优先 /v1/models，mock 优先 /health） | S26 |
 | B001 | P3 | fixed | frontend | 前端任务表无自动轮询，执行后需手动刷新 | S2 |
 | B008 | P3 | parked | security | vLLM 未启用 api-key（仅绑定回环） | P0 |
 | B009 | P3 | wontfix | infra | /vllm/start 冷启动 26–28s（未优化） | P7 |
@@ -87,6 +89,11 @@
 - 区域：hive_trainer ｜ 严重度：P1 ｜ 状态：fixed
 - 发现于：S21 ｜ 登记：2026-10-27T10:07:49
 - 详情：GPU1(3060 12G) 日常跑工蜂 7B(~9.9GB)，训练时若并发/显存不足会 OOM。已实现：资源感知调度（空闲显存+5%余量）→ 3060 优先（必要时停工蜂、训后恢复）→ **回退 5060**（必要时停主脑、训后恢复）→ 都不可行则 defer（不强上）；训练进程若真 OOM 自动换卡重试一次。实测：3060 停工蜂→训练 10.1s→恢复工蜂 35.7s 全流程成功；5060 回退计划（stop_main_brain, fallback=true）已验证。
+
+### B066 · S26 priority=0 被 `or` 吞掉 → latency/cost 策略排序失效（故障转移测不出来）
+- 区域：hive_nodepool ｜ 严重度：P1 ｜ 状态：fixed
+- 发现于：S26 ｜ 登记：2026-10-27T11:08:21
+- 详情：`int(n.get('priority') or 9)` 把 priority=0 变成 9，w2(0) 永远排不到前面；另 available_nodes 用 'text' 兜底放行导致能力过滤失效、degraded/down 未排除。已修：_num() 安全数值、严格能力匹配、状态排除。
 
 ### B002 · 表格结构化存储只取第一个 sheet；多 sheet/多表关联未做
 - 区域：kb/table ｜ 严重度：P2 ｜ 状态：fixed
@@ -302,6 +309,11 @@
 - 区域：hive_importer ｜ 严重度：P2 ｜ 状态：fixed
 - 发现于：S25 ｜ 登记：2026-10-27T11:02:46
 - 详情：`_gen_rebuild_assets` 中 `str(manifest.get("interface") or {}).get("protocol")` 先把 dict 转成 str 再 .get → AttributeError，rebuild 模式不可用。已修：改为 `str((manifest.get("interface") or {}).get("protocol"))`，单测 test_rebuild_shadow 覆盖。另：测试 manifest 24GB 显存被 validate 正确拒绝（符合设计）。
+
+### B065 · S26 节点健康检查路径顺序错误（vLLM 应优先 /v1/models，mock 优先 /health）
+- 区域：hive_nodepool ｜ 严重度：P2 ｜ 状态：fixed
+- 发现于：S26 ｜ 登记：2026-10-27T11:08:21
+- 详情：健康检查统一 /health→/v1/models，导致 vLLM 节点 served_model 探测不到/mock 探测口径不一致；已改为按节点类型选择探测顺序。
 
 ### B001 · 前端任务表无自动轮询，执行后需手动刷新
 - 区域：frontend ｜ 严重度：P3 ｜ 状态：fixed
